@@ -1,0 +1,107 @@
+---
+title: "Ratio estimates of density"
+name: "St Clair 8/3/18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NULL, collapse = TRUE, prompt = TRUE, warning = FALSE, message = FALSE)
+library(readxl)
+library(tidyverse)
+library(survey)
+```
+
+```{r, include = TRUE}
+double.dat <- read_xlsx(path="data/Encounters - Quadrats (Responses).xlsx", sheet=1) %>% select(-1)
+double.dat %>% group_by(`Lake name`, `Observer name`, `Transect #`, `Distance along transect (m)`) %>% count() %>% filter(n > 1) %>% print(width = Inf)
+```
+```{r, eval = FALSE, include=FALSE}
+# one duplicated entry (Aislyn, Burgan, tran3, dist2)
+double.dat <- distinct(double.dat)
+double.dat %>% group_by(`Lake name`,  `Transect #`) %>% count() %>% summarize(odd = ((n %% 2) == 1) )%>% filter(odd)
+double.dat %>% filter(`Lake name` == "Lake Burgan", `Transect #` == 7)
+# row 144 should be tran 15 and not 12
+double.dat$`Transect #`[144] <- 15
+```
+
+#### Quad sampling: assuming perfect detection
+For each transect $i$ ($i = 1, \dotsc, T$), we observe mussel counts in $n_i$ quadrats. The total number of mussels for each transect is $y_i$ (summed over all quads) and the total area sampled in a transect is $a_i = n_i \times 0.5^2$ square-meters. The total area and number of quads sampled varies across quads, so we will use a ratio estimate of density:
+$$
+\hat{D} = \dfrac{\sum_{i=1}^T y_i}{\sum_{i=1}^T a_i}
+$$
+
+We can use the `survey` package to obtain this ratio estimate and SE for each lake. The design assumes a SRS of transects around the lake with mussel counts and area recorded fro each transect. 
+```{r}
+double.tran <- double.dat %>% 
+  group_by(`Transect #`, `Lake name`) %>%
+  summarize(y = sum(`Number of mussels in quadrat`), ni = n(), area = ni*.5*.5)
+double.tran %>% group_by(`Lake name`) %>% summarize(totalY = sum(y), totalArea = sum(area))
+des <- svydesign(data = double.tran, id = ~1, strata = ~`Lake name`)
+svyratio(~y, ~area, des, separate = TRUE)
+```
+
+#### Transect sampling (no distance): assuming perfect detection
+For each transect $i$ ($i = 1, \dotsc, T$), let $l_i$ be the length of the transect sampled. The total number of mussels for each transect observed by **both** divers is $y_i$. The total area sampled in a transect is $a_i = l_i \times w \times 2$ square-meters where $w$ is the (half-width) distance from the transect that divers looked for mussels. The total area and number of quads sampled varies across quads, so we will use a ratio estimate of density:
+$$
+\hat{D} = \dfrac{\sum_{i=1}^T y_i}{\sum_{i=1}^T a_i}
+$$
+
+Results for transects 1-8, assuming $w = 0.5$m:
+
+```{r}
+double.dat      <- read_xlsx(path="data/Encounters - Double observer - no distance (Responses).xlsx", sheet=1) %>% select(-1)
+double.dat$`Number of mussels in cluster`[is.na(double.dat$`Number of mussels in cluster`)] <- 0
+```
+```{r}
+transect.dat      <- read_xlsx(path="data/Transect datasheets (Responses).xlsx", sheet=1) %>% 
+  filter(`Survey type` == "Double observer no distance") %>%
+  select(`Transect number`, `Transect length (if transect survey)`, `Lake name:`)
+dim(transect.dat)
+transect.dat <- transect.dat %>% rename(`Transect #` = `Transect number`,length = `Transect length (if transect survey)`) %>%
+  mutate(`Lake name` = recode(`Lake name:`, Burgan = "Lake Burgan", Florida = "Lake Florida", `Little Birch Lake` = "Little Birch Lake"))
+
+```
+```{r}
+double.tran <- double.dat %>% 
+  group_by(`Transect #`, `Lake name`) %>%
+  summarize(y = sum(`Number of mussels in cluster`))
+dim(double.tran)
+double.tran <- left_join(double.tran, transect.dat, by = c("Lake name", "Transect #"))
+double.tran %>% group_by(`Lake name`) %>% summarize(totalY = sum(y), totalArea = sum(length))
+des <- svydesign(data = double.tran, id = ~1, strata = ~`Lake name`)
+svyratio(~y, ~length, des, separate = TRUE)
+```
+
+Results for transects 1-8, assuming $w = 1$m:
+
+```{r}
+double.tran <- double.tran %>%
+  mutate(area = 2*length)
+double.tran %>% group_by(`Lake name`) %>% summarize(totalY = sum(y), totalArea = sum(area))
+des <- svydesign(data = double.tran, id = ~1, strata = ~`Lake name`)
+svyratio(~y, ~area, des, separate = TRUE)
+```
+
+#### from ddf removal sampling: assumes $w = 0.5$?? 
+Since area is equal to length, assuming that half width is 0.5m. 
+
+Burgan:
+```
+> ( dhat.double   <- sum(detect.vec, na.rm=T)*eS/phat/sum(trans.area) )
+[1] 0.05198556
+```
+
+Florida:
+```
+>   #? sum over area?
+> ( dhat.double   <- sum(detect.vec, na.rm=T)*eS/phat/sum(trans.area) )
+[1] 0.01736111
+```
+
+Little Birch:
+```
+>   #? sum over area?
+> ( dhat.double   <- sum(detect.vec, na.rm=T)*eS/phat/sum(trans.area) )
+[1] 2.167115
+```
+
