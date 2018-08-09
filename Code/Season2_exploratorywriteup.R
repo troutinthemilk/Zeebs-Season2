@@ -3,20 +3,21 @@ library(knitr)
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, include=FALSE, results='hide', error=TRUE)
 
 #+ echo=FALSE, warning=FALSE
-library(Distance)
+#library(Distance)
 library(mrds)
 library(dplyr)
-library(dsm)
-require(pscl)
+library(MASS)
+#library(dsm)
+#require(pscl)
 library(lubridate)
-library(googlesheets)
-library(plotrix)
+#library(googlesheets)
+#library(plotrix)
 library(ggplot2)
 library(gridExtra)
 library(readxl)
 
 
-source('ZebraFuncs.R')
+source('ZebraFuncs.R') ##assumes your current working directory is "Code". various functions for related to analyzing zeeb densities.
 #httr::config(http_version = 1)
 
 curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
