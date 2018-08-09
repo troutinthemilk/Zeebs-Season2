@@ -1,0 +1,254 @@
+---
+title: 'Season 2: exploratory analysis'
+author: ""
+date: "July 31, 2018"
+output:
+  pdf_document: 
+    fig_caption: yes
+  html_document: 
+    fig_caption: yes
+  word_document: default
+header-includes:
+   - \usepackage{graphicx}
+   - \usepackage{lineno}
+   - \linenumbers
+   - \usepackage{setspace}\doublespacing
+classoption: a4paper
+always_allow_html: yes
+fontsize: 11pt
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(MASS)
+library(Distance)
+library(mrds)
+library(dplyr)
+library(dsm)
+require(pscl)
+library(lubridate)
+library(googlesheets)
+library(plotrix)
+library(ggplot2)
+library(gridExtra)
+library(readxl)
+library(plotrix)
+library(kableExtra)
+
+source('../Code/ZebraFuncs.R')
+
+curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
+curr.lake2  <- c("Burgan", "Little Birch Lake", "Florida")
+use.design  <- FALSE #model based or design based variance?
+
+index             <- 1
+LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LB.quadrat.est    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
+
+
+#check datasets
+#distance.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1)
+#distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+
+double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1)
+double.dat %>% subset(.$`Lake name` == "Lake Burgan") %>% group_by("Observer name", "Transect #", "Distance along transect (m)") %>% print(n=dim(double.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+#distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+
+
+quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
+quadrat.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(quadrat.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+#distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+
+
+dhat.LB.vec     <- c(LB.distance.est$Dhat, LB.double.est$Dhat, LB.quadrat.est$Dhat)
+dhat.se.LB.vec  <- c(LB.distance.est$Dhat.se, LB.double.est$Dhat.se, LB.quadrat.est$Dhat.se)
+
+
+index            <- 2
+LBL.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LBL.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LBL.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
+
+dhat.LBL.vec     <- c(LBL.distance.est$Dhat, LBL.double.est$Dhat, LBL.quadrat.est$Dhat)
+dhat.se.LBL.vec  <- c(LBL.distance.est$Dhat.se, LBL.double.est$Dhat.se, LBL.quadrat.est$Dhat.se)
+
+
+index            <- 3
+LF.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LF.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LF.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
+
+dhat.LF.vec     <- c(LF.distance.est$Dhat, LF.double.est$Dhat, LF.quadrat.est$Dhat)
+dhat.se.LF.vec  <- c(LF.distance.est$Dhat.se, LF.double.est$Dhat.se, LF.quadrat.est$Dhat.se)
+
+time.df <- rbind(LB.distance.est$df, LB.double.est$df, LB.quadrat.est$df, LBL.distance.est$df, LBL.double.est$df, LBL.quadrat.est$df, LF.distance.est$df, LF.double.est$df, LF.quadrat.est$df)
+
+```
+
+## Density & Detection Estimates
+
+We estimated the density in each lake following three different survey methods (Figure \ref{fig:densityEst}). Distance survey (*in which the distance from the transect line is recorded*), double observer survey (*in which a narrower transect is surveyed and distance is not recorded*), and quadrat survey (*in which a number of smaller quadrats on each transect are surveyed, assuming detection is perfect*). The bars in Figure \ref{fig:densityEst} correspond to one standard error. A potentially interesting outcome is that quadrat surveys are consistenlty estimating higher densities than the other designs, though it is clear from the amount of uncertainty in the estimates that we cannot make very strong conclusions on this point yet.  All counts were modeled using design-based estimates.
+
+```{r densityEst, echo=F, warning=F, out.width='50%', fig.asp=0.75, fig.cap="Y-axis is logarithmic. Bars are 2 standard errors.", fig.align="center"}
+library(RColorBrewer)
+col.vec <- brewer.pal(3, "Set1")
+dhat.vec    <- c(dhat.LB.vec, dhat.LBL.vec, dhat.LF.vec)
+dhat.se.vec <- c(dhat.se.LB.vec, dhat.se.LBL.vec, dhat.se.LF.vec)
+tol <- 1e-10
+plotCI(x=c(1,1,1, 2,2,2, 3,3,3) + c(-0.1, 0, 0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=sapply(dhat.vec - 2*dhat.se.vec, max, tol), xaxt = 'n', ylab="Estimated density", xlab="Lake name", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, ylim=c(01e-2, 2e3), log="y", cex.lab=1.3)
+axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
+legend('topright', legend=c("Distance survey", "Double observer", "Quadrat survey"), pch=19, cex=1.3, col=col.vec)
+```
+
+
+We can also look at the detection probabilities in each transect (Figure \ref{fig:detectionEst}). The detection probabilities of the distance survey are consistently lower than the double observer survey. The numbers are the pooled (total) number of detections by both observers. Note that I did not include observer effects in the models (both observers are assumed to have same detection probability).
+
+```{r detectionEst, echo=F, warnings=F, out.width='50%', fig.asp=0.75, messages=F, fig.cap="Numbers on the figure denote the total number of detections used to estimate detection probabilities. Bars are two standard errors. Horizontal dashed lines give the average of the lake estimates. ", fig.align="center"}
+
+phat.vec    <- c(LB.distance.est$phat, LB.double.est$phat, LBL.distance.est$phat, LBL.double.est$phat, LF.distance.est$phat, LF.double.est$phat)
+phat.se.vec <- c(LB.distance.est$phat.se, LB.double.est$phat.se, LBL.distance.est$phat.se, LBL.double.est$phat.se, LF.distance.est$phat.se, LF.double.est$phat.se)
+ss.vec      <- c(LB.distance.est$Detections, sum(LB.double.est$Detections), LBL.distance.est$Detections, sum(LBL.double.est$Detections), LF.distance.est$Detections, sum(LF.double.est$Detections))
+
+par(mar=c(5.1, 6.5, 4.1, 2.1))
+plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=2*phat.se.vec, liw=2*phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec[-3], pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, ylim=c(0,1))
+abline(h=mean(phat.vec[c(1,3,5)]), col=col.vec[1], lty=3)
+abline(h=mean(phat.vec[c(2,4,6)]), col=col.vec[2], lty=3)
+axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
+text(x=c(1,1, 2,2, 3,3) + 2*c(-0.1, 0.1), phat.vec-0.11, labels=ss.vec, col=col.vec[-3])
+
+legend('bottomleft', legend=c("Distance survey", "Double observer"), pch=19, cex=1.3, col=col.vec[-3])
+
+```
+
+It's not exactly clear why the double observer survey has such a higher detection than the distance survey, though the estimates are remarkably consistent for each survey type, regardless of sample size. Looking at the histogram of detections (along with the fitted detection model) may provide a clue (Figure \ref{fig:hist}). I used the hazard-rate detection function, which has a shoulder after which detection falls off.
+
+```{r hist, echo=F, warning=F, out.width='100%', fig.asp=0.4, messages=F, fig.cap=" ", fig.align="center"}
+par(mfrow=c(1,3))
+plot(LB.distance.est$ddf, which=2, nc=20, showpoints=F, lwd=1, col='darkgrey', density=100, border="white", main="Lake Burgan")
+plot(LBL.distance.est$ddf, which=2, nc=20, showpoints=F, lwd=1, col='darkgrey', density=100, border="white", main="Little Birch Lake")
+plot(LF.distance.est$ddf, which=2, nc=20, showpoints=F, lwd=1, col='darkgrey', density=100, border="white", main="Lake Florida")
+```
+
+Figure \ref{fig:hist} in Burgan and Florida suggests that detection may fall off at about 0.5 meters. Data is extremely limited to infer any of these patterns, however. Little Birch Lake, which has the most detections, does not show this pattern... 
+
+
+```{r, echo=F, warning=F}
+LB.ss <- c(summary(LB.distance.est$ddf)$mr.summary$n1, summary(LB.distance.est$ddf)$mr.summary$n2, summary(LB.double.est$ddf)$n1, summary(LB.double.est$ddf)$n2, sum(LB.quadrat.est$Mussels))
+LBL.ss <- c(summary(LBL.distance.est$ddf)$mr.summary$n1, summary(LBL.distance.est$ddf)$mr.summary$n2, summary(LBL.double.est$ddf)$n1, summary(LBL.double.est$ddf)$n2, sum(LBL.quadrat.est$Mussels))
+LF.ss <- c(summary(LF.distance.est$ddf)$mr.summary$n1, summary(LF.distance.est$ddf)$mr.summary$n2, summary(LF.double.est$ddf)$n1, summary(LF.double.est$ddf)$n2, sum(LF.quadrat.est$Mussels))
+
+dataf <- data.frame(rbind(LB.ss, LBL.ss, LF.ss))
+dataf <- cbind(LakeName = c("Lake Burgan", "Little Birch Lake", "Lake Florida"), dataf)
+kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Lake name","Primary","Secondary","Primary","Secondary", "Detections"), caption="Number of detections by primary and secondary observers. In the quadrat survey only one observer is used.")  %>% add_header_above(c("", "Distance survey"=2, "Double observer survey"=2, "Quadrat survey"=1), bold=F) 
+```
+
+
+
+```{r phase2, echo=F, warning=F}
+phaseTwo.dat      <- read_xlsx(path="../Data/Season2/Zebra mussel survey_ Day 1 (Responses).xlsx", sheet=1)
+phaseTwo.dat$`Break time (duration in minutes)`[which(is.na(phaseTwo.dat$`Break time (duration in minutes)`))] <- 0
+
+LB.countrate  <- phase2.countrate.transect(phaseTwo.dat, lake.name="Burgen", distance.est=LB.distance.est, double.est=LB.double.est, quadrat.est=LB.quadrat.est)
+LBL.countrate <- phase2.countrate.transect(phaseTwo.dat, lake.name="Little Birch", distance.est=LBL.distance.est, double.est=LBL.double.est, quadrat.est=LBL.quadrat.est)
+LF.countrate  <- phase2.countrate.transect(phaseTwo.dat, lake.name="Florida", distance.est=LF.distance.est, double.est=LF.double.est, quadrat.est=LF.quadrat.est)
+
+if(F) {
+plot(LB.countrate$N/LB.countrate$T, LB.countrate$D.distance, xlab="Rate of detection in phase 2", ylab="Observed density in phase 3", pch=19, col=col.vec[1], cex.lab=1.3, cex=1.2, ylim=c(0,2), xlim=c(0, 0.02))
+#plot(LBL.countrate$N/LBL.countrate$T, LBL.countrate$D.distance, pch=18, col=col.vec[2], cex=1.2)
+#points(LF.countrate$N/LF.countrate$T, LF.countrate$D.distance, pch=17, col=col.vec[3], cex=1.2)
+
+points(LB.countrate$N/LB.countrate$T, LB.countrate$D.double, pch=18, col=col.vec[1], cex.lab=1.3, cex=1.2)
+#points(LBL.countrate$N/LBL.countrate$T, LBL.countrate$D.double, pch=18, col=col.vec[2], cex=1.2)
+#points(LF.countrate$N/LF.countrate$T, LF.countrate$D.double, pch=18, col=col.vec[3], cex=1.2)
+
+
+points(LB.countrate$N/LB.countrate$T, LB.countrate$D.quadrat, pch=17, col=col.vec[1], xlim=c(0, 0.3), ylim=c(0, 1), cex.lab=1.3, cex=1.2)
+#points(LBL.countrate$N/LBL.countrate$T, LBL.countrate$D.quadrat, pch=17, col=col.vec[2], cex=1.2)
+#points(LF.countrate$N/LF.countrate$T, LF.countrate$D.quadrat, pch=17, col=col.vec[3], cex=1.2)
+
+legend('topright', legend=c("Lake Burgan", "Little Birch Lake", "Lake Florida"), pch=19:17)
+}
+
+#plot(LB.countrateLB.distance.est$Mussels/LB.distance.est$Area
+
+
+#cr.vec <- c(LB.countrate, LBL.countrate, LF.countrate)
+
+#r1 <- cor(dhat.vec[c(1,4,7)][-3], cr.vec[-3])
+#r2 <- cor(dhat.vec[c(1,4,7)+1][-3], cr.vec[-3])
+#r3 <- cor(dhat.vec[c(1,4,7)+2][-3], cr.vec[-3])
+
+```
+
+Finally, we can look to see if the Phase 2 surveys, where we went out perform a timed qualitiative search for zebra mussels, are correlated with the densities from phase 3. Table \ref{tab:cor.tab} compares the detection rates in phase 2 with the observed densities from phase 3. It looks like there might be some predictive value, but it may be dependent on density and potentially on survey type. Just looking at correlations suggests that the phase 2 count-rate is most strongly correlated with quadrat densities. 
+
+```{r cor.tab, echo=F}
+cor.table <- matrix(NA, 3,3)
+
+cor.table[1,1] <- cor(LB.countrate$N/LB.countrate$T, LB.countrate$D.distance, use="pairwise.complete")
+cor.table[1,2] <- cor(LB.countrate$N/LB.countrate$T, LB.countrate$D.double, use="pairwise.complete")
+cor.table[1,3] <- cor(LB.countrate$N/LB.countrate$T, LB.countrate$D.quadrat, use="pairwise.complete")
+
+cor.table[2,1] <- cor(LBL.countrate$N/LBL.countrate$T, LBL.countrate$D.distance, use="pairwise.complete")
+cor.table[2,2] <- cor(LBL.countrate$N/LBL.countrate$T, LBL.countrate$D.double, use="pairwise.complete")
+cor.table[2,3] <- cor(LBL.countrate$N/LBL.countrate$T, LBL.countrate$D.quadrat, use="pairwise.complete")
+
+cor.table[3,1] <- cor(LF.countrate$N/LF.countrate$T, LF.countrate$D.distance, use="pairwise.complete")
+cor.table[3,2] <- cor(LF.countrate$N/LF.countrate$T, LF.countrate$D.double, use="pairwise.complete")
+cor.table[3,3] <- cor(LF.countrate$N/LF.countrate$T, LF.countrate$D.quadrat, use="pairwise.complete")
+
+dimnames(cor.table)[[1]] <- c("Burgan", "Little Birch", "Florida")
+dimnames(cor.table)[[2]] <- c("Distance", "Double", "Quadrat")
+
+
+kable(cor.table, digits=2, booktabs=T, row.names=T, caption="\\label{tab:cor.tab} Correlation between phase 2 detection rates and phase 3 densities estimated using Distance sampling, Double observer sampling, and Quadrat sampling.") 
+```
+
+## Time Budget Summaries
+
+We are also interested in how long it takes to do each task associated with the zebra mussel surveys. Figure \ref{fig:efficiency} is the overall amount of time spent doing a given type of survey versus the amount of area that was actually covered.
+
+```{r efficiency, echo=F, out.width='40%', fig.asp=1, fig.cap="Add color, center", fig.align="center"}
+boxplot(Area/Time ~ Type, data=time.df, xlab="Survey type", ylab="Amount of area surveyed per second", cex.lab=1.3, log="y")
+
+```
+
+We see that the distance sampling is more efficient overall at covering area that the other types of survey. 
+
+We can also look at the time spent on the setup, taking habitat data, and on making and recording the encounters. This will allow us to better understand what is driving the relatively high efficiency of the distance surveys (Figure \ref{fig:efficiencypartition}).
+```{r efficiencypartition, echo=F, fig.asp=0.35, out.width='100%', fig.cap=" ", fig.align="center"}
+p.enc <- ggplot(time.df, aes(x=Type, y=t.enc, fill=Type))  + coord_trans(y="log10") +  geom_boxplot() + labs(title="Time spent on encounters", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
+
+p.hab <- ggplot(time.df, aes(x=Type, y=t.hab, fill=Type)) +  geom_boxplot() + labs(title="Time spent on habitat", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
+
+p.set <- ggplot(time.df, aes(x=Type, y=t.set, fill=Type)) +  geom_boxplot() + labs(title="Time spent on setup", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
+
+grid.arrange(p.set, p.hab, p.enc, nrow = 1)                
+time.dat <- subset(time.df, Type != "Quadrat")
+
+```
+
+It appears that the economy of distance surveys is coming from the setup (laying out transect lines and taking transect-level data) of the transects. This is consistent with reports from the divers. We assumed that the amount of time spent on encounters in the double observer survey would be less than the distance survey, though Figure \ref{fig:efficiencypartition} suggests that any differences are small enough not to matter in the overall efficiency. Note that these times are not standardized to transect lengths at all...
+
+
+```{r timeplot, echo=F, fig.asp=0.35, out.width='100%', fig.cap=" ", fig.align="center"}
+p.enc <- ggplot(time.df, aes(x=Mussels, y=t.enc, shape=Lake, color=Type)) + geom_point(size=3) +  labs(title="Encounters", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") + theme(legend.position="none") 
+
+p.hab <- ggplot(time.df, aes(x=Mussels, y=t.hab, shape=Lake, color=Type)) + geom_point(size=3) +  labs(title="Habitat", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") + theme(legend.position="none")
+
+p.set <- ggplot(time.df, aes(x=Mussels, y=t.set, shape=Lake, color=Type)) + geom_point(size=3) +  labs(title="Setup", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") + theme(legend.position="none")
+
+grid.arrange(p.set, p.hab, p.enc, nrow = 1)                
+time.dat <- subset(time.df, Type != "Quadrat")
+
+```
+
+
+```{r, echo=F}
+p.enc <- ggplot(time.df, aes(x=Mussels, y=t.enc, color=Type)) + geom_point(size=3) +  labs(title="Encounters", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") #+ theme(legend.position="none") 
+
+p.enc + xlim(0, 75) + ylim(0, 2000) + geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+#plot(p.enc)
+```
