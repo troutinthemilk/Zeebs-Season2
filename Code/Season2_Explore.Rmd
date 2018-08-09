@@ -22,30 +22,33 @@ geometry: margin=1in
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(MASS)
-library(Distance)
+#library(Distance)
 library(mrds)
 library(dplyr)
-library(dsm)
-require(pscl)
+#library(dsm)
+#require(pscl)
 library(lubridate)
-library(googlesheets)
-library(plotrix)
+#library(googlesheets)
+#library(plotrix)
 library(ggplot2)
 library(gridExtra)
 library(readxl)
 library(plotrix)
 library(kableExtra)
 
-source('../Code/ZebraFuncs.R')
+source('ZebraFuncs.R') ##assumed working directory is in Code folder
 
 curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
 curr.lake2  <- c("Burgan", "Little Birch Lake", "Florida")
-use.design  <- FALSE #model based or design based variance?
+use.design  <- TRUE #model based or design based variance?
 
 index             <- 1
 LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
 LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
 LB.quadrat.est    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
+cat("distance mean (SE)", LB.distance.est$Dhat, LB.distance.est$Dhat.se, '\n')
+cat("double mean (SE)", LB.double.est$Dhat, LB.double.est$Dhat.se, '\n')
+cat("quadrat mean (SE)", LB.quadrat.est$Dhat, LB.quadrat.est$Dhat.se, '\n')
 
 
 #check datasets
