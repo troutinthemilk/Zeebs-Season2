@@ -135,42 +135,51 @@ counts %>% group_by(`Lake name`, observer) %>%
 counts.wide <- counts %>% 
   spread(key = observer, value = y)
 
+left_join(counts.wide, select(double.dat,`Lake name`, `Transect #`, length), by=c("Lake name", "Transect #")) %>%
+  ggplot(aes(x=length, y = primary + secondary)) + geom_point() + facet_wrap(~`Lake name`) + scale_x_log10()
+
 # unmarked package
 # get  removal count matrices and covariate (area) transect data frames
 count.mat.b <- as.matrix(counts.wide[counts.wide$`Lake name` == "Lake Burgan",3:4])
 covDf.b <- double.dat %>% filter(`Lake name` == "Lake Burgan") %>%
   group_by(`Transect #`) %>%
-  summarize(area = first(length))
+  summarize(area = first(length) )
 count.mat.f <- as.matrix(counts.wide[counts.wide$`Lake name` == "Lake Florida",3:4])
 covDf.f <- double.dat %>% filter(`Lake name` == "Lake Florida") %>%
   group_by(`Transect #`) %>%
-  summarize(area = first(length))
+  summarize(area = first(length) )
 count.mat.lb <- as.matrix(counts.wide[counts.wide$`Lake name` == "Little Birch Lake",3:4])
 covDf.lb <- double.dat %>% filter(`Lake name` == "Little Birch Lake") %>%
   group_by(`Transect #`) %>%
-  summarize(area = first(length))
+  summarize(area = first(length) )
 ```
+
 
 ```{r}
 # fit models, using area as covariate (though coeff for area is negative???)
 bFrame <- unmarkedFrameMPois(y=count.mat.b, siteCovs = covDf.b, type="removal")
 fFrame <- unmarkedFrameMPois(y=count.mat.f, siteCovs = covDf.f, type="removal")
 lbFrame <- unmarkedFrameMPois(y=count.mat.lb, siteCovs = covDf.lb, type="removal")
-bout <- multinomPois(~1 ~ area , data = bFrame)
+bout <- multinomPois(~ area ~ area , data = bFrame)  # area better AIC than log(area)
 bout
+bout.o <- multinomPois(~1 ~ offset(log(area)) , data = bFrame)
+bout.o
 bout@estimates
-fout <- multinomPois(~1 ~1 , data = fFrame)
+fout <- multinomPois(~1 ~ 1 , data = fFrame)  # lengths same for all Florida plots
 fout
-lbout <- multinomPois(~1 ~ area , data = lbFrame)
+lbout <- multinomPois(~area ~ area, data = lbFrame)  # log area produces NAs
+lbout
+lbout.o <- multinomPois(~1 ~ offset(log(area)), data = lbFrame)
+lbout.o
+
+# using area as a covariate is better than an offset.
+# using area for both abundance and detection looks best for AIC and GOF tests
 ```
 
 ```{r}
 abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(c(rep(1,nrow(covDf.b)), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b)) ))   # intercept
-#abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(covDf.b$area, nrow=nrow(covDf.b) )))  # no intercept
+#abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(rep(1,nrow(covDf.b)), ncol=1 ), offset = covDf.b$offset))  # offset
 abund.b
-abund.b1m<- backTransform(linearComb(bout, type = "state", coefficients = c(1, 1) ))  # intercept
-#abund.b1m<- backTransform(linearComb(bout, type = "state", coefficients = c(1) ))  # no intercept
-abund.b1m
 # add transect estimates
 abund.ball <- sum(abund.b@estimate)
 abund.ball
@@ -194,12 +203,9 @@ abund.fall.se
 abund.fall.se/sum(covDf.f$area)
 
 
-abund.lb<- backTransform(linearComb(lbout, type = "state", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=3) )) # intercept
-#abund.lb<- backTransform(linearComb(lbout, type = "state", coefficients = matrix(covDf.lb$area, nrow=nrow(covDf.lb) )))  # no intercept
+abund.lb<- backTransform(linearComb(lbout, type = "state", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb)) )) # intercept
+#abund.lb<- backTransform(linearComb(bout, type = "state", coefficients = matrix(rep(1,nrow(covDf.lb)), ncol=1 ), offset = covDf.lb$offset))  # offset
 abund.lb
-abund.lb1m<- backTransform(linearComb(lbout, type = "state", coefficients = c(1, 1) ))  # intercept
-#abund.lb1m<- backTransform(linearComb(lbout, type = "state", coefficients = c(1) ))  # no intercept
-abund.lb1m
 # add transect estimates
 abund.lball <- sum(abund.lb@estimate)
 abund.lball
@@ -216,11 +222,29 @@ ests.df$method[(1:3)+3*2] <- "Double no distance, multiPois"
 ests.df$Dhat[(1:3)+3*2] <- c(abund.ball/sum(covDf.b$area), abund.fall/sum(covDf.f$area), abund.lball/sum(covDf.lb$area))
 ests.df$SE[(1:3)+3*2] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), abund.lball.se/sum(covDf.lb$area))
 ests.df$detProb <- c(1,1,1,1,1,1,
-                     backTransform(linearComb(bout, type = "det", coefficients = 1))@estimate,
+                     mean(backTransform(linearComb(bout, type = "det", coefficients = matrix(c(rep(1,3), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b))))@estimate),
                      backTransform(linearComb(fout, type = "det", coefficients = 1))@estimate, 
-                     backTransform(linearComb(lbout, type = "det", coefficients = 1))@estimate, 
+                     mean(backTransform(linearComb(lbout, type = "det", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb))))@estimate), 
                      NA,NA,NA)
 ```
+
+
+GOF assessment:
+
+```{r}
+chisq <- function(x){
+  observed <- getY(x@data)
+  expected <- fitted(x)
+  sum((observed - expected)^2/expected)
+}
+pb <- parboot(bout, statistic = chisq, nsim = 500)
+plot(pb)
+pb <- parboot(fout, statistic = chisq, nsim = 500)
+plot(pb)
+pb <- parboot(lbout, statistic = chisq, nsim = 500)
+plot(pb)
+```
+
 
 #### from ddf removal sampling: assumes $w = 0.5$?? 
 Since area is equal to length, assuming that half width is 0.5m. Use the `mrds` package to estimate density as 
@@ -396,4 +420,7 @@ Note: detection prob rate for `multiPois` is at the mussel level while it is at 
 ```{r, include = TRUE}
 kable(arrange(ests.df, Lake), digits = 3)
 ```
+
+
+
 
