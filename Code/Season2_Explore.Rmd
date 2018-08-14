@@ -28,8 +28,7 @@ library(dplyr)
 #library(dsm)
 #require(pscl)
 library(lubridate)
-#library(googlesheets)
-#library(plotrix)
+library(unmarked)
 library(ggplot2)
 library(gridExtra)
 library(readxl)
@@ -56,7 +55,7 @@ cat("quadrat mean (SE)", LB.quadrat.est$Dhat, LB.quadrat.est$Dhat.se, '\n')
 #distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
 
 double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1)
-double.dat %>% subset(.$`Lake name` == "Lake Burgan") %>% group_by("Observer name", "Transect #", "Distance along transect (m)") %>% print(n=dim(double.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+#double.dat %>% subset(.$`Lake name` == "Lake Burgan") %>% group_by("Observer name", "Transect #", "Distance along transect (m)") %>% print(n=dim(double.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
 #distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
 
 

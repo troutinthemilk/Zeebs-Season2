@@ -829,7 +829,7 @@ distance.dens.est <- function(curr.lake, curr.lake2, design=F) {
   distance.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1)
   distance.dat      <- distance.dat %>% subset(`Lake name` == curr.lake)
   distance.dat      <- distance.dat[order(distance.dat$`Transect #`),]
-  distance.dat      <- rename(distance.dat, size="Number of mussels in cluster")
+  distance.dat      <- dplyr::rename(distance.dat, size="Number of mussels in cluster")
   
   distanceorig.dat  <- distance.dat
   
@@ -990,7 +990,7 @@ double.dens.est <- function(curr.lake, curr.lake2, design=F) {
   double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1)
   double.dat      <- double.dat %>% subset(`Lake name` == curr.lake)
   double.dat      <- double.dat[order(double.dat$`Transect #`),]
-  double.dat      <- rename(double.dat, size="Number of mussels in cluster")
+  double.dat      <- dplyr::rename(double.dat, size="Number of mussels in cluster")
   doubleorig.dat <- double.dat
   
   if(any(double.dat$size==0)) {
@@ -1078,11 +1078,16 @@ double.dens.est <- function(curr.lake, curr.lake2, design=F) {
     N  <- sum(detect.vec)
     var.n <- L^2*(K/(L^2*(K-1))*sum(area.vec^2*(nl - NL)^2))/N^2
     
+    unm.df <- unmarkedFrameMPois(y=data.frame(primary=count.primary, secondary=count.secondary), siteCovs=data.frame(area=area.vec[1,]), type="removal")
+    
+    fm <- multinomPois(~1 ~ offset(log(area)), data=unm.df, se=TRUE)
+    pb <- parboot(fm, statistic=chisq, nsim=200)
+    plot(pb)
     dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
     return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec[1,], Detections=detect.primary+detect.secondary, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
   } else {
-    return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec[1,], Detections=detect.primary+detect.secondary, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec[1,], Detections=detect.primary+detect.secondary, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, fm=fm, pb=pb)
   }
   
   return(return.list)
@@ -1136,4 +1141,10 @@ phase2.countrate.transect <- function(phaseTwo.dat, lake.name, distance.est, dou
   }
   
   return(newDF)
+}
+
+chisq <- function(fm) { 
+  observed <- getY(fm@data) 
+  expected <- fitted(fm) 
+  return(sum((observed - expected)^2/expected))
 }
