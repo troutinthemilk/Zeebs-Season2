@@ -19,7 +19,7 @@ fontsize: 11pt
 geometry: margin=1in
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=F}
 knitr::opts_chunk$set(echo = TRUE)
 library(MASS)
 #library(Distance)
@@ -39,15 +39,29 @@ source('ZebraFuncs.R') ##assumed working directory is in Code folder
 
 curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
 curr.lake2  <- c("Burgan", "Little Birch Lake", "Florida")
-use.design  <- TRUE #model based or design based variance?
+var.type    <- "jack"
 
 index             <- 1
-LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
-LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
-LB.quadrat.est    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
-cat("distance mean (SE)", LB.distance.est$Dhat, LB.distance.est$Dhat.se, '\n')
-cat("double mean (SE)", LB.double.est$Dhat, LB.double.est$Dhat.se, '\n')
-cat("quadrat mean (SE)", LB.quadrat.est$Dhat, LB.quadrat.est$Dhat.se, '\n')
+LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
+LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
+LB.quadrat.est    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
+
+LB.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LB.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LB.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+```
+
+
+```{r, echo=F, warning=F}
+#cat("distance mean (SE)", LB.distance.est$Dhat, LB.distance.est$Dhat.se, '\n')
+#cat("double mean (SE)", LB.double.est$Dhat, LB.double.est$Dhat.se, '\n')
+#cat("quadrat mean (SE)", LB.quadrat.est$Dhat, LB.quadrat.est$Dhat.se, '\n')
 
 
 #check datasets
@@ -60,7 +74,7 @@ double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer 
 
 
 quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
-quadrat.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(quadrat.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+#quadrat.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(quadrat.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
 #distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
 
 
@@ -69,18 +83,27 @@ dhat.se.LB.vec  <- c(LB.distance.est$Dhat.se, LB.double.est$Dhat.se, LB.quadrat.
 
 
 index            <- 2
-LBL.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
-LBL.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
-LBL.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LBL.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type)
+LBL.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], var.type)
+LBL.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type)
 
 dhat.LBL.vec     <- c(LBL.distance.est$Dhat, LBL.double.est$Dhat, LBL.quadrat.est$Dhat)
 dhat.se.LBL.vec  <- c(LBL.distance.est$Dhat.se, LBL.double.est$Dhat.se, LBL.quadrat.est$Dhat.se)
 
+LB.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LB.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LB.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 
 index            <- 3
-LF.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], use.design)
-LF.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], use.design)
-LF.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], use.design)
+LF.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type)
+LF.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], var.type)
+LF.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type)
 
 dhat.LF.vec     <- c(LF.distance.est$Dhat, LF.double.est$Dhat, LF.quadrat.est$Dhat)
 dhat.se.LF.vec  <- c(LF.distance.est$Dhat.se, LF.double.est$Dhat.se, LF.quadrat.est$Dhat.se)
@@ -95,6 +118,7 @@ We estimated the density in each lake following three different survey methods (
 
 ```{r densityEst, echo=F, warning=F, out.width='50%', fig.asp=0.75, fig.cap="Y-axis is logarithmic. Bars are 2 standard errors.", fig.align="center"}
 library(RColorBrewer)
+
 col.vec <- brewer.pal(3, "Set1")
 dhat.vec    <- c(dhat.LB.vec, dhat.LBL.vec, dhat.LF.vec)
 dhat.se.vec <- c(dhat.se.LB.vec, dhat.se.LBL.vec, dhat.se.LF.vec)
@@ -104,6 +128,33 @@ axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
 legend('topright', legend=c("Distance survey", "Double observer", "Quadrat survey"), pch=19, cex=1.3, col=col.vec)
 ```
 
+There are a number of ways to estimate the variance in the surveyed data. We tested three on Lake Burgan below. The total variance in the double observer methods is given by $\mathrm{Var}(\hat{D})= \hat{D}^2\left(\frac{\mathrm{Var}(n)}{n^2} + \frac{\mathrm{Var(\mathrm{E}(s)}}{\mathrm{E}(s)^2} + \frac{\mathrm{Var}(a \hat{P})}{ (a \hat{P})^2 } \right)$. For a design-based estimate with $K$ transects each of length $l_k$ the first variance component is $\mathrm{Var}(n) = \frac{K}{K-1} \displaystyle\sum_{k=0}^K l_k^2 \left(\frac{n_k}{t_k l_k} - \frac{\sum n_k}{\sum l_k} \right)^2$.
+We also tested a jack-knife estimate of the mean and variance. Denoting the mean density with the $i^{\mathrm{th}}$ transect held out as $\bar{D}_{-i}$, the jacknife mean and variance are $\bar{D} = \frac{1}{K}\sum_i^K \bar{D}_{-i}$ and $\mathrm{Var}({\bar{D}}) = \frac{K-1}{K}\sum_i^K \left( \bar{D}_{-i} - \bar{D}\right)^2$. <!-- We also implemented the jack-knife bias reduction on the mean (*to be added*). -->Finally, we applied a model-based estimation process where transect counts were modeled as a negative binomial random variable. The offset in the model was the transect survey area times the estimated probability of detection in the transect.
+
+
+```{r varianceEst, echo=F, warning=F, fig.cap="Variance estimators applied on each survey design type."}
+#par(mfrow=c(1,3))
+library(RColorBrewer)
+col.vec <- brewer.pal(3, "Set1")
+dhat.vec    <- c(LB.distance.est.design$Dhat, LB.distance.est.jack$Dhat, LB.distance.est.model$Dhat)
+dhat.se.vec <- c(LB.distance.est.design$Dhat.se, LB.distance.est.jack$Dhat.se, LB.distance.est.model$Dhat.se)
+
+plotCI(x=rep(1,3)+c(-0.1,0,0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=dhat.vec - 2*dhat.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main="Lake Burgan", ylim=c(0,1), xlim=c(0.75,3.25))
+axis(1, at=c(1,2,3), labels=c("Distance", "Double observer", "Quadrat"))
+
+dhat.vec    <- c(LB.double.est.design$Dhat, LB.double.est.jack$Dhat, LB.double.est.model$Dhat)
+dhat.se.vec <- c(LB.double.est.design$Dhat.se, LB.double.est.jack$Dhat.se, LB.double.est.model$Dhat.se)
+
+plotCI(x=rep(2,3)+c(-0.1,0,0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=dhat.vec - 2*dhat.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Design", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main="Double observer survey", ylim=c(0,1), add=T)
+
+dhat.vec    <- c(LB.quadrat.est.design$Dhat, LB.quadrat.est.jack$Dhat, LB.quadrat.est.model$Dhat)
+dhat.se.vec <- c(LB.quadrat.est.design$Dhat.se, LB.quadrat.est.jack$Dhat.se, LB.quadrat.est.model$Dhat.se)
+
+plotCI(x=rep(3,3)+c(-0.1,0,0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=dhat.vec - 2*dhat.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main="Quadrat survey", ylim=c(0,1), add=T)
+
+legend('topleft', legend=c('Design-based estimate', 'Jack-knife estimate', 'Model-based estimate'), pch=19, col=col.vec)
+```
+
 
 We can also look at the detection probabilities in each transect (Figure \ref{fig:detectionEst}). The detection probabilities of the distance survey are consistently lower than the double observer survey. The numbers are the pooled (total) number of detections by both observers. Note that I did not include observer effects in the models (both observers are assumed to have same detection probability).
 
@@ -111,14 +162,14 @@ We can also look at the detection probabilities in each transect (Figure \ref{fi
 
 phat.vec    <- c(LB.distance.est$phat, LB.double.est$phat, LBL.distance.est$phat, LBL.double.est$phat, LF.distance.est$phat, LF.double.est$phat)
 phat.se.vec <- c(LB.distance.est$phat.se, LB.double.est$phat.se, LBL.distance.est$phat.se, LBL.double.est$phat.se, LF.distance.est$phat.se, LF.double.est$phat.se)
-ss.vec      <- c(LB.distance.est$Detections, sum(LB.double.est$Detections), LBL.distance.est$Detections, sum(LBL.double.est$Detections), LF.distance.est$Detections, sum(LF.double.est$Detections))
+ss.vec      <- c(sum(LB.distance.est$Detections), sum(LB.double.est$Detections), sum(LBL.distance.est$Detections), sum(LBL.double.est$Detections), sum(LF.distance.est$Detections), sum(LF.double.est$Detections))
 
 par(mar=c(5.1, 6.5, 4.1, 2.1))
 plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=2*phat.se.vec, liw=2*phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec[-3], pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, ylim=c(0,1))
 abline(h=mean(phat.vec[c(1,3,5)]), col=col.vec[1], lty=3)
 abline(h=mean(phat.vec[c(2,4,6)]), col=col.vec[2], lty=3)
 axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
-text(x=c(1,1, 2,2, 3,3) + 2*c(-0.1, 0.1), phat.vec-0.11, labels=ss.vec, col=col.vec[-3])
+text(x=c(1,1, 2,2, 3,3) + 2*c(-0.05, 0.05), phat.vec-0.11, labels=ss.vec, col=col.vec[-3])
 
 legend('bottomleft', legend=c("Distance survey", "Double observer"), pch=19, cex=1.3, col=col.vec[-3])
 
