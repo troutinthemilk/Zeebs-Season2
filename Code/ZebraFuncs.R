@@ -1030,8 +1030,8 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
   }
   if(var.type == "model") {
     
-    #quad.nb <- glm(quad.counts ~ 1 + offset(log(rep(quad.area, length(quad.counts)))), family=poisson)
-    quad.nb       <- glm.nb(quad.counts ~ 1 + offset(log(rep(quad.area, length(quad.counts)))))
+    quad.nb <- glm(quad.counts ~ 1 + offset(log(rep(quad.area, length(quad.counts)))), family=poisson)
+    #quad.nb       <- glm.nb(quad.counts ~ 1 + offset(log(rep(quad.area, length(quad.counts)))))
     quad.predict  <- predict(quad.nb, type="response", se.fit=T)
   
     quad.list <- list(Quadrats=trans.quads, Area=area.vec[1,], Mussels=trans.counts[1,], Dhat=sum(quad.counts)/(quad.area*length(quad.counts)), Dhat.se=sum(quad.predict$se.fit)/sqrt(length(quad.predict$se.fit)), Time=setup.time + hab.time + enc.time, df=df)
@@ -1105,10 +1105,11 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type) {
   double.dat$object <- 1:dim(double.dat)[1]
   double.dat <- create.removal.Observer(transect.dat=transect.dat, obs.dat=double.dat)
   
-  doubleDetect.model <- ddf(method="rem.fi", mrmodel=~glm(formula=~1), data=double.dat, meta.data=list(width=100))
+  doubleDetect.model <- ddf(method="rem.fi", mrmodel=~glm(formula=~1), dsmodel=~cds(key="unif"), data=double.dat, meta.data=list(width=1))
   phat    <- summary(doubleDetect.model)$average.p0.1
   phat.se <- summary(doubleDetect.model)$average.p0.1.se[1,1]
-  
+#print(doubleDetect.model)
+
   count.vec <- count.primary + count.secondary
   detect.vec <- detect.primary + detect.secondary
   
@@ -1229,4 +1230,27 @@ chisq <- function(fm) {
   observed <- getY(fm@data) 
   expected <- fitted(fm) 
   return(sum((observed - expected)^2/expected))
+}
+
+EstimatorComparisonPlot <- function(distance.est.design, distance.est.jack, distance.est.model, double.est.design, double.est.jack, double.est.model, quadrat.est.design, quadrat.est.jack, quadrat.est.model, lakename="Burgan") {
+  library(RColorBrewer)
+  col.vec <- brewer.pal(3, "Set1")
+  dhat.distance.vec    <- c(distance.est.design$Dhat, distance.est.jack$Dhat, distance.est.model$Dhat)
+  dhat.distance.se.vec <- c(distance.est.design$Dhat.se, distance.est.jack$Dhat.se, distance.est.model$Dhat.se)
+  
+  dhat.double.vec    <- c(double.est.design$Dhat, double.est.jack$Dhat, double.est.model$Dhat)
+  dhat.double.se.vec <- c(double.est.design$Dhat.se, double.est.jack$Dhat.se, double.est.model$Dhat.se)
+  
+  dhat.quadrat.vec    <- c(quadrat.est.design$Dhat, quadrat.est.jack$Dhat, quadrat.est.model$Dhat)
+  dhat.quadrat.se.vec <- c(quadrat.est.design$Dhat.se, quadrat.est.jack$Dhat.se, quadrat.est.model$Dhat.se)
+  ylims <- c(dhat.double.vec - dhat.double.se.vec, dhat.quadrat.vec - dhat.quadrat.se.vec, dhat.distance.vec - dhat.distance.se.vec, dhat.double.vec + dhat.double.se.vec, dhat.quadrat.vec + dhat.quadrat.se.vec, dhat.distance.vec + dhat.distance.se.vec)
+  
+  plotCI(x=rep(1,3)+c(-0.1,0,0.1), y=dhat.distance.vec, uiw=2*dhat.distance.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main=lakename, xlim=c(0.75,3.25), ylim=range(ylims))
+  axis(1, at=c(1,2,3), labels=c("Distance", "Double observer", "Quadrat"))
+  abline(h=mean(c(dhat.double.vec, dhat.distance.vec, dhat.quadrat.vec)), lty=3, col="gray")
+  plotCI(x=rep(2,3)+c(-0.1,0,0.1), y=dhat.double.vec, uiw=2*dhat.double.se.vec, col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, add=T)
+  
+  plotCI(x=rep(3,3)+c(-0.1,0,0.1), y=dhat.quadrat.vec, uiw=2*dhat.quadrat.se.vec, col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, add=T)
+  
+  legend('topleft', legend=c('Design-based estimate', 'Jack-knife estimate', 'Model-based estimate'), pch=19, col=col.vec)
 }

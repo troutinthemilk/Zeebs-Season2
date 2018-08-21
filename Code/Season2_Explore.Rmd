@@ -39,7 +39,7 @@ source('ZebraFuncs.R') ##assumed working directory is in Code folder
 
 curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
 curr.lake2  <- c("Burgan", "Little Birch Lake", "Florida")
-var.type    <- "jack"
+var.type    <- "design"
 
 index             <- 1
 LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
@@ -74,9 +74,8 @@ double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer 
 
 
 quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
-#quadrat.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(quadrat.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+#quadrat.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% dplyr::select(.$'Lake name' = "Lake Florida") %>% print(n=dim(quadrat.dat)[1]) %>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
 #distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
-
 
 dhat.LB.vec     <- c(LB.distance.est$Dhat, LB.double.est$Dhat, LB.quadrat.est$Dhat)
 dhat.se.LB.vec  <- c(LB.distance.est$Dhat.se, LB.double.est$Dhat.se, LB.quadrat.est$Dhat.se)
@@ -90,15 +89,15 @@ LBL.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.t
 dhat.LBL.vec     <- c(LBL.distance.est$Dhat, LBL.double.est$Dhat, LBL.quadrat.est$Dhat)
 dhat.se.LBL.vec  <- c(LBL.distance.est$Dhat.se, LBL.double.est$Dhat.se, LBL.quadrat.est$Dhat.se)
 
-LB.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LB.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LB.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LB.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LB.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LB.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LB.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
-LB.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
-LB.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LBL.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LBL.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LBL.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LBL.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LBL.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LBL.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LBL.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LBL.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LBL.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 
 index            <- 3
 LF.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type)
@@ -110,6 +109,16 @@ dhat.se.LF.vec  <- c(LF.distance.est$Dhat.se, LF.double.est$Dhat.se, LF.quadrat.
 
 time.df <- rbind(LB.distance.est$df, LB.double.est$df, LB.quadrat.est$df, LBL.distance.est$df, LBL.double.est$df, LBL.quadrat.est$df, LF.distance.est$df, LF.double.est$df, LF.quadrat.est$df)
 
+
+LF.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LF.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LF.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LF.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LF.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LF.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LF.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LF.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LF.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 ```
 
 ## Density & Detection Estimates
@@ -119,7 +128,7 @@ We estimated the density in each lake following three different survey methods (
 ```{r densityEst, echo=F, warning=F, out.width='50%', fig.asp=0.75, fig.cap="Y-axis is logarithmic. Bars are 2 standard errors.", fig.align="center"}
 library(RColorBrewer)
 
-col.vec <- brewer.pal(3, "Set1")
+col.vec <- brewer.pal(3, "Dark2")
 dhat.vec    <- c(dhat.LB.vec, dhat.LBL.vec, dhat.LF.vec)
 dhat.se.vec <- c(dhat.se.LB.vec, dhat.se.LBL.vec, dhat.se.LF.vec)
 tol <- 1e-10
@@ -129,30 +138,16 @@ legend('topright', legend=c("Distance survey", "Double observer", "Quadrat surve
 ```
 
 There are a number of ways to estimate the variance in the surveyed data. We tested three on Lake Burgan below. The total variance in the double observer methods is given by $\mathrm{Var}(\hat{D})= \hat{D}^2\left(\frac{\mathrm{Var}(n)}{n^2} + \frac{\mathrm{Var(\mathrm{E}(s)}}{\mathrm{E}(s)^2} + \frac{\mathrm{Var}(a \hat{P})}{ (a \hat{P})^2 } \right)$. For a design-based estimate with $K$ transects each of length $l_k$ the first variance component is $\mathrm{Var}(n) = \frac{K}{K-1} \displaystyle\sum_{k=0}^K l_k^2 \left(\frac{n_k}{t_k l_k} - \frac{\sum n_k}{\sum l_k} \right)^2$.
-We also tested a jack-knife estimate of the mean and variance. Denoting the mean density with the $i^{\mathrm{th}}$ transect held out as $\bar{D}_{-i}$, the jacknife mean and variance are $\bar{D} = \frac{1}{K}\sum_i^K \bar{D}_{-i}$ and $\mathrm{Var}({\bar{D}}) = \frac{K-1}{K}\sum_i^K \left( \bar{D}_{-i} - \bar{D}\right)^2$. <!-- We also implemented the jack-knife bias reduction on the mean (*to be added*). -->Finally, we applied a model-based estimation process where transect counts were modeled as a negative binomial random variable. The offset in the model was the transect survey area times the estimated probability of detection in the transect.
+Finally, we applied a model-based estimation process where transect counts were modeled as a negative binomial random variable. We used an offset in the model was the transect survey area times the estimated probability of detection in the transect.
 
 
-```{r varianceEst, echo=F, warning=F, fig.cap="Variance estimators applied on each survey design type."}
-#par(mfrow=c(1,3))
-library(RColorBrewer)
-col.vec <- brewer.pal(3, "Set1")
-dhat.vec    <- c(LB.distance.est.design$Dhat, LB.distance.est.jack$Dhat, LB.distance.est.model$Dhat)
-dhat.se.vec <- c(LB.distance.est.design$Dhat.se, LB.distance.est.jack$Dhat.se, LB.distance.est.model$Dhat.se)
+```{r varianceEst, echo=F, fig.asp=0.3, warning=F, fig.cap="Variance estimators applied on each survey design type."}
 
-plotCI(x=rep(1,3)+c(-0.1,0,0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=dhat.vec - 2*dhat.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main="Lake Burgan", ylim=c(0,1), xlim=c(0.75,3.25))
-axis(1, at=c(1,2,3), labels=c("Distance", "Double observer", "Quadrat"))
+EstimatorComparisonPlot(distance.est.design=LB.distance.est.design, distance.est.jack=LB.distance.est.jack, distance.est.model=LB.distance.est.model, double.est.design=LB.double.est.design, double.est.jack=LB.double.est.jack, double.est.model=LB.double.est.model, quadrat.est.design=LB.quadrat.est.design, quadrat.est.jack=LB.quadrat.est.jack, quadrat.est.model=LB.quadrat.est.model, lakename="Lake Burgan")
+EstimatorComparisonPlot(distance.est.design=LBL.distance.est.design, distance.est.jack=LBL.distance.est.jack, distance.est.model=LBL.distance.est.model, double.est.design=LBL.double.est.design, double.est.jack=LBL.double.est.jack, double.est.model=LBL.double.est.model, quadrat.est.design=LBL.quadrat.est.design, quadrat.est.jack=LBL.quadrat.est.jack, quadrat.est.model=LBL.quadrat.est.model, lakename="Little Birch Lake")
+EstimatorComparisonPlot(distance.est.design=LF.distance.est.design, distance.est.jack=LF.distance.est.jack, distance.est.model=LF.distance.est.model, double.est.design=LF.double.est.design, double.est.jack=LF.double.est.jack, double.est.model=LF.double.est.model, quadrat.est.design=LF.quadrat.est.design, quadrat.est.jack=LF.quadrat.est.jack, quadrat.est.model=LF.quadrat.est.model, lakename="Lake Florida")
 
-dhat.vec    <- c(LB.double.est.design$Dhat, LB.double.est.jack$Dhat, LB.double.est.model$Dhat)
-dhat.se.vec <- c(LB.double.est.design$Dhat.se, LB.double.est.jack$Dhat.se, LB.double.est.model$Dhat.se)
 
-plotCI(x=rep(2,3)+c(-0.1,0,0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=dhat.vec - 2*dhat.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Design", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main="Double observer survey", ylim=c(0,1), add=T)
-
-dhat.vec    <- c(LB.quadrat.est.design$Dhat, LB.quadrat.est.jack$Dhat, LB.quadrat.est.model$Dhat)
-dhat.se.vec <- c(LB.quadrat.est.design$Dhat.se, LB.quadrat.est.jack$Dhat.se, LB.quadrat.est.model$Dhat.se)
-
-plotCI(x=rep(3,3)+c(-0.1,0,0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=dhat.vec - 2*dhat.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main="Quadrat survey", ylim=c(0,1), add=T)
-
-legend('topleft', legend=c('Design-based estimate', 'Jack-knife estimate', 'Model-based estimate'), pch=19, col=col.vec)
 ```
 
 
@@ -271,6 +266,7 @@ boxplot(Area/Time ~ Type, data=time.df, xlab="Survey type", ylab="Amount of area
 We see that the distance sampling is more efficient overall at covering area that the other types of survey. 
 
 We can also look at the time spent on the setup, taking habitat data, and on making and recording the encounters. This will allow us to better understand what is driving the relatively high efficiency of the distance surveys (Figure \ref{fig:efficiencypartition}).
+
 ```{r efficiencypartition, echo=F, fig.asp=0.35, out.width='100%', fig.cap=" ", fig.align="center"}
 p.enc <- ggplot(time.df, aes(x=Type, y=t.enc, fill=Type))  + coord_trans(y="log10") +  geom_boxplot() + labs(title="Time spent on encounters", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
 
