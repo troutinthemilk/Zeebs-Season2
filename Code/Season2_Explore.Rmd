@@ -3,9 +3,9 @@ title: 'Season 2: exploratory analysis'
 author: ""
 date: "July 31, 2018"
 output:
-  pdf_document: 
-    fig_caption: yes
   html_document: 
+    fig_caption: yes
+  pdf_document: 
     fig_caption: yes
   word_document: default
 header-includes:
@@ -138,13 +138,15 @@ legend('topright', legend=c("Distance survey", "Double observer", "Quadrat surve
 ```
 
 There are a number of ways to estimate the variance in the surveyed data. We tested three on Lake Burgan below. The total variance in the double observer methods is given by $\mathrm{Var}(\hat{D})= \hat{D}^2\left(\frac{\mathrm{Var}(n)}{n^2} + \frac{\mathrm{Var(\mathrm{E}(s)}}{\mathrm{E}(s)^2} + \frac{\mathrm{Var}(a \hat{P})}{ (a \hat{P})^2 } \right)$. For a design-based estimate with $K$ transects each of length $l_k$ the first variance component is $\mathrm{Var}(n) = \frac{K}{K-1} \displaystyle\sum_{k=0}^K l_k^2 \left(\frac{n_k}{t_k l_k} - \frac{\sum n_k}{\sum l_k} \right)^2$.
-Finally, we applied a model-based estimation process where transect counts were modeled as a negative binomial random variable. We used an offset in the model was the transect survey area times the estimated probability of detection in the transect.
+Finally, we applied a model-based estimation process where transect counts were modeled as a negative binomial random variable. We used an offset in the model was the transect survey area times the estimated probability of detection in the transect. 
 
 
-```{r varianceEst, echo=F, fig.asp=0.3, warning=F, fig.cap="Variance estimators applied on each survey design type."}
-
+```{r varianceEst, echo=F, warning=F, fig.cap="Variance estimators applied on each survey design type."}
+source('ZebraFuncs.R')
 EstimatorComparisonPlot(distance.est.design=LB.distance.est.design, distance.est.jack=LB.distance.est.jack, distance.est.model=LB.distance.est.model, double.est.design=LB.double.est.design, double.est.jack=LB.double.est.jack, double.est.model=LB.double.est.model, quadrat.est.design=LB.quadrat.est.design, quadrat.est.jack=LB.quadrat.est.jack, quadrat.est.model=LB.quadrat.est.model, lakename="Lake Burgan")
+
 EstimatorComparisonPlot(distance.est.design=LBL.distance.est.design, distance.est.jack=LBL.distance.est.jack, distance.est.model=LBL.distance.est.model, double.est.design=LBL.double.est.design, double.est.jack=LBL.double.est.jack, double.est.model=LBL.double.est.model, quadrat.est.design=LBL.quadrat.est.design, quadrat.est.jack=LBL.quadrat.est.jack, quadrat.est.model=LBL.quadrat.est.model, lakename="Little Birch Lake")
+
 EstimatorComparisonPlot(distance.est.design=LF.distance.est.design, distance.est.jack=LF.distance.est.jack, distance.est.model=LF.distance.est.model, double.est.design=LF.double.est.design, double.est.jack=LF.double.est.jack, double.est.model=LF.double.est.model, quadrat.est.design=LF.quadrat.est.design, quadrat.est.jack=LF.quadrat.est.jack, quadrat.est.model=LF.quadrat.est.model, lakename="Lake Florida")
 
 

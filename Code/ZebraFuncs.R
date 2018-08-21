@@ -584,7 +584,7 @@ create.CountSumm <- function(SegDat, ObsDat, BurgenDDF, det=F) {
     count.vec[i] <- sum(ObsDat$size[(which(as.character(ObsDat$Sample.Label) == currSeg))])
   }
   
-  ddf.dsModel <- ddf(method="io", dsmodel=~cds(key="hn", formula=~ 1), mrmodel=~glm(link="logit", formula=~ observer + plantcover + clarity), data=BurgenDDF, meta.data=list(width=1))
+  ddf.dsModel <- ddf(method="io", dsmodel=~cds(key="hr", formula=~ 1), mrmodel=~glm(link="logit", formula=~ observer + plantcover + clarity), data=BurgenDDF, meta.data=list(width=1))
   
   phat.fitted <- predict(ddf.dsModel)$fitted
   
@@ -838,6 +838,10 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design") {
     rm.vec <- which(distance.dat$size ==0)
     distance.dat <- distance.dat[-rm.vec,]
   }
+  if(any(is.na(distance.dat$size))) {
+    rm.vec <- which(is.na(distance.dat$size))
+    distance.dat <- distance.dat[-rm.vec,]
+  }
   varS <- var(distance.dat$size)/length(distance.dat)
   eS   <- mean(distance.dat$size)
   
@@ -864,79 +868,82 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design") {
   
   dis.totdetect <- dim(distance.dat)[1]
   distance.dat$`Observer name` <- as.factor(distance.dat$`Observer name`)
-  
-  dis.detect.model <- ddf(method="rem", dsmodel=~cds(key="hr"), mrmodel=~glm(formula=~1), data=distance.dat, meta.data=list(width=1))
+  #print(distance.dat$distance)
+  dis.detect.model <- ddf(method="rem", dsmodel=~cds(key="hn"), mrmodel=~glm(formula=~1), data=distance.dat, meta.data=list(width=1))
   
   phat    <- summary(dis.detect.model)$average.p
   phat.se <- summary(dis.detect.model)$average.p.se[1,1]
   
   #estimate density
   ##assume poisson model
-  count.vec <- detect.vec <- vector('numeric', dim(transect.dat)[1])
-  
-  for(i in 1:dim(transect.dat)[1]){
-    count.vec[i] <- sum(distance.dat[which(distance.dat$`Transect #`-min(distance.dat$`Transect #`)+1 == i),]$detected*distance.dat[which(distance.dat$`Transect #`-min(distance.dat$`Transect #`)+1 == i),]$size)
-    detect.vec[i] <- sum(distance.dat[which(distance.dat$`Transect #`-min(distance.dat$`Transect #`)+1 == i),]$detected)
+  count.vec <- detect.vec <- rep(NA, 15)
+
+  for(i in transect.dat$`Transect number`) {
+    count.vec[i]  <- sum(distance.dat[which(distance.dat$`Transect #` == i),]$size)
+    detect.vec[i] <- sum(distance.dat[which(distance.dat$`Transect #` == i),]$detected)
   }
-  count.vec <- t(as.matrix(count.vec))
-  dimnames(count.vec)[[2]] <- transect.dat$`Transect number`
+  names(count.vec) <- transect.dat$`Transect number`
+  if(any(is.na(count.vec))) {
+    count.vec   <- count.vec[-which(is.na(count.vec))]
+    detect.vec  <- detect.vec[-which(is.na(detect.vec))]
+  }
+  area.vec <- t(as.matrix(2*transect.dat$`Transect length (if transect survey)`))[1,]
+  names(area.vec) <- transect.dat$`Transect number`
   
-  lambda <- sum(count.vec)/sum(trans.area)
+  lambda <- sum(count.vec, na.rm=T)/sum(area.vec)
   
-  area.vec <- t(as.matrix(2*transect.dat$`Transect length (if transect survey)`))
-  dimnames(area.vec)[[2]] <- transect.dat$`Transect number`
+  dhat <- sum(detect.vec/phat, na.rm=TRUE)*eS/sum(area.vec)
+  dhat.detect <- sum(detect.vec/phat, na.rm=TRUE)/sum(area.vec)
   
-  dhat <- sum(detect.vec)*eS/(trans.area*phat)
-  
-  df <- data.frame(Detections=detect.vec, Mussels=count.vec[1,], D=detect.vec*eS/area.vec[1,]/phat, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec[1,], Type=rep("Distance", length(area.vec)), Lake=rep(curr.lake, length(area.vec)))
+  df <- data.frame(Detections=detect.vec, Mussels=count.vec, D=detect.vec*eS/area.vec/phat, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec, Type=rep("Distance", length(area.vec)), Lake=rep(curr.lake, length(area.vec)))
   
   if(var.type == "design") {
     
     K  <- length(detect.vec)
-    L  <- sum(area.vec)/2
-    nl <- detect.vec/(area.vec[1,]/2)
-    NL <- sum(detect.vec)/L
+    l  <- area.vec/2
+    L  <- sum(l)
+    n  <- detect.vec
     N  <- sum(detect.vec)
-    var.n <- L^2*(K/(L^2*(K-1))*sum(area.vec^2*(nl - NL)^2))/N^2
+    var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
+    
     dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec[1,], Detections=detect.vec, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
+    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
     
   } 
-  if(var.type == "jack") {
+  if(var.type == "jack") { #from buckland page 80
     
     K       <- length(detect.vec)
-    dhat    <- sum(detect.vec/phat)*eS/sum(area.vec)
+    l       <- area.vec/2
+    L       <- sum(l)
+    dhat            <- sum(detect.vec*eS/phat)/sum(area.vec)
+    dhat.detect     <- sum(detect.vec/phat)/sum(area.vec)
     
-    dhat.se.K <- dhat.K <- pseudo.vec <- vector('numeric', K)
+    dhat.se.K <- dhat.K <- n.K <- pseudo.vec <- pseudo.nhat <- vector('numeric', K)
     
     for(k in 1:K) {
-      dhat.K[k]     <- sum(detect.vec[-k]/phat)*eS/sum(area.vec[1,-k])
-      pseudo.vec[k] <- K*dhat - (K-1)*dhat.K[K]
+      dhat.K[k]     <- sum(detect.vec[-k]/phat)/sum(area.vec[-k])
+      pseudo.vec[k] <- K*dhat.detect - (K-1)*dhat.K[k]
     }
     
-    dhat.se.jk  <- sqrt((K-1)/K)*sd(dhat.K) 
-    b.jk        <- (K-1)*(mean(dhat.K) - dhat)
-    dhat.jk     <- K*dhat - (K-1)*mean(dhat.K) #mean(dhat.K)
+    dhat.se.jk  <- sqrt(1/(L*K-L)*sum(l*(pseudo.vec - dhat.detect)^2) )
+
+    b.jk        <- (K-1)*(mean(dhat.K) - dhat.detect)
+    dhat.jk     <- K*dhat - (K-1)*mean(dhat.K) 
     
-    dhat.se.full <- sqrt(dhat.se.jk^2*eS^2/phat^2 + dhat.jk^2*(varS/eS^2 + phat.se^2/phat^2))
+    dhat.se.full <- sqrt(dhat.se.jk^2 + dhat.detect^2*(varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.jk, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec[1,], Detections=detect.vec, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
+    return.list <- list(Dhat=dhat.detect*eS, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
     
   } 
   if(var.type == "model") {
-    dist.glm <- glm.nb(count.vec[1,]~1 + offset(log(phat*area.vec[1,])))
+    dist.glm      <- glm.nb(detect.vec~1 + offset(log(phat*area.vec)))
     dist.predict <- predict(dist.glm, type="response", se.fit=T)
-    dhat.se <- sqrt(dhat^2*(sum(dist.predict$se.fit^2)/sum(dist.predict$fit)^2 +  phat.se^2/phat^2))
-    K  <- length(detect.vec)
-    L  <- sum(area.vec)/2
-    nl <- detect.vec/(area.vec[1,]/2)
-    NL <- sum(detect.vec)/L
-    N  <- sum(detect.vec)
-    var.n <- L^2*(K/(L^2*(K-1))*sum(area.vec^2*(nl - NL)^2))/N^2
-    dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec[1,], Detections=detect.vec, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
+    dhat.se <- sqrt(dhat^2*(sum(dist.predict$se.fit^2)/sum(dist.predict$fit)^2 + varS/eS^2 + phat.se^2/phat^2))
+   # dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
+    
+    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
     
   }
   
@@ -985,56 +992,55 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
   quad.counts <- (quadrat.dat$`Number of mussels in quadrat`)
   quad.area   <- quad.side^2
   
-  trans.counts <- t(as.matrix(trans.counts))
-  dimnames(trans.counts)[[2]] <- transect.dat$`Transect number`
-  area.vec <- t(as.matrix(trans.quads*quad.area))
-  dimnames(area.vec)[[2]] <- transect.dat$`Transect number`
+  #trans.counts <- quad.counts
+  names(trans.counts) <- transect.dat$`Transect number`
+  area.vec <- trans.quads*quad.area
+  names(area.vec) <- transect.dat$`Transect number`
   
-  dhat <- sum(trans.counts[1,])/sum(area.vec[1,])
+  dhat <- sum(trans.counts)/sum(area.vec)
      
-  df <- data.frame(Detections=trans.counts[1,], Mussels=trans.counts[1,], D=trans.counts[1,]/area.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec[1,], Type=rep("Quadrat", length(trans.quads)), Lake=rep(curr.lake, length(trans.quads)))
+  df <- data.frame(Detections=trans.counts, Mussels=trans.counts, D=trans.counts/area.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec, Type=rep("Quadrat", length(trans.quads)), Lake=rep(curr.lake, length(trans.quads)))
   
   if(var.type == "design") {
     
-    K  <- length(trans.counts[1,])
-    L  <- sum(area.vec)/2
-    nl <- trans.counts[1,]/(area.vec[1,]/2)
-    NL <- sum(trans.counts[1,])/L
-    N  <- sum(trans.counts[1,])
-    var.n <- L^2*(K/(L^2*(K-1))*sum(area.vec^2*(nl - NL)^2))/N^2
-    dhat.se <- sqrt(dhat^2*(var.n/N^2))
-    dhat    <- sum(trans.counts[1,])/sum(area.vec)
+    K  <- length(trans.counts)
+    L  <- sum(trans.quads)
+    l  <- trans.quads
+    nl <- trans.counts/l
+    N  <- sum(trans.counts)
+    NL <- N/L
+    var.n <- L/(K-1)* sum(l*(nl/l - N/L)^2)
     
-    quad.list <- list(Quadrats=trans.quads, Area=area.vec[1,], Mussels=trans.counts[1,], Dhat=sum(quad.counts)/(quad.area*length(quad.counts)), Dhat.se=dhat.se, Time=setup.time + hab.time + enc.time, df=df)
+    dhat.se <- sqrt(dhat^2*(var.n/N^2))
+    
+    quad.list <- list(Quadrats=trans.quads, Area=area.vec, Mussels=trans.counts, Dhat=dhat, Dhat.se=dhat.se, Time=setup.time + hab.time + enc.time, df=df)
   } 
   if(var.type == "jack") {
       
-      K  <- length(trans.counts[1,])
-      dhat    <- sum(trans.counts[1,])/sum(area.vec)
+    K       <- length(trans.quads)
+    l       <- trans.quads
+    L       <- sum(l)
+    dhat            <- sum(trans.counts)/sum(area.vec)
+    
+    dhat.K <- pseudo.vec <- vector('numeric', K)
+    
+    for(k in 1:K) {
+      dhat.K[k]     <- sum(trans.counts[-k])/sum(area.vec[-k])
+      pseudo.vec[k] <- K*dhat - (K-1)*dhat.K[k]
+    }
+    
+    dhat.se.jk  <- sqrt(1/(L*K-L)*sum(l*(pseudo.vec - dhat)^2) )
       
-      dhat.se.K <- dhat.K <- pseudo.vec <- vector('numeric', K)
-      
-      for(k in 1:K) {
-        dhat.K[k]    <- sum(trans.counts[1,-k])/sum(area.vec[1,-k])
-        pseudo.vec[k] <- K*dhat - (K-1)*dhat.K[K]
-      }
-      
-      dhat.se.jk  <- sqrt((K-1)/K)*sd(dhat.K)
-      b.jk        <- (K-1)*(mean(dhat.K) - dhat)
-      dhat.jk     <- K*dhat - (K-1)*mean(dhat.K) #mean(dhat.K)
-      
-      dhat.se.full <- sqrt(dhat.se.jk^2)
-      
-      quad.list <- list(Dhat=dhat.jk, Dhat.se=dhat.se.full, Transects=length(area.vec), Area=area.vec[1,], Mussels=trans.counts[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df)
+    quad.list <- list(Dhat=dhat, Dhat.se=dhat.se.jk, Transects=length(area.vec), Area=area.vec, Mussels=trans.counts, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df)
       
   }
   if(var.type == "model") {
     
-    quad.nb <- glm(quad.counts ~ 1 + offset(log(rep(quad.area, length(quad.counts)))), family=poisson)
-    #quad.nb       <- glm.nb(quad.counts ~ 1 + offset(log(rep(quad.area, length(quad.counts)))))
+    #quad.pois <- glm(trans.counts[1,] ~ 1 + offset(log(quad.area*trans.quads)), family=poisson)
+    quad.nb       <- glm.nb(trans.counts ~ 1 + offset(log(quad.area*trans.quads)))
     quad.predict  <- predict(quad.nb, type="response", se.fit=T)
   
-    quad.list <- list(Quadrats=trans.quads, Area=area.vec[1,], Mussels=trans.counts[1,], Dhat=sum(quad.counts)/(quad.area*length(quad.counts)), Dhat.se=sum(quad.predict$se.fit)/sqrt(length(quad.predict$se.fit)), Time=setup.time + hab.time + enc.time, df=df)
+    quad.list <- list(Quadrats=trans.quads, Area=area.vec, Mussels=trans.counts, Dhat=dhat, Dhat.se=sum(quad.predict$se.fit)/sum(quad.area*trans.quads), Time=setup.time + hab.time + enc.time, df=df)
   }
   
   return(quad.list)
@@ -1116,61 +1122,63 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type) {
   count.vec <- t(as.matrix(count.vec))
   dimnames(count.vec)[[2]] <- transect.dat$`Transect number`
   
-  area.vec                <- t(as.matrix(transect.dat$`Transect length (if transect survey)`))
-  dimnames(area.vec)[[2]] <- transect.dat$`Transect number`
+  area.vec                <- trans.length
+  names(area.vec) <- transect.dat$`Transect number`
   
   trans.area <- sum(transect.dat$`Transect length (if transect survey)`)
   
   dhat.double   <- sum(detect.vec, na.rm=T)*eS/phat/trans.area
   
-  df <- data.frame(Detections=detect.vec, Mussels=count.vec[1,], D=detect.vec*eS/area.vec[1,]/phat, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec[1,], Type=rep("Double", length(trans.area)), Lake=rep(curr.lake, length(trans.area)))
+  df <- data.frame(Detections=detect.vec, Mussels=count.vec[1,], D=detect.vec*eS/area.vec/phat, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec, Type=rep("Double", length(trans.area)), Lake=rep(curr.lake, length(trans.area)))
   
   if(var.type == "design") {
     K  <- length(detect.vec)
-    L  <- sum(area.vec)/2
-    nl <- detect.vec/(area.vec[1,]/2)
-    NL <- sum(detect.vec)/L
+    l  <- area.vec
+    L  <- sum(l)
+    n  <- detect.vec
     N  <- sum(detect.vec)
-    var.n <- L^2*(K/(L^2*(K-1))*sum(area.vec^2*(nl - NL)^2))/N^2
+    #var.n <- L^2*(K/(L^2*(K-1))*sum(l^2*(n/l - NL)^2))/N^2
+    var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
     
-    #unm.df <- unmarkedFrameMPois(y=data.frame(primary=count.primary, secondary=count.secondary), siteCovs=data.frame(area=area.vec[1,]), type="removal")
-    
-    #fm <- multinomPois(~1 ~ offset(log(area)), data=unm.df, se=TRUE)
-    #pb <- parboot(fm, statistic=chisq, nsim=200)
-    #plot(pb)
     dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec[1,], Detections=detect.primary+detect.secondary, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
   } 
 
   if(var.type == "jack") {
     
-    K  <- length(detect.vec)
-    dhat    <- sum(detect.vec/phat)*eS/sum(area.vec)
+    K       <- length(detect.vec)
+    l       <- area.vec/2
+    L       <- sum(l)
+    dhat    <- sum(detect.vec*eS/phat)/sum(area.vec)
+    dhat.detect    <- sum(detect.vec/phat)/sum(area.vec)
     
-    dhat.se.K <- dhat.K <- pseudo.vec <- vector('numeric', K)
+    dhat.se.K <- dhat.K <- n.K <- pseudo.vec <- pseudo.nhat <- vector('numeric', K)
+    
     for(k in 1:K) {
-      dhat.K[k]    <- sum(detect.vec[-k]/phat)*eS/sum(area.vec[1,-k])
-      pseudo.vec[k] <- K*dhat.double - (K-1)*dhat.K[K]
+      n.K[k]        <- sum(detect.vec[-k])
+      dhat.K[k]     <- sum(detect.vec[-k]/phat)/sum(area.vec[-k])
+      pseudo.vec[k] <- K*dhat.detect - (K-1)*dhat.K[k]
     }
     
-    dhat.se.jk  <- sqrt((K-1)/K)*sd(dhat.K)
-    b.jk        <- (K-1)*(mean(dhat.K) - dhat.double)
-    dhat.jk     <- K*dhat - (K-1)*mean(dhat.K) #mean(mean(dhat.K))
+    dhat.se.jk  <- sqrt(1/(L*K-L)*sum(l*(pseudo.vec - dhat.detect)^2) )
     
-    dhat.se.full <- sqrt(dhat.se.jk^2*eS^2/phat^2 + dhat.jk^2*(varS/eS^2 + phat.se^2/phat^2))
+    b.jk        <- (K-1)*(mean(dhat.K) - dhat.detect)
+    dhat.jk     <- K*dhat.double - (K-1)*mean(dhat.K) 
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec[1,], Detections=detect.primary+detect.secondary, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    #dhat.se.full <- sqrt(dhat.se.jk^2*sum(detect.vec)^2/dhat^2/sum(detect.vec)^2 + dhat.jk^2*(varS/eS^2 + phat.se^2/phat^2))
+    dhat.se.full <- sqrt(dhat.se.jk^2 + dhat.double^2*(varS/eS^2 + phat.se^2/phat^2))
+    
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
   }
   
   if(var.type == "model") {
-    double.glm      <- glm.nb(detect.vec~1 + offset(log(phat*area.vec[1,])))#, control=list(maxit=1e6))
-    #double.glm      <- glm(count.vec[1,]~1 + offset(log(phat*area.vec[1,])), family=poisson)
+    double.glm      <- glm.nb(detect.vec~1 + offset(log(phat*area.vec)))
     double.predict  <- predict(double.glm, type="response", se.fit=T)
     
     se.double     <- sqrt(dhat.double^2*(sum(double.predict$se.fit^2)/sum(double.predict$fit)^2  + phat.se^2/phat^2))#+ varS/eS^2
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec[1,], Detections=detect.primary+detect.secondary, Mussels=count.vec[1,], Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
   }
   
   return(return.list)
@@ -1243,9 +1251,9 @@ EstimatorComparisonPlot <- function(distance.est.design, distance.est.jack, dist
   
   dhat.quadrat.vec    <- c(quadrat.est.design$Dhat, quadrat.est.jack$Dhat, quadrat.est.model$Dhat)
   dhat.quadrat.se.vec <- c(quadrat.est.design$Dhat.se, quadrat.est.jack$Dhat.se, quadrat.est.model$Dhat.se)
-  ylims <- c(dhat.double.vec - dhat.double.se.vec, dhat.quadrat.vec - dhat.quadrat.se.vec, dhat.distance.vec - dhat.distance.se.vec, dhat.double.vec + dhat.double.se.vec, dhat.quadrat.vec + dhat.quadrat.se.vec, dhat.distance.vec + dhat.distance.se.vec)
+  ylims <- c(dhat.double.vec - 2*dhat.double.se.vec, dhat.quadrat.vec - 2*dhat.quadrat.se.vec, dhat.distance.vec - 2*dhat.distance.se.vec, dhat.double.vec + 2*dhat.double.se.vec, dhat.quadrat.vec + 2*dhat.quadrat.se.vec, dhat.distance.vec + 2*dhat.distance.se.vec)
   
-  plotCI(x=rep(1,3)+c(-0.1,0,0.1), y=dhat.distance.vec, uiw=2*dhat.distance.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main=lakename, xlim=c(0.75,3.25), ylim=range(ylims))
+  plotCI(x=rep(1,3) + c(-0.1, 0, 0.1), y=dhat.distance.vec, uiw=2*dhat.distance.se.vec, xaxt = 'n', ylab="Estimated density", xlab="Estimator", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, main=lakename, xlim=c(0.75, 3.25), ylim=range(ylims))
   axis(1, at=c(1,2,3), labels=c("Distance", "Double observer", "Quadrat"))
   abline(h=mean(c(dhat.double.vec, dhat.distance.vec, dhat.quadrat.vec)), lty=3, col="gray")
   plotCI(x=rep(2,3)+c(-0.1,0,0.1), y=dhat.double.vec, uiw=2*dhat.double.se.vec, col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, add=T)
