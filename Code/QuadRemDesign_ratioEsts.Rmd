@@ -3,7 +3,7 @@ title: "Ratio estimates of density"
 name: "St Clair"
 date: "`r format(Sys.Date())`"
 output: 
-  github_document
+  html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -223,7 +223,7 @@ ests.df$detProb <- c(1,1,1,1,1,1,
 
 GOF assessment:
 
-```{r}
+```{r gof poission}
 chisq <- function(x){
   observed <- getY(x@data)
   expected <- fitted(x)
@@ -237,6 +237,41 @@ pb <- parboot(lbout, statistic = chisq, nsim = 500)
 plot(pb)
 ```
 
+#### Using neg binom abundance model
+
+```{r}
+# fit models, using area as covariate (though coeff for area is negative???)
+bFrame <- unmarkedFrameGMM(y=count.mat.b, siteCovs = covDf.b, type="removal", numPrimary = 1)
+fFrame <- unmarkedFrameGMM(y=count.mat.f, siteCovs = covDf.f, type="removal", numPrimary = 1)
+lbFrame <- unmarkedFrameGMM(y=count.mat.lb, siteCovs = covDf.lb, type="removal", numPrimary = 1)
+bout <- gmultmix(~ area, ~1, ~ area , data = bFrame, mixture = "NB")  # area better AIC than log(area)
+bout
+backTransform(bout, type="lambda")
+fout <- gmultmix(~1, ~ 1 , ~1, data = fFrame, mixture = "NB")  # lengths same for all Florida plots
+fout
+lbout <- gmultmix(~log(area), ~1, ~ log(area), data = lbFrame, mixture = "NB", starts = c(3,.1,-20,.5,1))  # log area produces NAs
+lbout
+lbout <- gmultmix(~area, ~1, ~ area, data = lbFrame, mixture = "P", starts = c(5,0,1, .5))  # log area produces NAs
+lbout
+```
+
+GOF assessment:
+```{r gof nb}
+chisq <- function(x){
+  observed <- getY(x@data)
+  expected <- fitted(x)
+  sum((observed - expected)^2/expected)
+}
+pb <- parboot(bout, statistic = chisq, nsim = 500)
+pb
+plot(pb)
+pb <- parboot(fout, statistic = chisq, nsim = 500)
+plot(pb)
+pb
+pb <- parboot(lbout, statistic = chisq, nsim = 500)
+plot(pb)
+pb
+```
 
 #### from ddf removal sampling: assumes $w = 0.5$?? 
 Since area is equal to length, assuming that half width is 0.5m. Use the `mrds` package to estimate density as 
