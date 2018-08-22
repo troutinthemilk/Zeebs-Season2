@@ -1,7 +1,9 @@
 ---
 title: "Ratio estimates of density"
-name: "St Clair 8/10/18"
-output: github_document
+name: "St Clair"
+date: "`r format(Sys.Date())`"
+output: 
+  github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -30,9 +32,7 @@ double.dat %>% filter(`Lake name` == "Lake Burgan", `Transect #` ==11)
 
 #### Quad sampling: assuming perfect detection
 For each transect $i$ ($i = 1, \dotsc, T$), we observe mussel counts in $n_i$ quadrats. The total number of mussels for each transect is $y_i$ (summed over all quads) and the total area sampled in a transect is $a_i = n_i \times 0.5^2$ square-meters. The total area and number of quads sampled varies across quads, so we will use a ratio estimate of density:
-$$
-\hat{D} = \dfrac{\sum_{i=1}^T y_i}{\sum_{i=1}^T a_i}
-$$
+$$\hat{D} = \dfrac{\sum_{i=1}^T y_i}{\sum_{i=1}^T a_i}$$
 
 We can use the `survey` package to obtain this ratio estimate and SE for each lake. The design assumes a SRS of transects around the lake with mussel counts and area recorded fro each transect. 
 ```{r}
@@ -51,9 +51,7 @@ ests.df$SE[1:3] <- sqrt(sapply(svy.out$strata, function(x) svy.out[[1]][[x]][[2]
 
 #### Transect sampling (no distance): assuming perfect detection
 For each transect $i$ ($i = 1, \dotsc, T$), let $l_i$ be the length of the transect sampled. The total number of mussels for each transect observed by **both** divers is $y_i$. The total area sampled in a transect is $a_i = l_i \times w \times 2$ square-meters where $w$ is the (half-width) distance from the transect that divers looked for mussels. The total area and number of quads sampled varies across quads, so we will use a ratio estimate of density:
-$$
-\hat{D} = \dfrac{\sum_{i=1}^T y_i}{\sum_{i=1}^T a_i}
-$$
+$$\hat{D} = \dfrac{\sum_{i=1}^T y_i}{\sum_{i=1}^T a_i}$$
 
 Results for transects 1-8, assuming $w = 0.5$m:
 
@@ -90,20 +88,14 @@ ests.df$SE[(1:3)+3] <- sqrt(sapply(svy.out$strata, function(x) svy.out[[1]][[x]]
 
 ### Try using `unmarked` for double observer removal data
 This model uses multinomial distribution for observed removal counts and a Poisson model for transect population mussels counts, denoted $N_i$. Let $y_{ij}$ be the number of mussels (not clusters) removed at time $j$ at transect $i$, and $\pmb{y_i} = (y_{i1}, y_{i2}, y_{i0})$ where $y_{i0} = N_i - \sum_{j}y_{ij}$ is the number of unobserved mussels. Then the model is
-$$
-N_i \sim Pois(\lambda_i) \ \ \\
-\pmb{y_i} \mid N_i \sim Multinom(N_i, \pmb{\pi})
-$$
+$$N_i \sim Pois(\lambda_i) \ \ \\
+\pmb{y_i} \mid N_i \sim Multinom(N_i, \pmb{\pi})$$
 Since transects vary in area, we allow mean abundance $\lambda_i$ to depend on the area of the site using the model
-$$
-\log(\lambda_i) = \beta_0 + \beta_1 a_i
-$$
+$$\log(\lambda_i) = \beta_0 + \beta_1 a_i$$
 This model is fit for Burgan and Little Birch since transect lengths varied. Area is not used in the model for Florida since all transects were 30m in length. 
 
 Estimated density is formed from transect level estimates of abundance $\hat{N}_i$:
-$$
-\hat{D} = \dfrac{\sum_{i}\hat{N}_i}{A}
-$$
+$$\hat{D} = \dfrac{\sum_{i}\hat{N}_i}{A}$$
 
 
 
@@ -248,9 +240,7 @@ plot(pb)
 
 #### from ddf removal sampling: assumes $w = 0.5$?? 
 Since area is equal to length, assuming that half width is 0.5m. Use the `mrds` package to estimate density as 
-$$
-\hat{D} = \dfrac{n \bar{s}}{\hat{P}_dA}
-$$
+$$\hat{D} = \dfrac{n \bar{s}}{\hat{P}_dA}$$
 where $\bar{s}$ is the mean mussel count per detection, $\hat{P}_d$ is the estimated probability of detection on a transect (proportion of actual clusters that were detected), and $A$ is the total area surveyed. 
 
 ```{r}
