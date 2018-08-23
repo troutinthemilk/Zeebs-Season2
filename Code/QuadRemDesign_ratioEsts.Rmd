@@ -3,19 +3,29 @@ title: "Ratio estimates of density"
 name: "St Clair"
 date: "`r format(Sys.Date())`"
 output: 
-  html_document
+  pdf_document
 ---
 
-```{r setup, include=FALSE}
+
+```{r setup, include=FALSE, eval=TRUE}
 knitr::opts_chunk$set(echo = TRUE, comment = NULL, collapse = TRUE, prompt = TRUE, warning = FALSE, message = FALSE, include = FALSE)
+```
+```{r chunk 2}
+4*2
+```
+
+```{r chunk 3}
 library(readxl)
-library(tidyverse)
 library(survey)
+library(tidyverse)
 library(unmarked)
 library(mrds)
 library(knitr)
 ests.df <- data_frame(Lake = rep(NA, 3*5), Dhat = rep(NA, 3*5), SE = rep(NA, 3*5), method = rep(NA,3*5), detProb = rep(NA, 3*5)) 
 ```
+
+
+
 
 ```{r}
 double.dat <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1) %>% select(-1)
@@ -224,7 +234,7 @@ ests.df$detProb[(1:3)+3*2] <- c(
 
 GOF assessment:
 
-```{r gof poission}
+```{r gof poission, eval=FALSE}
 chisq <- function(x){
   observed <- getY(x@data)
   expected <- fitted(x)
@@ -257,7 +267,7 @@ fout
 ```
 
 GOF assessment:
-```{r gof nb}
+```{r gof nb, eval = FALSE}
 pb <- parboot(bout, statistic = chisq, nsim = 500)
 pb
 plot(pb)
@@ -270,7 +280,7 @@ pb
 ```
 
 ```{r}
-abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(c(rep(1,nrow(covDf.b)), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b)) ))   # intercept
+abund.b<- backTransform(linearComb(bout, type = "lambda", coefficients = matrix(c(rep(1,nrow(covDf.b)), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b)) ))   # intercept
 #abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(rep(1,nrow(covDf.b)), ncol=1 ), offset = covDf.b$offset))  # offset
 abund.b
 # add transect estimates
@@ -281,9 +291,9 @@ abund.ball.se <- sqrt(sum(vcov(abund.b)))
 abund.ball.se
 abund.ball.se/sum(covDf.b$area)
 
-abund.f<- backTransform(linearComb(fout, type = "state", coefficients = matrix(c(rep(1,nrow(covDf.f))), byrow=FALSE, nrow=nrow(covDf.f)) ))
+abund.f<- backTransform(linearComb(fout, type = "lambda", coefficients = matrix(c(rep(1,nrow(covDf.f))), byrow=FALSE, nrow=nrow(covDf.f)) ))
 abund.f
-abund.f30m<- backTransform(linearComb(fout, type = "state", coefficients = c(1) ))
+abund.f30m<- backTransform(linearComb(fout, type = "lambda", coefficients = c(1) ))
 abund.f30m
 abund.f30m@estimate/30   # area of florida transects
 SE(abund.f30m)/30
@@ -310,11 +320,11 @@ abund.fall.se/sum(covDf.f$area)
 
 ```{r}
 svy.out$strata
-ests.df$Lake[(1:3)+5*2] <- svy.out$strata
-ests.df$method[(1:3)+5*2] <- "Double no distance, multiNegBinom"
-ests.df$Dhat[(1:3)+5*2] <- c(abund.ball/sum(covDf.b$area), abund.fall/sum(covDf.f$area),NA) # abund.lball/sum(covDf.lb$area))
-ests.df$SE[(1:3)+5*2] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), abund.lball.se/sum(covDf.lb$area))
-ests.df$detProb[(1:3)+5*2] <- c(
+ests.df$Lake[(1:3)+3*4] <- svy.out$strata
+ests.df$method[(1:3)+3*4] <- "Double no distance, multiNegBinom"
+ests.df$Dhat[(1:3)+3*4] <- c(abund.ball/sum(covDf.b$area), abund.fall/sum(covDf.f$area),NA) # abund.lball/sum(covDf.lb$area))
+ests.df$SE[(1:3)+3*4] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), abund.lball.se/sum(covDf.lb$area))
+ests.df$detProb[(1:3)+3*4] <- c(
                      mean(backTransform(linearComb(bout, type = "det", coefficients = matrix(c(rep(1,3), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b))))@estimate),
                      backTransform(linearComb(fout, type = "det", coefficients = 1))@estimate, NA)
                      #mean(backTransform(linearComb(lbout, type = "det", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb))))@estimate))
