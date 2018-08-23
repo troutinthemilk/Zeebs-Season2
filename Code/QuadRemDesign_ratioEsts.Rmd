@@ -14,7 +14,7 @@ library(survey)
 library(unmarked)
 library(mrds)
 library(knitr)
-ests.df <- data_frame(Lake = rep(NA, 3*4), Dhat = rep(NA, 3*4), SE = rep(NA, 3*4), method = rep(NA,3*4)) 
+ests.df <- data_frame(Lake = rep(NA, 3*5), Dhat = rep(NA, 3*5), SE = rep(NA, 3*5), method = rep(NA,3*5), detProb = rep(NA, 3*5)) 
 ```
 
 ```{r}
@@ -47,6 +47,7 @@ ests.df$Lake[1:3] <- svy.out$strata
 ests.df$method[1:3] <- "quads, ratio"
 ests.df$Dhat[1:3] <- sapply(svy.out$strata, function(x) svy.out[[1]][[x]][[1]])
 ests.df$SE[1:3] <- sqrt(sapply(svy.out$strata, function(x) svy.out[[1]][[x]][[2]]))
+ests.df$detProb[(1:3)] <- c(1,1,1) 
 ```
 
 #### Transect sampling (no distance): assuming perfect detection
@@ -81,6 +82,7 @@ ests.df$Lake[(1:3)+3] <- svy.out$strata
 ests.df$method[(1:3)+3] <- "Double no distance, ratio"
 ests.df$Dhat[(1:3)+3] <- sapply(svy.out$strata, function(x) svy.out[[1]][[x]][[1]])
 ests.df$SE[(1:3)+3] <- sqrt(sapply(svy.out$strata, function(x) svy.out[[1]][[x]][[2]]))
+ests.df$detProb[(1:3)+3] <- c(1,1,1) 
 ```
 
 
@@ -213,11 +215,10 @@ ests.df$Lake[(1:3)+3*2] <- svy.out$strata
 ests.df$method[(1:3)+3*2] <- "Double no distance, multiPois"
 ests.df$Dhat[(1:3)+3*2] <- c(abund.ball/sum(covDf.b$area), abund.fall/sum(covDf.f$area), abund.lball/sum(covDf.lb$area))
 ests.df$SE[(1:3)+3*2] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), abund.lball.se/sum(covDf.lb$area))
-ests.df$detProb <- c(1,1,1,1,1,1,
+ests.df$detProb[(1:3)+3*2] <- c(
                      mean(backTransform(linearComb(bout, type = "det", coefficients = matrix(c(rep(1,3), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b))))@estimate),
                      backTransform(linearComb(fout, type = "det", coefficients = 1))@estimate, 
-                     mean(backTransform(linearComb(lbout, type = "det", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb))))@estimate), 
-                     NA,NA,NA)
+                     mean(backTransform(linearComb(lbout, type = "det", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb))))@estimate))
 ```
 
 
@@ -246,31 +247,77 @@ fFrame <- unmarkedFrameGMM(y=count.mat.f, siteCovs = covDf.f, type="removal", nu
 lbFrame <- unmarkedFrameGMM(y=count.mat.lb, siteCovs = covDf.lb, type="removal", numPrimary = 1)
 bout <- gmultmix(~ area, ~1, ~ area , data = bFrame, mixture = "NB")  # area better AIC than log(area)
 bout
-backTransform(bout, type="lambda")
+#backTransform(bout, type="lambda")
 fout <- gmultmix(~1, ~ 1 , ~1, data = fFrame, mixture = "NB")  # lengths same for all Florida plots
 fout
-lbout <- gmultmix(~log(area), ~1, ~ log(area), data = lbFrame, mixture = "NB", starts = c(3,.1,-20,.5,1))  # log area produces NAs
-lbout
-lbout <- gmultmix(~area, ~1, ~ area, data = lbFrame, mixture = "P", starts = c(5,0,1, .5))  # log area produces NAs
-lbout
+# lbout <- gmultmix(~log(area), ~1, ~ log(area), data = lbFrame, mixture = "NB", starts = c(3,.1,-20,.5,1))  # log area produces NAs
+# lbout
+# lbout <- gmultmix(~area, ~1, ~ area, data = lbFrame, mixture = "P", starts = c(5,0,1, .5))  # log area produces NAs
+# lbout
 ```
 
 GOF assessment:
 ```{r gof nb}
-chisq <- function(x){
-  observed <- getY(x@data)
-  expected <- fitted(x)
-  sum((observed - expected)^2/expected)
-}
 pb <- parboot(bout, statistic = chisq, nsim = 500)
 pb
 plot(pb)
 pb <- parboot(fout, statistic = chisq, nsim = 500)
 plot(pb)
 pb
-pb <- parboot(lbout, statistic = chisq, nsim = 500)
-plot(pb)
-pb
+# pb <- parboot(lbout, statistic = chisq, nsim = 500)
+# plot(pb)
+# pb
+```
+
+```{r}
+abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(c(rep(1,nrow(covDf.b)), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b)) ))   # intercept
+#abund.b<- backTransform(linearComb(bout, type = "state", coefficients = matrix(rep(1,nrow(covDf.b)), ncol=1 ), offset = covDf.b$offset))  # offset
+abund.b
+# add transect estimates
+abund.ball <- sum(abund.b@estimate)
+abund.ball
+abund.ball/sum(covDf.b$area)
+abund.ball.se <- sqrt(sum(vcov(abund.b)))
+abund.ball.se
+abund.ball.se/sum(covDf.b$area)
+
+abund.f<- backTransform(linearComb(fout, type = "state", coefficients = matrix(c(rep(1,nrow(covDf.f))), byrow=FALSE, nrow=nrow(covDf.f)) ))
+abund.f
+abund.f30m<- backTransform(linearComb(fout, type = "state", coefficients = c(1) ))
+abund.f30m
+abund.f30m@estimate/30   # area of florida transects
+SE(abund.f30m)/30
+# add transect estimates
+abund.fall <- sum(abund.f@estimate)
+abund.fall
+abund.fall/sum(covDf.f$area)
+abund.fall.se <- sqrt(sum(vcov(abund.f)))
+abund.fall.se
+abund.fall.se/sum(covDf.f$area)
+
+
+# abund.lb<- backTransform(linearComb(lbout, type = "state", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb)) )) # intercept
+# #abund.lb<- backTransform(linearComb(bout, type = "state", coefficients = matrix(rep(1,nrow(covDf.lb)), ncol=1 ), offset = covDf.lb$offset))  # offset
+# abund.lb
+# # add transect estimates
+# abund.lball <- sum(abund.lb@estimate)
+# abund.lball
+# abund.lball/sum(covDf.lb$area)
+# abund.lball.se <- sqrt(sum(vcov(abund.lb)))
+# abund.lball.se
+# abund.lball.se/sum(covDf.lb$area)
+```
+
+```{r}
+svy.out$strata
+ests.df$Lake[(1:3)+5*2] <- svy.out$strata
+ests.df$method[(1:3)+5*2] <- "Double no distance, multiNegBinom"
+ests.df$Dhat[(1:3)+5*2] <- c(abund.ball/sum(covDf.b$area), abund.fall/sum(covDf.f$area),NA) # abund.lball/sum(covDf.lb$area))
+ests.df$SE[(1:3)+5*2] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), abund.lball.se/sum(covDf.lb$area))
+ests.df$detProb[(1:3)+5*2] <- c(
+                     mean(backTransform(linearComb(bout, type = "det", coefficients = matrix(c(rep(1,3), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b))))@estimate),
+                     backTransform(linearComb(fout, type = "det", coefficients = 1))@estimate, NA)
+                     #mean(backTransform(linearComb(lbout, type = "det", coefficients = matrix(c(rep(1,3), covDf.lb$area), byrow=FALSE, nrow=nrow(covDf.lb))))@estimate))
 ```
 
 #### from ddf removal sampling: assumes $w = 0.5$?? 
