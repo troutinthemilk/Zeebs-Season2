@@ -1,6 +1,6 @@
 Ratio estimates of density
 ================
-2018-08-22
+2018-08-24
 
 #### Quad sampling: assuming perfect detection
 
@@ -35,11 +35,19 @@ To look at:
 
 GOF assessment:
 
+#### Using neg binom abundance model
+
+GOF assessment:
+
 #### from ddf removal sampling: assumes *w* = 0.5??
 
 Since area is equal to length, assuming that half width is 0.5m. Use the `mrds` package to estimate density as
 $$\\hat{D} = \\dfrac{n \\bar{s}}{\\hat{P}\_dA}$$
  where $\\bar{s}$ is the mean mussel count per detection, $\\hat{P}\_d$ is the estimated probability of detection on a transect (proportion of actual clusters that were detected), and *A* is the total area surveyed.
+
+#### Design based removal estimates
+
+Using the fisheries package `FSA`, we can get design based (model independent) estimates of abundance for each transect, independently of one another. Then total transect level estimates and divide by area surveyed to get a density estimate and SE.
 
 #### Results
 
@@ -49,17 +57,23 @@ Note: detection prob rate for `multiPois` is at the mussel level while it is at 
 > kable(arrange(ests.df, Lake), digits = 3)
 ```
 
-| Lake              |    Dhat|     SE| method                        |  detProb|
-|:------------------|-------:|------:|:------------------------------|--------:|
-| Lake Burgan       |   0.559|  0.210| quads, ratio                  |    1.000|
-| Lake Burgan       |   0.213|  0.070| Double no distance, ratio     |    1.000|
-| Lake Burgan       |   0.275|  0.054| Double no distance, multiPois |    0.952|
-| Lake Burgan       |   0.221|     NA| Double no distance, MRDS      |    0.963|
-| Lake Florida      |   0.071|  0.047| quads, ratio                  |    1.000|
-| Lake Florida      |   0.011|  0.007| Double no distance, ratio     |    1.000|
-| Lake Florida      |   0.012|  0.006| Double no distance, multiPois |    0.750|
-| Lake Florida      |   0.012|     NA| Double no distance, MRDS      |    0.960|
-| Little Birch Lake |  24.465|  9.420| quads, ratio                  |    1.000|
-| Little Birch Lake |  10.085|  2.899| Double no distance, ratio     |    1.000|
-| Little Birch Lake |  11.721|  0.984| Double no distance, multiPois |    0.643|
-| Little Birch Lake |  10.851|     NA| Double no distance, MRDS      |    0.929|
+| Lake              |    Dhat|     SE| method                            |  detProb|
+|:------------------|-------:|------:|:----------------------------------|--------:|
+| Lake Burgan       |   0.559|  0.210| quads, ratio                      |    1.000|
+| Lake Burgan       |   0.213|  0.070| Double no distance, ratio         |    1.000|
+| Lake Burgan       |   0.275|  0.054| Double no distance, multiPois     |    0.952|
+| Lake Burgan       |   0.221|     NA| Double no distance, MRDS          |    0.963|
+| Lake Burgan       |   0.308|  0.132| Double no distance, multiNegBinom |    0.948|
+| Lake Burgan       |   0.220|  0.019| Double no distance, design based  |    0.875|
+| Lake Florida      |   0.071|  0.047| quads, ratio                      |    1.000|
+| Lake Florida      |   0.011|  0.007| Double no distance, ratio         |    1.000|
+| Lake Florida      |   0.012|  0.006| Double no distance, multiPois     |    0.750|
+| Lake Florida      |   0.012|     NA| Double no distance, MRDS          |    0.960|
+| Lake Florida      |   0.012|  0.008| Double no distance, multiNegBinom |    0.750|
+| Lake Florida      |   0.011|  0.002| Double no distance, design based  |    0.917|
+| Little Birch Lake |  24.465|  9.420| quads, ratio                      |    1.000|
+| Little Birch Lake |  10.085|  2.899| Double no distance, ratio         |    1.000|
+| Little Birch Lake |  11.721|  0.984| Double no distance, multiPois     |    0.643|
+| Little Birch Lake |  10.851|     NA| Double no distance, MRDS          |    0.929|
+| Little Birch Lake |      NA|     NA| Double no distance, multiNegBinom |       NA|
+| Little Birch Lake |  10.296|  0.083| Double no distance, design based  |    0.829|

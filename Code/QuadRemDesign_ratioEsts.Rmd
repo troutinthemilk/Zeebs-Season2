@@ -3,7 +3,7 @@ title: "Ratio estimates of density"
 name: "St Clair"
 date: "`r format(Sys.Date())`"
 output: 
-  pdf_document
+  github_document
 ---
 
 
@@ -16,7 +16,7 @@ library(tidyverse)
 library(unmarked)
 library(mrds)
 library(knitr)
-ests.df <- data_frame(Lake = rep(NA, 3*5), Dhat = rep(NA, 3*5), SE = rep(NA, 3*5), method = rep(NA,3*5), detProb = rep(NA, 3*5)) 
+ests.df <- data_frame(Lake = rep(NA, 3*6), Dhat = rep(NA, 3*6), SE = rep(NA, 3*6), method = rep(NA,3*6), detProb = rep(NA, 3*6)) 
 ```
 
 
@@ -258,8 +258,8 @@ fout
 # lbout <- gmultmix(~log(area), ~1, ~ log(area), data = lbFrame, mixture = "NB", starts = c(3,.1,-20,.5,1))  # log area produces NAs
 # lbout
 # 
-lbout <- gmultmix(~1, ~1, ~ 1, data = lbFrame, mixture = "P") #, control = list(trace=2), starts = c(30.1399659,   .1026389, 5.1867414,   2.650632,5), K=400)  # log area produces NAs
-lbout
+#lbout <- gmultmix(~1, ~1, ~ 1, data = lbFrame, mixture = "P") #, control = list(trace=2), starts = c(30.1399659,   .1026389, 5.1867414,   2.650632,5), K=400)  # log area produces NAs
+#lbout
 ```
 
 GOF assessment:
@@ -492,13 +492,59 @@ ests.df$Dhat[12] <- dhat.double
 ests.df$detProb[12] <- phat
 ```
 
+
+#### Design based removal estimates
+Using the fisheries package `FSA`, we can get design based (model independent) estimates of abundance for each transect, independently of one another. Then total transect level estimates and divide by area surveyed to get a density estimate and SE.   
+
+
+
+```{r}
+library(FSA)
+n.list <- split(bFrame@y, f = 1:nrow(bFrame@y))
+remove.out <- lapply(n.list, removal, just.ests = TRUE)
+(bN.hat <- sum(data.frame(remove.out)[1,]))
+(bD.hat <- bN.hat/sum(bFrame@siteCovs$area))
+(bSE.Nhat <- sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE)))
+(bSE.Dhat <- bSE.Nhat/sum(bFrame@siteCovs$area))
+(bp.hat <- mean(unlist(data.frame(remove.out)[5,]), na.rm = TRUE))
+(bSE.phat <- sqrt(mean(unlist(data.frame(remove.out)[6,])^2, na.rm = TRUE)))
+
+n.list <- split(fFrame@y, f = 1:nrow(fFrame@y))
+remove.out <- lapply(n.list, removal, just.ests = TRUE)
+(fN.hat <- sum(data.frame(remove.out)[1,]))
+(fD.hat <- fN.hat/sum(fFrame@siteCovs$area))
+(fSE.Nhat <- sqrt(sum(data.frame(remove.out)[2,]^2, na.rm=TRUE)))
+(fSE.Dhat <- fSE.Nhat/sum(fFrame@siteCovs$area))
+(fp.hat <- mean(unlist(data.frame(remove.out)[5,]), na.rm = TRUE))
+(fSE.phat <- sqrt(mean(unlist(data.frame(remove.out)[6,])^2, na.rm = TRUE)))
+
+n.list <- split(lbFrame@y, f = 1:nrow(lbFrame@y))
+remove.out <- lapply(n.list, removal, just.ests = TRUE)
+(lbN.hat <- sum(data.frame(remove.out)[1,]))
+(lbD.hat <- lbN.hat/sum(lbFrame@siteCovs$area))
+(lbSE.Nhat <- sqrt(sum(data.frame(remove.out)[2,]^2)))
+(lbSE.Dhat <- lbSE.Nhat/sum(lbFrame@siteCovs$area))
+(lbp.hat <- mean(unlist(data.frame(remove.out)[5,]), na.rm = TRUE))
+(lbSE.phat <- sqrt(mean(unlist(data.frame(remove.out)[6,])^2, na.rm = TRUE)))
+
+```
+
+
+```{r}
+svy.out$strata
+ests.df$Lake[(1:3)+3*5] <- svy.out$strata
+ests.df$method[(1:3)+3*5] <- "Double no distance, design based"
+ests.df$Dhat[(1:3)+3*5] <- c(bD.hat,fD.hat,lbD.hat) # density
+ests.df$SE[(1:3)+3*5] <- c(bSE.Dhat,fSE.Dhat,lbSE.Dhat) # abund.lball.se/sum(covDf.lb$area))
+ests.df$detProb[(1:3)+3*5] <- c(bp.hat,fp.hat,lbp.hat)
+```
+
 #### Results
 Note: detection prob rate for `multiPois` is at the mussel level while it is at the cluster level for `MRDS` models.
 
 ```{r, include = TRUE}
 kable(arrange(ests.df, Lake), digits = 3)
 ```
-
 
 
 
