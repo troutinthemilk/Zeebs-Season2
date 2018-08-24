@@ -9,12 +9,7 @@ output:
 
 ```{r setup, include=FALSE, eval=TRUE}
 knitr::opts_chunk$set(echo = TRUE, comment = NULL, collapse = TRUE, prompt = TRUE, warning = FALSE, message = FALSE, include = FALSE)
-```
-```{r chunk 2}
-4*2
-```
 
-```{r chunk 3}
 library(readxl)
 library(survey)
 library(tidyverse)
@@ -262,8 +257,9 @@ fout <- gmultmix(~1, ~ 1 , ~1, data = fFrame, mixture = "NB")  # lengths same fo
 fout
 # lbout <- gmultmix(~log(area), ~1, ~ log(area), data = lbFrame, mixture = "NB", starts = c(3,.1,-20,.5,1))  # log area produces NAs
 # lbout
-# lbout <- gmultmix(~area, ~1, ~ area, data = lbFrame, mixture = "P", starts = c(5,0,1, .5))  # log area produces NAs
-# lbout
+# 
+lbout <- gmultmix(~1, ~1, ~ 1, data = lbFrame, mixture = "P") #, control = list(trace=2), starts = c(30.1399659,   .1026389, 5.1867414,   2.650632,5), K=400)  # log area produces NAs
+lbout
 ```
 
 GOF assessment:
@@ -323,7 +319,7 @@ svy.out$strata
 ests.df$Lake[(1:3)+3*4] <- svy.out$strata
 ests.df$method[(1:3)+3*4] <- "Double no distance, multiNegBinom"
 ests.df$Dhat[(1:3)+3*4] <- c(abund.ball/sum(covDf.b$area), abund.fall/sum(covDf.f$area),NA) # abund.lball/sum(covDf.lb$area))
-ests.df$SE[(1:3)+3*4] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), abund.lball.se/sum(covDf.lb$area))
+ests.df$SE[(1:3)+3*4] <- c(abund.ball.se/sum(covDf.b$area), abund.fall.se/sum(covDf.f$area), NA) # abund.lball.se/sum(covDf.lb$area))
 ests.df$detProb[(1:3)+3*4] <- c(
                      mean(backTransform(linearComb(bout, type = "det", coefficients = matrix(c(rep(1,3), covDf.b$area), byrow=FALSE, nrow=nrow(covDf.b))))@estimate),
                      backTransform(linearComb(fout, type = "det", coefficients = 1))@estimate, NA)
