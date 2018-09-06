@@ -1,0 +1,131 @@
+---
+title: "EDA"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 9, echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(ads)
+```
+
+## Double observer - no distance
+```{r}
+double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1) %>% select(-1)
+double.dat$`Number of mussels in cluster`[is.na(double.dat$`Number of mussels in cluster`)] <- 0
+transect.dat      <- read_xlsx(path="../Data/Season2/Transect datasheets (Responses).xlsx", sheet=1) %>% 
+  filter(`Survey type` == "Double observer no distance") %>%
+  select(`Transect number`, `Transect length (if transect survey)`, `Lake name:`, `Primary observer (double observer survey)`, `Secondary observer (double observer survey)`)
+transect.dat <- transect.dat %>% dplyr::rename(`Transect #` = `Transect number`,length = `Transect length (if transect survey)`, primary = `Primary observer (double observer survey)`, secondary = `Secondary observer (double observer survey)`) %>%
+  mutate(`Lake name` = recode(`Lake name:`, Burgan = "Lake Burgan", Florida = "Lake Florida", `Little Birch Lake` = "Little Birch Lake"))
+double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1) %>% select(-1)
+```
+
+```{r}
+double.dat2 <- double.dat %>% filter(`Number of mussels in cluster` > 0)
+
+transect.dat <- transect.dat %>% gather(key = observer, value = name, "primary", "secondary") 
+# join to add primary or secondary and length measures to double counts
+double.dat2 <- left_join(double.dat2, transect.dat, by = c("Lake name", "Transect #", "Observer name"= "name")) 
+```
+
+
+Cluster sizes by lake and observer
+```{r}
+double.dat2 %>% filter(`Number of mussels in cluster` > 0) %>%
+  group_by(`Lake name`, observer) %>%
+  summarize(mean.num = mean(`Number of mussels in cluster`), 
+            med.num = median(`Number of mussels in cluster`), 
+            min.num = min(`Number of mussels in cluster`), 
+            max.num = max(`Number of mussels in cluster`))
+```
+
+
+```{r}
+double.dat2 %>% 
+  ggplot(aes(x=`Transect #`, y = `Distance along transect (m)`, size = `Number of mussels in cluster`, color = observer)) + 
+  geom_point() + 
+  facet_wrap(~`Lake name`, scales = "free") + 
+  scale_size("cluster size") + 
+  ggtitle("Double observer - no distance sampling")
+```
+
+
+```{r, eval = FALSE}
+rect <-  c(0,0, 15*100, 21)
+unispp <- spp(x=double.dat2$`Transect #`*100, y=double.dat2$`Distance along transect (m)`, window = rect)
+
+
+spp.list <- double.dat2 %>% group_by(`Lake name`) %>%
+  do(out = kfun(spp(x=.$`Transect #`*100, y=.$`Distance along transect (m)`, window =rect), upto = 20, by = 1, nsim = 500))
+spp.list
+plot(spp.list[[2]][[1]], main = "Lake Burgan - double no distance")
+plot(spp.list[[2]][[2]], main = "Lake Florida - double no distance")
+plot(spp.list[[2]][[3]], main = "Little Birch Lake - double no distance")
+
+```
+
+### Distance data
+
+```{r}
+dist.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1) %>% select(-1)
+dist.dat$`Number of mussels in cluster`[is.na(dist.dat$`Number of mussels in cluster`)] <- 0
+```
+
+```{r}
+dist.dat2 <- dist.dat %>%
+  filter(`Number of mussels in cluster` > 0) %>%
+  mutate(x = ifelse(`Left or right of transect line?` == "Left", 100*`Transect #` - `Perpendicular distance from transect (cm)`/100, 100*`Transect #` + `Perpendicular distance from transect (cm)`/100), 
+         y = `Distance along transect (m)`, 
+         dist = ifelse(`Left or right of transect line?` == "Left",  -`Perpendicular distance from transect (cm)`/100,  `Perpendicular distance from transect (cm)`/100))
+```
+
+```{r}
+# join to add primary or secondary and length measures to double counts
+dist.dat2 <- left_join(dist.dat2, transect.dat, by = c("Lake name", "Transect #", "Observer name"= "name")) 
+```
+
+cluster size by lake and observer - little birch primary/secondary observers look like they are switched. 
+```{r}
+dist.dat2 %>% 
+  group_by(`Lake name`, observer) %>%
+  summarize(mean.num = mean(`Number of mussels in cluster`), 
+            med.num = median(`Number of mussels in cluster`), 
+            min.num = min(`Number of mussels in cluster`), 
+            max.num = max(`Number of mussels in cluster`))
+```
+
+
+```{r}
+dist.dat2 %>% 
+  ggplot(aes(x=x, y = y, size = `Number of mussels in cluster`, color=observer)) + 
+  geom_point() + 
+  facet_wrap(~`Lake name`, scales = "free")  + 
+  ggtitle("Distance sampling - Little Birch looks off!")
+```
+
+```{r}
+dist.dat2 %>% 
+  ggplot(aes(x=dist, y = y, size = `Number of mussels in cluster`, color=observer)) + 
+  geom_point() + 
+  facet_wrap(~`Lake name`, scales = "free") + 
+  geom_vline(xintercept = 0, linetype = 2) + 
+  scale_size("Cluster size") + 
+  ggtitle("Distance sampling - Little Birch looks off!")
+```
+
+
+```{r, eval = FALSE}
+rect <-  c(0,0, 15*100, 21)
+unispp <- spp(x=double.dat2$`Transect #`*100, y=double.dat2$`Distance along transect (m)`, window = rect)
+
+
+spp.list <- dist.dat2 %>% group_by(`Lake name`) %>%
+  do(out = kfun(spp(x=.$x, y=.$y, window =rect), upto = 20, by = 1, nsim = 500))
+spp.list
+plot(spp.list[[2]][[1]], main = "Lake Burgan - distance")
+plot(spp.list[[2]][[2]], main = "Lake Florida - distance")
+plot(spp.list[[2]][[3]], main = "Little Birch Lake - distance")
+```
