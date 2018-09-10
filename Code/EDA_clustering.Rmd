@@ -1,10 +1,10 @@
 ---
 title: "EDA"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 9, echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(fig.width = 9, echo = FALSE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(readxl)
@@ -72,6 +72,15 @@ plot(spp.list[[2]][[3]], main = "Little Birch Lake - double no distance")
 ```{r}
 dist.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1) %>% select(-1)
 dist.dat$`Number of mussels in cluster`[is.na(dist.dat$`Number of mussels in cluster`)] <- 0
+
+##JMF modified this section
+transect.dat      <- read_xlsx(path="../Data/Season2/Transect datasheets (Responses).xlsx", sheet=1) %>% 
+  filter(`Survey type` == "Double observer distance") %>%
+  select(`Transect number`, `Transect length (if transect survey)`, `Lake name:`, `Primary observer (double observer survey)`, `Secondary observer (double observer survey)`)
+transect.dat <- transect.dat %>% dplyr::rename(`Transect #` = `Transect number`,length = `Transect length (if transect survey)`, primary = `Primary observer (double observer survey)`, secondary = `Secondary observer (double observer survey)`) %>%
+  mutate(`Lake name` = recode(`Lake name:`, Burgan = "Lake Burgan", Florida = "Lake Florida", `Little Birch Lake` = "Little Birch Lake"))
+
+transect.dat <- transect.dat %>% gather(key = observer, value = name, "primary", "secondary") 
 ```
 
 ```{r}

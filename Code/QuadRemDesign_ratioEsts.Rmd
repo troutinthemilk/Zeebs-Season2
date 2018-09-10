@@ -3,12 +3,12 @@ title: "Ratio estimates of density"
 name: "St Clair"
 date: "`r format(Sys.Date())`"
 output: 
-  github_document
+  pdf_document
 ---
 
 
 ```{r setup, include=FALSE, eval=TRUE}
-knitr::opts_chunk$set(echo = TRUE, comment = NULL, collapse = TRUE, prompt = TRUE, warning = FALSE, message = FALSE, include = FALSE)
+knitr::opts_chunk$set(echo = TRUE, comment = NULL, collapse = TRUE, prompt = TRUE, warning = FALSE, message = FALSE, include = FALSE, error = TRUE)
 
 library(readxl)
 library(survey)
@@ -147,10 +147,11 @@ count.mat.f <- as.matrix(counts.wide[counts.wide$`Lake name` == "Lake Florida",3
 covDf.f <- double.dat %>% filter(`Lake name` == "Lake Florida") %>%
   group_by(`Transect #`) %>%
   summarize(area = first(length) )
-count.mat.lb <- as.matrix(counts.wide[counts.wide$`Lake name` == "Little Birch Lake",3:4])
+count.mat.lb <- as.matrix(counts.wide[counts.wide$`Lake name` == "Little Birch Lake" & !is.na(counts.wide$primary),3:4])
 covDf.lb <- double.dat %>% filter(`Lake name` == "Little Birch Lake") %>%
   group_by(`Transect #`) %>%
   summarize(area = first(length) )
+covDf.lb <- covDf.lb[complete.cases(covDf.lb), ]
 ```
 
 
@@ -206,12 +207,12 @@ abund.lb<- backTransform(linearComb(lbout, type = "state", coefficients = matrix
 #abund.lb<- backTransform(linearComb(bout, type = "state", coefficients = matrix(rep(1,nrow(covDf.lb)), ncol=1 ), offset = covDf.lb$offset))  # offset
 abund.lb
 # add transect estimates
-abund.lball <- sum(abund.lb@estimate)
+abund.lball <- sum(abund.lb@estimate, na.rm = TRUE)
 abund.lball
-abund.lball/sum(covDf.lb$area)
-abund.lball.se <- sqrt(sum(vcov(abund.lb)))
+abund.lball/sum(covDf.lb$area, na.rm = TRUE)
+abund.lball.se <- sqrt(sum(vcov(abund.lb), na.rm = TRUE))
 abund.lball.se
-abund.lball.se/sum(covDf.lb$area)
+abund.lball.se/sum(covDf.lb$area, na.rm = TRUE)
 ```
 
 ```{r}
@@ -440,6 +441,8 @@ curr.lake2 <- "Burgan"
   double.dat <- double.dat %>% mutate(detected = rep(1, dim(double.dat)[1]), distance=rep(0, dim(double.dat)[1]), object=1:dim(double.dat)[1])
   
   double.dat$object <- 1:dim(double.dat)[1]
+  # temp fix for missing transect observer data
+double.dat <- filter(double.dat, `Transect #` %in% transect.dat$`Transect number`)
   double.dat <- create.removal.Observer(transect.dat=transect.dat, obs.dat=double.dat)
   
   doubleDetect.model <- ddf(method="rem.fi", mrmodel=~glm(formula=~1), data=double.dat, meta.data=list(width=100))
