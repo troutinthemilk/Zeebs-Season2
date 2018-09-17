@@ -34,29 +34,31 @@ library(gridExtra)
 library(readxl)
 library(plotrix)
 library(kableExtra)
+library(sp)
+#library(sjPlot)
 
 source('ZebraFuncs.R') ##assumed working directory is in Code folder
 
 curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
 curr.lake2  <- c("Burgan", "Little Birch Lake", "Florida")
-var.type    <- "design"
+var.type    <- "jack"
 
 index             <- 1
-LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
+dist.type <- "hr"
+LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type, dist.type="hr")
 LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
 LB.quadrat.est    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
 
-LB.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LB.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack", dist.type="hr")
 LB.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
 LB.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LB.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LB.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design", dist.type="hr")
 LB.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
 LB.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LB.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LB.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model", dist.type="hr")
 LB.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 LB.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 ```
-
 
 ```{r, echo=F, warning=F}
 #cat("distance mean (SE)", LB.distance.est$Dhat, LB.distance.est$Dhat.se, '\n')
@@ -74,33 +76,32 @@ double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer 
 
 
 quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
-#quadrat.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% dplyr::select(.$'Lake name' = "Lake Florida") %>% print(n=dim(quadrat.dat)[1]) %>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
-#distance.dat %>% group_by('Lake name', "Transect #", "Observer name", "Distance along transect (m)") %>% print(n=dim(distance.dat)[1]) #%>% print(width=Inf) #%>% count() %>% filter(n>1) %>% print()
+
 
 dhat.LB.vec     <- c(LB.distance.est$Dhat, LB.double.est$Dhat, LB.quadrat.est$Dhat)
 dhat.se.LB.vec  <- c(LB.distance.est$Dhat.se, LB.double.est$Dhat.se, LB.quadrat.est$Dhat.se)
 
-
-index            <- 2
-LBL.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type)
-LBL.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], var.type)
+index             <- 2
+LBL.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type,  dist.type="hr", size=TRUE)
+LBL.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], var.type, size=TRUE)
 LBL.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type)
 
 dhat.LBL.vec     <- c(LBL.distance.est$Dhat, LBL.double.est$Dhat, LBL.quadrat.est$Dhat)
 dhat.se.LBL.vec  <- c(LBL.distance.est$Dhat.se, LBL.double.est$Dhat.se, LBL.quadrat.est$Dhat.se)
 
-LBL.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LBL.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LBL.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack", dist.type="hr", size=TRUE)
+LBL.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack", size=TRUE)
 LBL.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LBL.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LBL.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LBL.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design", dist.type="hr", size=TRUE)
+LBL.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design", size=TRUE)
 LBL.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LBL.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
-LBL.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LBL.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model", dist.type="hr", size=TRUE)
+LBL.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model", size=TRUE)
 LBL.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 
 index            <- 3
-LF.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type)
+dist.type <- "hn"
+LF.distance.est  <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type, dist.type="unif")
 LF.double.est    <- double.dens.est(curr.lake[index], curr.lake2[index], var.type)
 LF.quadrat.est   <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type)
 
@@ -110,13 +111,13 @@ dhat.se.LF.vec  <- c(LF.distance.est$Dhat.se, LF.double.est$Dhat.se, LF.quadrat.
 time.df <- rbind(LB.distance.est$df, LB.double.est$df, LB.quadrat.est$df, LBL.distance.est$df, LBL.double.est$df, LBL.quadrat.est$df, LF.distance.est$df, LF.double.est$df, LF.quadrat.est$df)
 
 
-LF.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
+LF.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack", dist.type="unif")
 LF.double.est.jack     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
 LF.quadrat.est.jack    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="jack")
-LF.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
+LF.distance.est.design   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="design", dist.type="unif")
 LF.double.est.design     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
 LF.quadrat.est.design    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="design")
-LF.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
+LF.distance.est.model    <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="model", dist.type="unif")
 LF.double.est.model      <- double.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 LF.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type="model")
 ```
@@ -132,16 +133,17 @@ col.vec <- brewer.pal(3, "Dark2")
 dhat.vec    <- c(dhat.LB.vec, dhat.LBL.vec, dhat.LF.vec)
 dhat.se.vec <- c(dhat.se.LB.vec, dhat.se.LBL.vec, dhat.se.LF.vec)
 tol <- 1e-10
-plotCI(x=c(1,1,1, 2,2,2, 3,3,3) + c(-0.1, 0, 0.1), y=dhat.vec, ui=dhat.vec+2*dhat.se.vec, li=sapply(dhat.vec - 2*dhat.se.vec, max, tol), xaxt = 'n', ylab="Estimated density", xlab="Lake name", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, ylim=c(01e-2, 2e3), log="y", cex.lab=1.3)
+plotCI(x=c(1,1,1, 2,2,2, 3,3,3) + c(-0.1, 0, 0.1), y=dhat.vec, ui=dhat.vec+dhat.se.vec, li=sapply(dhat.vec - dhat.se.vec, max, tol), xaxt = 'n', ylab="Estimated density", xlab="Lake name", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, ylim=c(01e-2, 2e3), log="y", cex.lab=1.3)
 axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
 legend('topright', legend=c("Distance survey", "Double observer", "Quadrat survey"), pch=19, cex=1.3, col=col.vec)
 ```
 
-There are a number of ways to estimate the variance in the surveyed data. We tested three on Lake Burgan below. The total variance in the double observer methods is given by $\mathrm{Var}(\hat{D})= \hat{D}^2\left(\frac{\mathrm{Var}(n)}{n^2} + \frac{\mathrm{Var(\mathrm{E}(s)}}{\mathrm{E}(s)^2} + \frac{\mathrm{Var}(a \hat{P})}{ (a \hat{P})^2 } \right)$. For a design-based estimate with $K$ transects each of length $l_k$ the first variance component is $\mathrm{Var}(n) = \frac{K}{K-1} \displaystyle\sum_{k=0}^K l_k^2 \left(\frac{n_k}{t_k l_k} - \frac{\sum n_k}{\sum l_k} \right)^2$.
+There are a number of ways to estimate the variance in the surveyed data. We tested three on Lake Burgan below. The total variance in the double observer methods is given by $\mathrm{Var}(\hat{D})= \hat{D}^2\left(\frac{\mathrm{Var}(n)}{n^2} + \frac{\mathrm{Var(\mathrm{E}(s)}}{\mathrm{E}(s)^2} + \frac{\mathrm{Var}(a \hat{P})}{ (a \hat{P})^2 } \right)$. For a design-based estimate with $K$ transects each of length $l_k$ the first variance component is $\mathrm{Var}(n) = \left(\frac{\sum l_k}{K-1}\right) \displaystyle\sum l_k \left(\frac{n_k}{l_k} - \frac{\sum n_k}{\sum l_k} \right)^2$.
 Finally, we applied a model-based estimation process where transect counts were modeled as a negative binomial random variable. We used an offset in the model was the transect survey area times the estimated probability of detection in the transect. 
 
 
 ```{r varianceEst, echo=F, warning=F, fig.cap="Variance estimators applied on each survey design type."}
+
 source('ZebraFuncs.R')
 EstimatorComparisonPlot(distance.est.design=LB.distance.est.design, distance.est.jack=LB.distance.est.jack, distance.est.model=LB.distance.est.model, double.est.design=LB.double.est.design, double.est.jack=LB.double.est.jack, double.est.model=LB.double.est.model, quadrat.est.design=LB.quadrat.est.design, quadrat.est.jack=LB.quadrat.est.jack, quadrat.est.model=LB.quadrat.est.model, lakename="Lake Burgan")
 
@@ -162,11 +164,11 @@ phat.se.vec <- c(LB.distance.est$phat.se, LB.double.est$phat.se, LBL.distance.es
 ss.vec      <- c(sum(LB.distance.est$Detections), sum(LB.double.est$Detections), sum(LBL.distance.est$Detections), sum(LBL.double.est$Detections), sum(LF.distance.est$Detections), sum(LF.double.est$Detections))
 
 par(mar=c(5.1, 6.5, 4.1, 2.1))
-plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=2*phat.se.vec, liw=2*phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec[-3], pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, ylim=c(0,1))
+plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=phat.se.vec, liw=phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec[-3], pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, ylim=c(0,1))
 abline(h=mean(phat.vec[c(1,3,5)]), col=col.vec[1], lty=3)
 abline(h=mean(phat.vec[c(2,4,6)]), col=col.vec[2], lty=3)
 axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
-text(x=c(1,1, 2,2, 3,3) + 2*c(-0.05, 0.05), phat.vec-0.11, labels=ss.vec, col=col.vec[-3])
+text(x=c(1,1, 2,2, 3,3) + c(-0.05, 0.05), phat.vec-0.11, labels=ss.vec, col=col.vec[-3])
 
 legend('bottomleft', legend=c("Distance survey", "Double observer"), pch=19, cex=1.3, col=col.vec[-3])
 
@@ -191,7 +193,7 @@ LF.ss <- c(summary(LF.distance.est$ddf)$mr.summary$n1, summary(LF.distance.est$d
 
 dataf <- data.frame(rbind(LB.ss, LBL.ss, LF.ss))
 dataf <- cbind(LakeName = c("Lake Burgan", "Little Birch Lake", "Lake Florida"), dataf)
-kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Lake name","Primary","Secondary","Primary","Secondary", "Detections"), caption="Number of detections by primary and secondary observers. In the quadrat survey only one observer is used.")  %>% add_header_above(c("", "Distance survey"=2, "Double observer survey"=2, "Quadrat survey"=1), bold=F) 
+kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Lake name","Primary","Secondary","Primary","Secondary", "Detections"), caption="Number of detections by primary and secondary observers. In the quadrat survey only one observer is used.") %>% add_header_above(c("", "Distance survey"=2, "Double observer survey"=2, "Quadrat survey"=1), bold=F) 
 ```
 
 
@@ -256,6 +258,7 @@ dimnames(cor.table)[[2]] <- c("Distance", "Double", "Quadrat")
 kable(cor.table, digits=2, booktabs=T, row.names=T, caption="\\label{tab:cor.tab} Correlation between phase 2 detection rates and phase 3 densities estimated using Distance sampling, Double observer sampling, and Quadrat sampling.") 
 ```
 
+
 ## Time Budget Summaries
 
 We are also interested in how long it takes to do each task associated with the zebra mussel surveys. Figure \ref{fig:efficiency} is the overall amount of time spent doing a given type of survey versus the amount of area that was actually covered.
@@ -265,12 +268,14 @@ boxplot(Area/Time ~ Type, data=time.df, xlab="Survey type", ylab="Amount of area
 
 ```
 
+
+
 We see that the distance sampling is more efficient overall at covering area that the other types of survey. 
 
 We can also look at the time spent on the setup, taking habitat data, and on making and recording the encounters. This will allow us to better understand what is driving the relatively high efficiency of the distance surveys (Figure \ref{fig:efficiencypartition}).
 
 ```{r efficiencypartition, echo=F, fig.asp=0.35, out.width='100%', fig.cap=" ", fig.align="center"}
-p.enc <- ggplot(time.df, aes(x=Type, y=t.enc, fill=Type))  + coord_trans(y="log10") +  geom_boxplot() + labs(title="Time spent on encounters", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
+p.enc <- ggplot(time.df, aes(x=Type, y=t.enc, fill=Type)) + coord_trans(y="log10") +  geom_boxplot() + labs(title="Time spent on encounters", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
 
 p.hab <- ggplot(time.df, aes(x=Type, y=t.hab, fill=Type)) +  geom_boxplot() + labs(title="Time spent on habitat", x="Survey type", y = "Time") + theme_classic() + guides(fill=FALSE) + scale_fill_brewer(palette="Set1")
 
@@ -291,15 +296,316 @@ p.hab <- ggplot(time.df, aes(x=Mussels, y=t.hab, shape=Lake, color=Type)) + geom
 
 p.set <- ggplot(time.df, aes(x=Mussels, y=t.set, shape=Lake, color=Type)) + geom_point(size=3) +  labs(title="Setup", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") + theme(legend.position="none")
 
-grid.arrange(p.set, p.hab, p.enc, nrow = 1)                
+#grid.arrange(p.set, p.hab, p.enc, nrow = 1)                
 time.dat <- subset(time.df, Type != "Quadrat")
 
 ```
 
 
-```{r, echo=F}
-p.enc <- ggplot(time.df, aes(x=Mussels, y=t.enc, color=Type)) + geom_point(size=3) +  labs(title="Encounters", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") #+ theme(legend.position="none") 
+```{r, echo=F, warning=F}
+p.enc <- ggplot(time.df, aes(x=Mussels, y=t.enc, color=Type)) + geom_point(size=3) +  labs(title="Encounters", x="Mussels counted", y = "Time") + theme_classic() + scale_color_brewer(palette="Set1") + coord_trans(y = "log10") #+ theme(legend.position="none") 
 
-p.enc + xlim(0, 75) + ylim(0, 2000) + geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+#p.enc + geom_smooth(method=glm.nb, se=FALSE, fullrange=TRUE)
+
+#mod0 <- glm.nb(Mussels ~ t.enc + Type, data=time.df)
+#mod1 <- glm.nb(Mussels ~ t.enc*Type, data=time.df)
+#mod2 <- glm.nb(Mussels ~ t.enc + t.enc:Type, data=time.df)
+
 #plot(p.enc)
+```
+
+
+## Testing survey efficiency in a fixed amount of time
+
+Here we will look at how to partition out a fixed amount of time into surveyed transects. We will look at the number of transects that can be achieved and the estimated variance in the density. First we modeled the amount of time spent at each lake to do setup, habitat, and encounters.
+
+```{r, echo=F}
+#first look at which times depend on transect length
+time.df     <- mutate(time.df, D.dens=Detections/Length)
+time.out    <- time.predict(time.df, curr.lake="Lake Burgan")
+
+
+#tset.length <- lm(t.set ~ Length + Type + D.dens, data=time.burgan)
+#thab.length <- lm(t.hab ~ Length + Type + D.dens, data=time.burgan)
+#tenc.length <- lm(t.enc ~ Length + Type + D.dens, data=time.burgan)
+
+#newdat <- data.frame(Length=rep(30, 3), Lake=rep(time.df$Lake[c(1)], 3), Type=time.df$Type[c(1, 19, 37)], D.dens=rep(sum(time.burgan$Detections)/sum(time.burgan$Length), 3))
+
+#tset.pred <- predict(tset.length, newdata=newdat)
+#thab.pred <- predict(thab.length, newdata=newdat)
+#tenc.pred <- predict(tenc.length, newdata=newdat)
+
+#names(tset.pred) <- names(tenc.pred)  <- names(thab.pred) <- time.df$Type[c(1,19,37)]
+
+```
+
+We fit some linear models for the setup time, habitat time, and time spent on encounters in Lake Burgan to determine how time spent on these various activities depended on the type of survey and on the survey length. We then predict the time that each of these activities on a 30-meter transect. 
+```{r, echo=F}
+
+time.table <- cbind(time.out$setup, time.out$habitat, time.out$encounters)
+kable(time.table, digits=2, booktabs=T, row.names=T, col.names=c( "Setup time", "Time to survey habitat", "Time to conduct survey"),  caption="Times in seconds to perform various tasks on Lake Burgan in a 30-meter transect")
+
+```
+
+We found that habitat time did not vary depending on survey type, therefore we pooled those values together. The $R^2$ values for these regressions were around 40\%, though the encounter time was more like 30\%. It's also worth noting tha9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999t time to conduct the survey varies with detections, but this was not modeled as the number of detections varies the type of survey. Below we look at some plots of the time to conduct a transect on Lake Burgan:
+```{r, echo=F, warning=F}
+time.burgan <- subset(time.df, Lake=="Lake Burgan")
+
+ggplot(time.burgan, aes(x=Length, y=t.enc)) +  geom_point(aes(col=Type)) + 
+  geom_smooth(method = "lm", formula = y ~ x, se=F, data=time.burgan) + #geom_smooth(aes(col=Type), method="lm", se=F) +
+  labs(y="Time to survey transect", x="Length of transect", title="Lake Burgan")
+
+ggplot(time.burgan, aes(x=Detections, y=t.enc)) +  geom_point(aes(col=Type)) + 
+  geom_smooth(method="lm", se=F) +
+  labs(y="Time to survey transect", x="Number of detections made")
+
+lm.tenc <- lm(t.enc ~ Length + Lake + Type + D.dens, data=time.df)
+#plot_model(lm.tenc)
+```
+
+We also looked at the travel time between sites based on distance between sites. Below we see that there is a (pretty weak) relationship between distance traveled and the time it takes to move between sites. The model explains about 10\% of the variation in the data.
+
+```{r, echo=F, warning=F}
+phase2.dat      <- read_xlsx(path="../Data/Season2/Zebra mussel survey_ Day 1 (Responses).xlsx", sheet=1)
+phase2.dat <- phase2.dat %>% subset(Observer=="Aislyn") %>% mutate(Lake = as.factor(Lake), TravelTime=NA, TravelDist=NA)
+
+for(i in 1:nlevels(phase2.dat$Lake)) {
+  
+  phase2.subset <- subset(phase2.dat, Lake == levels(Lake)[i])
+  indices       <- which(phase2.dat$Lake == levels(phase2.dat$Lake)[i])
+  
+  dist.vec    <- time.vec <- vector('numeric', dim(phase2.subset)[1])
+  dist.vec[1] <- time.vec[1] <- NA
+  
+  for(j in 2:(dim(phase2.subset)[1])) {
+    dist.vec[j] <- spDists(cbind(phase2.subset$`GPS start latitude`[(j-1):j], phase2.subset$`GPS start longitude`[(j-1):j]), longlat=TRUE)[1,2]*1000
+    time.vec[j] <- difftime(phase2.subset$`Start time`[j], phase2.subset$`End time`[j-1], units="secs")
+    if(!is.na(phase2.subset$`Break time (duration in minutes)`[j])) {
+      time.vec[j] - phase2.subset$`Break time (duration in minutes)`[j]*60
+    }
+  }
+  
+  phase2.dat$TravelDist[indices] <- dist.vec
+  phase2.dat$TravelTime[indices] <- time.vec
+  
+}
+
+ggplot(phase2.dat, aes(x=TravelDist, y=TravelTime/60)) + geom_point(aes(col=Lake)) + labs(y="Travel time (minutes)", x="Travel distance (meters)")  + geom_smooth(method="lm", se=F)
+
+#geom_point(aes(col=Type)) + 
+#   +
+#  labs(y="Time to survey transect", x="Length of transect")
+
+travel.lm <- lm(TravelTime ~ TravelDist + Lake, data=phase2.dat)
+```
+
+Moving between sites on Lake Burgan the average time is  `r round(mean(subset(phase2.dat, Lake == "Burgen")$TravelTime, na.rm=T)/60)` minutes to travel `r round(mean(subset(phase2.dat, Lake == "Burgen")$TravelDist, na.rm=T))` meters. Our model suggests that doubling this distance increases the travel time by `r round(coef(travel.lm)[2]*mean(subset(phase2.dat, Lake == "Burgen")$TravelDist, na.rm=T)/60, 1)` minutes. Below we plot our estimates of travel time for Lake Burgan and Lake Florida (still working on Little Birch Lake).
+
+```{r, echo=F}
+#
+##get all the distances between transects in the lakes
+
+LB.dist       <- spDists(cbind(LB.distance.est$df$Lat, LB.distance.est$df$Long), longlat=TRUE)*1000
+LBL.dist      <- spDists(cbind(LBL.distance.est$df$Lat, LBL.distance.est$df$Long), longlat=TRUE)*1000
+FB.dist       <- spDists(cbind(LF.distance.est$df$Lat, LF.distance.est$df$Long), longlat=TRUE)*1000
+
+LB.traveltime  <- coef(travel.lm)[1] + coef(travel.lm)[2]*LB.dist
+LBL.traveltime <- coef(travel.lm)[1] + coef(travel.lm)[2]*LBL.dist + coef(travel.lm)[6]
+LF.traveltime  <- coef(travel.lm)[1] + coef(travel.lm)[2]*FB.dist + coef(travel.lm)[5] 
+
+
+#look at every ith transect, average time to travel between transects
+time.vec <- time.LBL.vec <- time.LF.vec <- dist.vec <- ss.vec <- vector('numeric', 7)
+
+for(step in 1:7) {
+  
+  time.temp <- NULL
+  time.temp <- time.LBL.temp <- time.LF.temp <- dist.temp <- c(NULL, LB.traveltime[step,15])
+  
+  for(i in 1:(15-step)) {
+    time.temp <- c(time.temp, LB.traveltime[i + step, i])
+    time.LF.temp <- c(time.LF.temp, LF.traveltime[i + step, i])
+    
+    dist.temp <- c(dist.temp, LB.dist[i + step, i])
+  }
+  
+  time.vec[step] <- mean(time.temp)
+  time.LF.vec[step] <- mean(time.LF.temp)
+  dist.vec[step] <- mean(dist.temp)
+  ss.vec[step]   <- 15 %/% step
+  
+}
+
+lm.fit <- lm(log(time.vec) ~ log(ss.vec))
+lm.LF.fit <- lm(log(time.LF.vec) ~ log(ss.vec))
+
+
+#superceded by analysis in the previous chunk
+
+if(T) {
+plot(ss.vec, time.vec/60, ylab="Estimated travel time between sites (minutes)", xlab="Number of sites", pch=19, ylim=c(8, 16))
+points(ss.vec, time.LF.vec/60, pch=19, col="red")
+
+n.seq     <- 1:15
+time.pred <- exp(coef(lm.fit)[2]*log(n.seq) + coef(lm.fit)[1])
+lines(n.seq, time.pred/60, lwd=2, col='black')
+
+time.LF.pred <- exp(coef(lm.LF.fit)[2]*log(n.seq) + coef(lm.LF.fit)[1])
+lines(n.seq, time.LF.pred/60, lwd=2, col='red')
+
+legend('topright', legend=c("Lake Burgan", "Lake Florida"), lwd=2, col=c('black', 'red'))
+} #end if F
+```
+
+
+For a fixed time budget, many transects can you do using each survey method on each lake:
+
+
+```{r, echo=F}
+length.vec  <- c(sum(LB.distance.est$df$Length), sum(LB.double.est$df$Length), sum(LB.quadrat.est$df$Length))
+se.vec <- c(LB.distance.est$Dhat.se, LB.double.est$Dhat.se, LB.quadrat.est$Dhat.se)*sqrt(length.vec*length(LB.distance.est$df$Length))
+bias.vec <- c(LB.distance.est$Dhat, LB.double.est$Dhat, LB.quadrat.est$Dhat)
+bias.vec <- bias.vec - mean(bias.vec[-2])
+time.out <- time.predict(time.df, curr.lake="Lake Burgan")
+
+par(mfrow=c(1,2))
+col.vec <- brewer.pal(3, "Set1")
+time.budget <- 15*(2:50)*60
+n.vec <- 1:1e2
+travel.time <- 10*60
+
+transectTime     <- t(matrix((time.out$setup + mean(time.out$habitat) + time.out$encounters), 3, 1e3))*n.vec
+
+transectTime[,1] <- transectTime[,1] + exp(coef(lm.fit)[2]*log(n.vec) + coef(lm.fit)[1])
+transectTime[,2] <- transectTime[,2] + exp(coef(lm.fit)[2]*log(n.vec) + coef(lm.fit)[1])
+transectTime[,3] <- transectTime[,3] + exp(coef(lm.fit)[2]*log(n.vec) + coef(lm.fit)[1])
+
+maxtrans <- matrix(NA, length(time.budget), 3)
+
+for(i in 1:length(time.budget)) {
+  maxtrans[i, 1] <- which.min(abs(time.budget[i] - transectTime[,1]))
+  maxtrans[i, 2] <- which.min(abs(time.budget[i] - transectTime[,2]))
+  maxtrans[i, 3] <- which.min(abs(time.budget[i] - transectTime[,3]))
+}
+
+plot(time.budget/60^2, maxtrans[,3], xlab="Total time (hours)", ylab="Number of transects surveyed", type='l', lwd=2, col=col.vec[3], main="Lake Burgan")
+lines(time.budget/60^2, maxtrans[,2], lwd=2, col=col.vec[2])
+lines(time.budget/60^2, maxtrans[,1], lwd=2, col=col.vec[1])
+
+legend('topleft', legend=c("Distance survey", "Double observer survey", "Quadrat survey"), lwd=2, col=col.vec)
+
+
+plot(time.budget/60^2, se.vec[3]/sqrt(30*maxtrans[,3]), xlab="Total time (hours)", ylab="Standard error", type='l', lwd=2, col=col.vec[3], main="Lake Burgan", ylim=c(0.1, 2.5), log="xy")
+lines(time.budget/60^2, se.vec[2]/sqrt(30*maxtrans[,2]), lwd=2, col=col.vec[2])
+lines(time.budget/60^2, se.vec[1]/sqrt(30*maxtrans[,1]), lwd=2, col=col.vec[1])
+
+
+#plot(time.budget/60^2, sqrt(bias.vec[3]^2 + (se.vec[3]/sqrt(30*time.budget %/% timepertransect[3]))^2), xlab="Total time (hours)", ylab="Mean-square error", type='l', lwd=2, col=col.vec[3], main="Lake Burgan", ylim=c(0, 0.6))
+#lines(time.budget/60^2, sqrt(bias.vec[2]^2 + (se.vec[2]/sqrt(30*time.budget %/% timepertransect[2]))^2), lwd=2, col=col.vec[2])
+#lines(time.budget/60^2, sqrt(bias.vec[1]^2 + (se.vec[1]/sqrt(30*time.budget %/% timepertransect[1]))^2), lwd=2, col=col.vec[1])
+
+```
+
+
+
+```{r, echo=F}
+length.vec  <- c(mean(LBL.distance.est$df$Length), mean(LBL.double.est$df$Length), mean(LBL.quadrat.est$df$Length))
+se.vec <- c(LBL.distance.est$Dhat.se, LBL.double.est$Dhat.se, LBL.quadrat.est$Dhat.se)*sqrt(length.vec*length(LBL.distance.est$df$Length))
+bias.vec <- c(LBL.distance.est$Dhat, LBL.double.est$Dhat, LBL.quadrat.est$Dhat)
+bias.vec <- bias.vec - mean(bias.vec[-2])
+time.out <- time.predict(time.df, curr.lake="Little Birch Lake")
+
+
+par(mfrow=c(1,2))
+col.vec <- brewer.pal(3, "Set1")
+time.budget <- 15*(2:50)*60
+
+transectTime <- t(matrix((time.out$setup + mean(time.out$habitat) + time.out$encounters + travel.time), 3, 1e3))*n.vec #+ 
+transectTime[,1] <- transectTime[,1] + exp(coef(lm.LF.fit)[2]*log(n.vec) + coef(lm.LF.fit)[1])
+transectTime[,2] <- transectTime[,2] + exp(coef(lm.LF.fit)[2]*log(n.vec) + coef(lm.LF.fit)[1])
+transectTime[,3] <- transectTime[,3] + exp(coef(lm.LF.fit)[2]*log(n.vec) + coef(lm.LF.fit)[1])
+
+maxtrans <- matrix(NA, length(time.budget), 3)
+
+for(i in 1:length(time.budget)) {
+  maxtrans[i, 1] <- which.min(abs(time.budget[i] - transectTime[,1]))
+  maxtrans[i, 2] <- which.min(abs(time.budget[i] - transectTime[,2]))
+  maxtrans[i, 3] <- which.min(abs(time.budget[i] - transectTime[,3]))
+}
+
+
+plot(time.budget/60^2, maxtrans[,3], xlab="Total time (hours)", ylab="Number of transects surveyed", type='l', lwd=2, col=col.vec[3], main="Little Birch Lake")
+lines(time.budget/60^2, maxtrans[,2], lwd=2, col=col.vec[2])
+lines(time.budget/60^2, maxtrans[,1], lwd=2, col=col.vec[1])
+
+legend('topleft', legend=c("Distance survey", "Double observer survey", "Quadrat survey"), lwd=2, col=col.vec)
+
+
+plot(time.budget/60^2, se.vec[3]/sqrt(30*maxtrans[,3]), xlab="Total time (hours)", ylab="Standard error", type='l', lwd=2, col=col.vec[3], main="Little Birch Lake", ylim=c(0.5, 30), log="xy")
+lines(time.budget/60^2, se.vec[2]/sqrt(30*maxtrans[,2]), lwd=2, col=col.vec[2])
+lines(time.budget/60^2, se.vec[1]/sqrt(30*maxtrans[,1]), lwd=2, col=col.vec[1])
+
+
+#plot(time.budget/60^2, sqrt(bias.vec[3]^2 + (se.vec[3]/sqrt(30*time.budget %/% timepertransect[3]))^2), xlab="Total time (hours)", ylab="Mean-square error", type='l', lwd=2, col=col.vec[3], main="Lake Burgan", ylim=c(0, 35))
+#lines(time.budget/60^2, sqrt(bias.vec[2]^2 + (se.vec[2]/sqrt(30*time.budget %/% timepertransect[2]))^2), lwd=2, col=col.vec[2])
+#lines(time.budget/60^2, sqrt(bias.vec[1]^2 + (se.vec[1]/sqrt(30*time.budget %/% timepertransect[1]))^2), lwd=2, col=col.vec[1])
+```
+
+```{r, echo=F}
+
+time.table <- cbind(time.out$setup, time.out$habitat, time.out$encounters)
+kable(time.table, digits=2, booktabs=T, row.names=T, col.names=c( "Setup time", "Time to survey habitat", "Time to conduct survey"),  caption="Times in seconds to perform various tasks on Little Birch Lake in a 30-meter transect")
+
+```
+
+
+```{r, echo=F}
+length.vec  <- c(mean(LF.distance.est$df$Length), mean(LF.double.est$df$Length), mean(LF.quadrat.est$df$Length))
+se.vec <- c(LF.distance.est$Dhat.se, LF.double.est$Dhat.se, LF.quadrat.est$Dhat.se)*sqrt(length.vec*length(LF.distance.est$df$Length))
+bias.vec <- c(LF.distance.est$Dhat, LF.double.est$Dhat, LF.quadrat.est$Dhat)
+bias.vec <- bias.vec - mean(bias.vec[-2])
+
+time.out <- time.predict(time.df, curr.lake="Lake Florida")
+
+par(mfrow=c(1,2))
+col.vec <- brewer.pal(3, "Set1")
+time.budget <- 15*(2:50)*60
+
+transectTime <- t(matrix((time.out$setup + mean(time.out$habitat) + time.out$encounters + travel.time), 3, 1e3))*n.vec #+ 
+transectTime[,1] <- transectTime[,1] + exp(coef(lm.LF.fit)[2]*log(n.vec) + coef(lm.LF.fit)[1])
+transectTime[,2] <- transectTime[,2] + exp(coef(lm.LF.fit)[2]*log(n.vec) + coef(lm.LF.fit)[1])
+transectTime[,3] <- transectTime[,3] + exp(coef(lm.LF.fit)[2]*log(n.vec) + coef(lm.LF.fit)[1])
+
+maxtrans <- matrix(NA, length(time.budget), 3)
+
+for(i in 1:length(time.budget)) {
+  maxtrans[i, 1] <- which.min(abs(time.budget[i] - transectTime[,1]))
+  maxtrans[i, 2] <- which.min(abs(time.budget[i] - transectTime[,2]))
+  maxtrans[i, 3] <- which.min(abs(time.budget[i] - transectTime[,3]))
+}
+
+
+plot(time.budget/60^2, maxtrans[,3], xlab="Total time (hours)", ylab="Number of transects surveyed", type='l', lwd=2, col=col.vec[3], main="Lake Florida", ylim=c(0, 40))
+lines(time.budget/60^2, maxtrans[,2], lwd=2, col=col.vec[2])
+lines(time.budget/60^2, maxtrans[,1], lwd=2, col=col.vec[1])
+
+legend('topleft', legend=c("Distance survey", "Double observer survey", "Quadrat survey"), lwd=2, col=col.vec)
+
+
+plot(time.budget/60^2, se.vec[3]/sqrt(30*maxtrans[,3]), xlab="Total time (hours)", ylab="Standard error", type='l', lwd=2, col=col.vec[3], main="Lake Florida", ylim=c(0.005, 0.2), log="xy")
+lines(time.budget/60^2, se.vec[2]/sqrt(30*maxtrans[,2]), lwd=2, col=col.vec[2])
+lines(time.budget/60^2, se.vec[1]/sqrt(30*maxtrans[,1]), lwd=2, col=col.vec[1])
+
+
+#plot(time.budget/60^2, sqrt(bias.vec[3]^2 + (se.vec[3]/sqrt(30*time.budget %/% timepertransect[3]))^2), xlab="Total time (hours)", ylab="Mean-square error", type='l', lwd=2, col=col.vec[3], main="Lake Burgan", ylim=c(0, 0.25))
+#lines(time.budget/60^2, sqrt(bias.vec[2]^2 + (se.vec[2]/sqrt(30*time.budget %/% timepertransect[2]))^2), lwd=2, col=col.vec[2])
+#lines(time.budget/60^2, sqrt(bias.vec[1]^2 + (se.vec[1]/sqrt(30*time.budget %/% timepertransect[1]))^2), lwd=2, col=col.vec[1])
+```
+
+
+```{r, echo=F}
+
+time.table <- cbind(time.out$setup, time.out$habitat, time.out$encounters)
+kable(time.table, digits=2, booktabs=T, row.names=T, col.names=c( "Setup time", "Time to survey habitat", "Time to conduct survey"),  caption="Times in seconds to perform various tasks on Lake Florida in a 30-meter transect")
+
 ```
