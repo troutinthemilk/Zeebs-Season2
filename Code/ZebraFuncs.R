@@ -1023,7 +1023,7 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
     nl <- trans.counts/l
     N  <- sum(trans.counts)
     NL <- N/L
-    var.n <- L/(K-1)* sum(l*(nl/l - N/L)^2)
+    var.n <- L/(K-1)* sum(l*(nl - N/L)^2)
     
     dhat.se <- sqrt(dhat^2*(var.n/N^2))
     
@@ -1480,4 +1480,16 @@ time.predict <- function(time.df, curr.lake="Lake Burgan") {
   names(tset.pred) <- names(tenc.pred)  <- names(thab.pred) <- time.df$Type[c(1,19,37)]
   
   return(list(setup=tset.pred, habitat=thab.pred, encounters=tenc.pred))
+}
+
+
+hazardDetect.predict <- function(ddf.obj) {
+  
+  xval      <- seq(0,1, length.out=100)
+  p0        <- mean(predict(ddf.obj$mr)$fitted)
+  ds.scale  <- as.numeric(exp(coef(ddf.obj$ds)$scale[1]))
+  ds.exp  <- as.numeric(exp(coef(ddf.obj$ds)$exponent[1]))
+  y <- p0*(1 - exp(-(xval/ds.scale)^(-ds.exp)))
+
+  return(list(x=xval, y=y))
 }
