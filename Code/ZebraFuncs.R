@@ -854,8 +854,8 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   transect.dat <- transect.dat[order(transect.dat$"Transect number"),]
   
   setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
-  hab.time    <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)
-  enc.time    <- 60^2*hour(transect.dat$`Encounter time`) + 60*minute(transect.dat$`Encounter time`) + second(transect.dat$`Encounter time`)
+  hab.time     <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)
+  enc.time     <- 60^2*hour(transect.dat$`Encounter time`) + 60*minute(transect.dat$`Encounter time`) + second(transect.dat$`Encounter time`)
   
   trans.length  <- sum(transect.dat$`Transect length (if transect survey)`)
   trans.area    <- trans.length*2
@@ -869,7 +869,7 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   dis.totdetect <- dim(distance.dat)[1]
   distance.dat$`Observer name` <- as.factor(distance.dat$`Observer name`)
   if(size) {
-    dis.detect.model <- ddf(method="rem", dsmodel=~cds(key=dist.type), mrmodel=~glm(formula=~size), data=distance.dat, meta.data=list(width=1))
+    dis.detect.model <- ddf(method="rem", dsmodel=~cds(key=dist.type, formula=~1), mrmodel=~glm(formula=~size), data=distance.dat, meta.data=list(width=1))
   } else {
     dis.detect.model <- ddf(method="rem", dsmodel=~cds(key=dist.type), mrmodel=~glm(formula=~1), data=distance.dat, meta.data=list(width=1))
   }
@@ -914,7 +914,7 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     
     dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
+    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, distance.dat=distance.dat)
     
   } 
   if(var.type == "jack") { #from buckland page 80
