@@ -1,0 +1,259 @@
+---
+title: "Zeeb Simulation - multiple runs"
+output: pdf_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 9, collapse = TRUE, prompt = TRUE, warning = FALSE, message = FALSE)
+source("ZeebSimulationFunctions.R")
+library(tidyverse)
+library(ggplot2)
+library(FSA)
+library(unmarked)
+library(mrds)
+```
+
+
+
+### get population parameters
+
+```{r}
+# lake florida density ~ 0.05  use lam2 = 0, lam1 = 4000
+# lake burgan density ~ .5  use lam2 = .4, lam1 = 4000*6
+# little birch density ~ 25 use lam2 = 5, lam1 = 4000*80
+len <- 20   # transect length
+wid <- 4000  # width of lake (circumference)
+lam1.info <- 4000*c(1, 6, 30, 80)
+lam2.info <- c(0, .5, 2, 5)
+```
+
+```{r}
+# no need for "none" since pp with lam2=0 covers this case
+# for pp run (all cases where lam2 > 0)
+r.info <- c(.01, .05, .1, .2)  # Poisson process radius: larger r means less clustering and more randomness (mean dist)
+pop.info <- tidyr::expand(data_frame(), lam1 = lam1.info, lam2 = lam2.info, r = r.info)
+pop.info <- pop.info %>% 
+  mutate(exp.N = lam1*(lam2 + 1), 
+         exp.density = lam1*(lam2 + 1)/(len*wid), 
+         type.pop = "pp")
+# View(pop.info)
+pop.info <- pop.info %>% 
+  filter(lam2 > 0 | (lam2 == 0 & r == r.info[1])) %>%
+  mutate(run = row_number())
+
+
+# negbinom cluster count
+#r.fixed <- 2*r # fixed max distance for Matern process
+#type.pop <- "pp"  # "none", "pp", "nbp"
+
+```
+
+
+### Sample design
+```{r}
+n <- n.tran <- 20   # number of transects
+
+# distance double removal design
+sigma <- .25  # options: c(.25, .5, .75)
+w <- 1  # don't vary
+
+# double transect removal design (no distance)
+p <- .2  # individual mussel detection prob options: c(.2, .5, .8) 
+beta1 <- .2   # only for cluster samples options for each p: c(0, .2, .5, .8)
+w.dt <- .5   # don't vary
+
+# quad design
+y.dist.btw <- 2   # distance between start of sampled quads
+quad.dim <- .5   # square quad side size
+x.dist.btw <- 1
+p.quad <- .8  # detection rate of mussels
+beta1.quad <- 0 # only for cluster
+```
+
+### sample mussels
+
+```{r sim, cache = TRUE}
+
+N.sim <- 100
+pop.info.nest <- pop.info %>% group_by(run) %>% nest()
+system.time(multiSim.out <- pop.info.nest %>%
+  transmute(run, out = map(data, simfun) ) )
+multiSim.out.df <- multiSim.out %>% unnest() 
+# time for N.sim = 10 is 2219 = 37 min = .626 hours
+# time for Nsim=100 is 21718.92 =  6ish hours  done 9/14 with beta1=.2, sigma = .25
+# next run Nsim =100 is 22947.57 = 6ish hours done 9/17 with beta1=0, sigma = .5
+22947.57/60/60
+.626*10
+multiSim.out.df <- multiSim.out.df %>% left_join(pop.info, by = "run")
+
+# View(multiSim.out.df)
+```
+
+```{r}
+simfun <- function(data = pop.info)
+{  
+
+set.seed(863)
+zpop <- zeebPop(len, wid, data$lam1, data$lam2, disp = NULL, r.pois = data$r, type = data$type.pop)
+density.zpop <- nrow(zpop)/(len*wid)
+
+sim.df <- data_frame()
+
+for (i in 1:N.sim)
+{
+  x.samp1 <- runif(1,0,wid/n)  #systematic
+  x.samp <- c(x.samp1, x.samp1 + (1:(n-1))*wid/n)
+  
+  # double distance - individual
+  dist.i <- zeebDistSamp(zpop, x.samp, len, sigma, w, dtype = "double", cluster = FALSE) 
+  if (nrow(dist.i) > 0) {
+  sim.df <- sim.df %>% bind_rows(
+    distEst( cleanSample(dist.i, design = "distance", cluster = FALSE), len, w, n.tran, wid, type = "model.mrds", cluster = FALSE) %>% 
+      mutate(sigma)) }
+  
+  # double distance - cluster
+  dist.c <- zeebDistSamp(zpop, x.samp, len, sigma, w, dtype = "double", cluster = TRUE) 
+  if (nrow(dist.c) > 0) {
+  sim.df <- sim.df %>% bind_rows(
+    distEst( cleanSample(dist.c, design = "distance", cluster = TRUE), len, w, n.tran, wid, type = "model.mrds", cluster = TRUE) %>% 
+      mutate(sigma)) }
+  
+  # quad - individual
+  quad.i <- zeebQuadSamp(zpop, x.samp, len, p = p.quad, quad.dim = quad.dim, x.dist.btw = x.dist.btw, y.dist.btw = y.dist.btw, cluster = FALSE)
+  if (nrow(quad.i) > 0) {
+  sim.df <- sim.df %>% bind_rows(
+    quadEst(cleanSample(quad.i, design = "quad", cluster = FALSE),quad.dim, len, y.dist.btw, n.tran  = n, cluster = FALSE) %>%
+     mutate(p.detect.ind = p.quad)) }
+  
+  # quad - cluster
+  quad.c <- zeebQuadSamp(zpop, x.samp, len, p = p.quad, beta1 = beta1.quad, quad.dim = quad.dim, x.dist.btw = x.dist.btw, y.dist.btw = y.dist.btw, cluster = TRUE)
+  if (nrow(quad.c) > 0) {
+  sim.df <- sim.df %>% bind_rows(
+    quadEst(cleanSample(quad.c, design = "quad", cluster = TRUE), quad.dim, len, y.dist.btw, n.tran  = n, cluster = TRUE) %>%
+     mutate(p.detect.ind = p.quad, beta1.clus.size = beta1.quad))  }
+  
+  # double removal transect - individual
+  dt.i <- zeebDoubleRemSamp(zpop, x.samp, len, p, beta1, w.dt,  cluster = FALSE)
+  if (nrow(dt.i) > 0) {
+  sim.df <- sim.df %>% bind_rows(
+    dtEst(cleanSample(dt.i, design = "removal", cluster = FALSE), len, w.dt, n.tran = n, type = "designEst.FSA", cluster = FALSE) %>%
+      mutate(p.detect.ind = p))
+  sim.df <- sim.df %>% bind_rows(
+    dtEst(cleanSample(dt.i, design = "removal", cluster = FALSE), len, w.dt, n.tran = n, type = "MultPois.unmarked", cluster = FALSE) %>%
+      mutate(p.detect.ind = p)) }
+  
+    # double removal transect - cluster
+  dt.c <- zeebDoubleRemSamp(zpop, x.samp, len, p, beta1, w.dt,  cluster = TRUE)
+  if (nrow(dt.c) > 0){
+  sim.df <- sim.df %>% bind_rows(
+    dtEst(cleanSample(dt.c, design = "removal", cluster = TRUE), len, w.dt, n.tran = n, type = "designEst.FSA", cluster = TRUE) %>%
+      mutate(p.detect.ind = p, beta1.clus.size = beta1))
+  sim.df <- sim.df %>% bind_rows(
+    dtEst(cleanSample(dt.c, design = "removal", cluster = TRUE), len, w.dt, n.tran = n, type = "MultPois.unmarked", cluster = TRUE) %>%
+      mutate(p.detect.ind = p, beta1.clus.size = beta1)) }
+
+#  if (i %% 10 == 0) print(i)
+  if (i == 1) print(i)
+}
+
+sim.df.summary <- sim.df %>% group_by(design, type, cluster) %>%
+  summarize(n.sim = n(),
+            mean = mean(Dest, na.rm = TRUE), 
+            sd = sd(Dest, na.rm = TRUE), 
+            sim.error = sd/sqrt(n.sim), 
+            q025 = quantile(Dest, .025, na.rm = TRUE), 
+            q25 = quantile(Dest, .25, na.rm = TRUE), 
+            med = median(Dest, na.rm = TRUE),
+            q75 = quantile(Dest, .75, na.rm = TRUE), 
+            q975 = quantile(Dest, .975, na.rm = TRUE), 
+            sigma = first(sigma), 
+            p.detect.ind = first(p.detect.ind), 
+            beta1.clus.size = first(beta1.clus.size)) %>% 
+  ungroup()  %>% 
+  mutate(density.zpop = density.zpop, n.transect = n.tran)
+return(sim.df.summary)
+}
+
+```
+
+
+```{r}
+names(multiSim.out.df)
+multiSim.out.df <- multiSim.out.df %>% mutate(DesignInfo = paste(design, type))  #, sigma, p.detect.ind, beta1.clus.size
+multiSim.out.df %>% group_by(DesignInfo,  r, lam2, cluster) %>% count() %>% arrange(desc(n))
+
+# pd <- position_dodge(.2)
+# multiSim.out.df %>% filter(cluster) %>%
+# ggplot(aes(x=exp.density, y = med - density.zpop, shape = as.factor(r) , color = DesignInfo)) + 
+#   geom_errorbar(aes(ymin = q025 - density.zpop, ymax = q975 - density.zpop), position = pd) + 
+#   geom_point(position = pd) + 
+#  # geom_line(position = pd) + 
+#   facet_wrap(~ (lam2 + 1) , scales = "free") + 
+#   scale_x_log10() + 
+#   geom_hline(aes(yintercept = 0))
+# 
+# multiSim.out.df %>% filter(!cluster) %>%
+# ggplot(aes(x=exp.density, y = med - density.zpop, shape = as.factor(r) , color = DesignInfo)) + 
+#   geom_errorbar(aes(ymin = q025 - density.zpop, ymax = q975 - density.zpop), position = pd) + 
+#   geom_point(position = pd) + 
+#  # geom_line(position = pd) + 
+#   facet_wrap(~ (lam2 + 1) , scales = "free") + 
+#   scale_x_log10() + 
+#   geom_hline(aes(yintercept = 0))
+```
+
+
+```{r}
+pd <- position_dodge(.1)
+
+multiSim.out.df %>% 
+  filter(!cluster) %>%
+  ggplot(aes(x=exp.density, y = med - density.zpop, color = as.factor(r))) +
+    geom_errorbar(aes(ymin = q025 - density.zpop, ymax = q975 - density.zpop, linetype = as.factor(lam2 + 1)), position = pd) + 
+    geom_point(aes(shape = as.factor(lam2 + 1)), position = pd) + 
+    facet_wrap(~ (DesignInfo) , scales = "free") + 
+    scale_x_log10() + scale_y_continuous(limits = c(-3,25)) + 
+    geom_hline(aes(yintercept = 0))
+
+multiSim.out.df %>% 
+  filter(cluster) %>%
+  ggplot(aes(x=exp.density, y = med - density.zpop, color = as.factor(r))) +
+    geom_errorbar(aes(ymin = q025 - density.zpop, ymax = q975 - density.zpop, linetype = as.factor(lam2 + 1)), position = pd) + 
+    geom_point(aes(shape = as.factor(lam2 + 1)),position = pd) + 
+    facet_wrap(~ (DesignInfo) , scales = "free") + 
+    scale_x_log10() + 
+    geom_hline(aes(yintercept = 0))
+
+```
+
+
+```{r}
+pd <- position_dodge(.1)
+
+multiSim.out.df %>% 
+  filter(!cluster) %>%
+  ggplot(aes(x=exp.density, y = med - density.zpop, color = as.factor(r))) +
+    geom_errorbar(aes(ymin = q25 - density.zpop, ymax = q75 - density.zpop, linetype = as.factor(lam2 + 1)), position = pd) + 
+    geom_point(aes(shape = as.factor(lam2 + 1)), position = pd) + 
+    facet_wrap(~ (DesignInfo) , scales = "free") + 
+    scale_x_log10() + 
+    geom_hline(aes(yintercept = 0))
+
+multiSim.out.df %>% 
+  filter(cluster) %>%
+  ggplot(aes(x=exp.density, y = med - density.zpop, color = as.factor(r))) +
+    geom_errorbar(aes(ymin = q25 - density.zpop, ymax = q75 - density.zpop, linetype = as.factor(lam2 + 1)), position = pd) + 
+    geom_point(aes(shape = as.factor(lam2 + 1)),position = pd) + 
+    facet_wrap(~ (DesignInfo) , scales = "free") + 
+    scale_x_log10() + 
+    geom_hline(aes(yintercept = 0))
+
+```
+    
+```{r, eval = FALSE}
+saveRDS(sim.df, file = "output/multiSim.out.df.rds")
+multiSim.out.df.old <- multiSim.out.df
+multiSim.out.df <- readRDS("output/multiSim.out.df.nsim100.beta0.rds")
+```
