@@ -912,9 +912,9 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     N  <- sum(detect.vec)
     var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
     
-    dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
+    dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/K/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, distance.dat=distance.dat)
+    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, distance.dat=distance.dat, eS=eS, varS=varS)
     
   } 
   if(var.type == "jack") { #from buckland page 80
@@ -922,6 +922,7 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     K       <- length(detect.vec)
     l       <- area.vec/2
     L       <- sum(l)
+    
     dhat            <- sum(count.vec/phat)/sum(area.vec)
     dhat.detect     <- sum(detect.vec/phat)/sum(area.vec)
     
@@ -939,17 +940,17 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     
     dhat.se.full <- sqrt(dhat.se.jk^2 + dhat^2*(phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.detect*eS, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
+    return.list <- list(Dhat=dhat.detect*eS, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, eS=eS, varS=varS)
     
   } 
   if(var.type == "model") {
     dist.glm      <- glm.nb(detect.vec~1 + offset(log(phat*area.vec)))
     dist.predict <- predict(dist.glm, type="response", se.fit=T)
     
-    dhat.se <- sqrt(dhat^2*(sum(dist.predict$se.fit^2)/sum(dist.predict$fit)^2 + varS/eS^2 + phat.se^2/phat^2))
+    dhat.se <- sqrt(dhat^2*(sum(dist.predict$se.fit^2)/sum(dist.predict$fit)^2 + varS/length(detect.vec)/eS^2 + phat.se^2/phat^2))
    # dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model)
+    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, eS=eS, varS=varS)
     
   }
   
@@ -966,14 +967,17 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
   quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
   quadrat.dat      <- quadrat.dat %>% subset(`Lake name` == curr.lake)
   if(curr.lake == "Little Birch Lake") {
-    quadrat.dat <- subset(quadrat.dat, `Transect #` == 15 | `Transect #` == 14 | `Transect #` == 13 | `Transect #` == 12)
+    quadrat1.dat <- subset(quadrat.dat, (`Transect #` == 1 | `Transect #` == 2 | `Transect #` == 3 | `Transect #` == 4 | `Transect #` == 5 | `Transect #` == 6 | `Transect #` == 7 | `Transect #` == 8 | `Transect #` == 9 | `Transect #` == 10 | `Transect #` == 11) &  `Observer name` =="Austen" )
+    #for quadrats 1-11 only use Aislyn
+    quadrat2.dat <- subset(quadrat.dat, `Transect #` == 15 | `Transect #` == 14 | `Transect #` == 13 | `Transect #` == 12)
+    quadrat.dat <- rbind(quadrat1.dat, quadrat2.dat)
   }
-  
-  #quadrat.dat      <- rename(quadrat.dat, size="Number of mussels in cluster")
-  
+
   quadrat.dat <- quadrat.dat[order(quadrat.dat$`Transect #`),]
   
-  #dim(subset(quadrat.dat$'Observer name' == "Aislyn"))
+  if(any(is.na(quadrat.dat$`Number of mussels in quadrat`))) {
+    quadrat.dat$`Number of mussels in quadrat`[which(is.na(quadrat.dat$`Number of mussels in quadrat`))] <- 0
+  }
   #transect.title  <- suppressMessages(gs_title("Transect datasheets (Responses)"))
   #transect.dat    <- suppressMessages(gs_read(transect.title, verbose=FALSE))
   transect.dat      <- read_xlsx(path="../Data/Season2/Transect datasheets (Responses).xlsx", sheet=1)
@@ -982,9 +986,13 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
   transect.dat <- transect.dat %>% subset(`Survey type` == "Quadrat survey")
   transect.dat <- transect.dat[order(transect.dat$"Transect number"),]
   
-  if(curr.lake == "Little Birch Lake") {
-    transect.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
-  }
+  #if(curr.lake == "Little Birch Lake") {
+  #  transect1.dat <- subset(transect.dat, (`Transect number` == 1 | `Transect number` == 2 | `Transect number` == 3 | `Transect number` == 4 | `Transect number` == 5 | `Transect number` == 6 | `Transect number` == 7 | `Transect number` == 8 | `Transect number` == 9 | `Transect number` == 10 | `Transect number` == 11))
+    #for transects 1-11 only use Aislyn because sruvyes were done on the same transect
+  #  transect2.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
+  #  transect.dat <- rbind(transect1.dat, transect2.dat)
+    #transect.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
+  #}
   
   setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
   hab.time    <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)
@@ -1018,13 +1026,12 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
   if(var.type == "design") {
     
     K  <- length(trans.counts)
-    L  <- sum(trans.quads)
-    l  <- trans.quads
+    l  <- df$Length #sqrt(trans.quads)
+    L  <- sum(df$Length) #sum(sqrt(trans.quads))
     nl <- trans.counts/l
     N  <- sum(trans.counts)
     NL <- N/L
-    var.n <- L/(K-1)* sum(l*(nl - N/L)^2)
-    
+    var.n <- L/(K-1)* sum(l*(nl - NL)^2)
     dhat.se <- sqrt(dhat^2*(var.n/N^2))
     
     quad.list <- list(Quadrats=trans.quads, Area=area.vec, Mussels=trans.counts, Dhat=dhat, Dhat.se=dhat.se, Time=setup.time + hab.time + enc.time, df=df)
@@ -1083,7 +1090,7 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
   }
   
   eS <- mean(double.dat$size, na.rm=T)
-  varS <- var(double.dat$size, na.rm=T)/length(double.dat$size) #adding term on for numeric purposes
+  varS <- var(double.dat$size, na.rm=T)#/length(double.dat$size) 
 
   #transect.title  <- suppressMessages(gs_title("Transect datasheets (Responses)"))
   #transect.dat    <- suppressMessages(gs_read(transect.title, verbose=FALSE))
@@ -1165,9 +1172,9 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
     #var.n <- L^2*(K/(L^2*(K-1))*sum(l^2*(n/l - NL)^2))/N^2
     var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
     
-    dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
+    dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/K/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
   } 
 
   if(var.type == "jack") {
@@ -1192,18 +1199,18 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
     dhat.jk     <- K*dhat.double - (K-1)*mean(dhat.K) 
     
     #dhat.se.full <- sqrt(dhat.se.jk^2*sum(detect.vec)^2/dhat^2/sum(detect.vec)^2 + dhat.jk^2*(varS/eS^2 + phat.se^2/phat^2))
-    dhat.se.full <- sqrt(dhat.se.jk^2 + dhat.double^2*(varS/eS^2 + phat.se^2/phat^2))
+    dhat.se.full <- sqrt(dhat.se.jk^2 + dhat.double^2*(varS/K/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
   }
   
   if(var.type == "model") {
     double.glm      <- glm.nb(detect.vec~1 + offset(log(phat*area.vec)))
     double.predict  <- predict(double.glm, type="response", se.fit=T)
     
-    se.double     <- sqrt(dhat.double^2*(sum(double.predict$se.fit^2)/sum(double.predict$fit)^2  + phat.se^2/phat^2))#+ varS/eS^2
+    se.double     <- sqrt(dhat.double^2*(sum(double.predict$se.fit^2)/sum(double.predict$fit)^2 + varS/length(detect.vec)/eS^2 + phat.se^2/phat^2))#+ varS/eS^2
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
   }
   
   return(return.list)
@@ -1226,8 +1233,8 @@ double.dens.sim <- function(curr.lake, curr.lake2, var.type, sd.width=0.1) {
     double.dat <- double.dat[-which(is.na(double.dat$size)),]
   }
   
-  eS <- mean(double.dat$size, na.rm=T)
-  varS <- var(double.dat$size, na.rm=T)/length(double.dat$size) #adding term on for numeric purposes
+  eS   <- mean(double.dat$size, na.rm=T)
+  varS <- var(double.dat$size, na.rm=T) #/length(double.dat$size) #adding term on for numeric purposes
   
   #transect.title  <- suppressMessages(gs_title("Transect datasheets (Responses)"))
   #transect.dat    <- suppressMessages(gs_read(transect.title, verbose=FALSE))
@@ -1305,9 +1312,9 @@ double.dens.sim <- function(curr.lake, curr.lake2, var.type, sd.width=0.1) {
     #var.n <- L^2*(K/(L^2*(K-1))*sum(l^2*(n/l - NL)^2))/N^2
     var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
     
-    dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
+    dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/K/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
   } 
   
   if(var.type == "jack") {
@@ -1332,9 +1339,9 @@ double.dens.sim <- function(curr.lake, curr.lake2, var.type, sd.width=0.1) {
     dhat.jk     <- K*dhat.double - (K-1)*mean(dhat.K) 
     
     #dhat.se.full <- sqrt(dhat.se.jk^2*sum(detect.vec)^2/dhat^2/sum(detect.vec)^2 + dhat.jk^2*(varS/eS^2 + phat.se^2/phat^2))
-    dhat.se.full <- sqrt(dhat.se.jk^2 + dhat.double^2*(varS/eS^2 + phat.se^2/phat^2))
+    dhat.se.full <- sqrt(dhat.se.jk^2 + dhat.double^2*(varS/K/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model)
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se.full, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
   }
   
   if(var.type == "model") {
@@ -1465,9 +1472,12 @@ rem.optim <- function(counts) {
 time.predict <- function(time.df, curr.lake="Lake Burgan") {
   
   #first look at which times depend on transect length
-  tset.length <- lm(t.set ~ Length + Lake + Type + D.dens, data=time.df)
-  thab.length <- lm(t.hab ~ Length + Lake + Type + D.dens, data=time.df)
-  tenc.length <- lm(t.enc ~ Length + Lake + Type + D.dens, data=time.df)
+  #tset.length <- lm(t.set ~ Length + Lake + Type + D.dens, data=time.df)
+  #thab.length <- lm(t.hab ~ Length + Lake + Type + D.dens, data=time.df)
+  #tenc.length <- lm(t.enc ~ Length + Lake + Type + D.dens, data=time.df)
+  tset.length <- lm(t.set ~ Length + Type + (1|Lake), data=time.df)
+  thab.length <- lm(t.hab ~ Length + Type + (1|Lake), data=time.df)
+  tenc.length <- lm(t.enc ~ Length + Type + (1|Lake), data=time.df)
   
   #We'll look at Lake Burgan first
   lake.index  <- which(time.df$Lake == curr.lake)
@@ -1492,4 +1502,24 @@ hazardDetect.predict <- function(ddf.obj) {
   y <- p0*(1 - exp(-(xval/ds.scale)^(-ds.exp)))
 
   return(list(x=xval, y=y))
+}
+
+
+subSample.dist <- function(dist.mat) {
+ 
+  dist.vec <- ss.vec <- NULL
+  
+  for(step in 1:7) {
+    
+    dist.temp <- NULL
+    
+    for(i in 1:(15-step)) {
+      dist.temp <- c(dist.temp, dist.mat[i + step, i])
+    }
+    
+    dist.vec <- c(dist.vec, dist.temp) #mean(dist.temp)
+    ss.vec   <- c(ss.vec, rep(15 %/% step, length(dist.temp)))
+    
+  }
+  return(list(Distance=dist.vec, SampleSize=ss.vec))
 }
