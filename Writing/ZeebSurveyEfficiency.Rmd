@@ -1,0 +1,276 @@
+---
+title: Tradeoffs in detections efficiency and area covered in the design of optimal
+  survey
+author: Jake M. Ferguson, Aislyn Keyes, Michael McCartney, Katie
+  St. Clair, Douglas Johnson, John Fieberg
+date: "September 17, 2018"
+output:
+  pdf_document: default
+  html_document: default
+bibliography: Zebra_mussels.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, echo=F, include=FALSE, warning=F}
+library(MASS)
+#library(lme4)
+library(dplyr)
+#library(sjPlot)
+#library(ggeffects)
+#library(unmarked)
+library(ggplot2)
+library(gridExtra)
+#library(readxl)
+#library(plotrix)
+library(kableExtra)
+#library(sp)
+library(RColorBrewer)
+library(wesanderson)
+
+load('DensEst.Rdata')
+
+```
+
+# Introduction
+
+* impacts and costs of surveying invasive species: Past work has focused primarily on the early detection of invasions [e.g., @Ferguson2014b, @Holden2016] or detecting rare and endangered species [@Chades2008], however the complementary problem of designing efficient surveys to determine population distribution and density of animals post-detection is often a larger component of the management efforts. Determining how to optimize these efforts has received much less attention.
+* Something about usefulness of Unionids as a study system for studying detection methods [Green1993, Smith2006]...
+* There likely exists an empirical tradeoff between survey efficiency and survey coverage in most study designs. Surveys performed deliberately (*word choice*) will likely be time-consuming and thus cover a limited area, but have a higher probability of detecting indidivuals. If a survey is performed quickly it can cover more area at the expense of lower detection rates. 
+* Here we explored two types of surveys for zebra mussels. We used transect surveys with distance sampling, which covers a larger area but has imperfect detection and quadrat surveys, which represent a low efficiency type of survey with high detection probability. We examined how each study design performed under a range of densities. Finally, we provide a general treatment of XX to examine tradeoffs in survey coverage and efficiency. 
+
+# Methods
+
+## Surveys
+
+We conducted two different types of surveys in three Minnesota lakes in 2018. We decided which lakes to survey based on initial visits to six different lakes throughout central Minnesota (Christmas Lake, East Lake Sylvia, Lake Burgan, Lake Florida, Little Birch Lake, Sylvia Lake) that have had confirmed recent zebra mussel infestations (as determined by Minnesota Department of Natural Resources). At each lake we visited 15 different sites distributed evenly around the lake. Each site was placed in 3 to 8 m of water and determined using a bathymetry shapefile in ArcMap. We located each point in the field using a GPS unit (Garmin GPSMAP 64s). At each site our team of two divers spent 15 minutes underwater counting zebra mussels. We used these counts to determine the three lakes to conduct full surveys on, selecting lakes that displayed a range of apparent densities. **how were quadrat/distance sites differented**
+
+Based on our initial 15 minute exploratory dives we conducted full surveys on Lake Florida in Kandiyohi County, Lake Burgan in Douglas County, and Little Birch Lake in Todd County. Lake Florida covers an area of 273 hectares and has a maximum depth of 12 m, Lake Burgan covers an area of 74 hectares and has a maximum depth of 13 m, Little Birch Lake covers 339 hectares and has a maximum depth of 27 m. We surveyed each of the 15 previously selected sites in each lake using two type of surveys; quadrat and distance sampling with removal. 
+
+```{r mapFig, echo=F, fig.asp=1, fig.cap="Map of survey sites, each point indicates the starting location of a transect. Remove place name labels. Fix x-axis on Florida."}
+load("ZeebMaps.Rdata")
+x <- grid.arrange(p1, p2, p3, nrow = 1)
+```
+
+### Quadrat surveys
+
+At each site we used the previously defined transect locations to determine the start of a transect. We ran out parallel 30 m transect lines 1 meter apart perpendicular to the shoreline, though transects were stopped earlier than 30 m if divers ran into the thermocline. Our team of two divers each took one of the transects, placing a $0.5 \times 0.5$ square meter quadrat every 2 meters along the transect. In each quadrat the diver counted all the mussels within the quadrat.  
+
+
+### Distance sampling surveys
+
+At each site we used the previously defined transect locations to determine the start of each survey transect. We then ran out a 30 m transect in a direction perpendicular to the shoreline, though transects were stopped earlier than 30 m if divers ran into the thermocline. Divers surveyed 1 m on either side of the transect for a transect belt that is 2 m wide. 
+
+We conducted removal surveys, which require two divers. In the removal survey, the first diver swam over the transect line marking detections for the second diver. The second diver then tried to detect animals missed by the first diver. We implemented the distance removal survey by having the primary diver swim over the transect line. Whenever the diver detected a zebra mussel or cluster of mussels, they marked the location with a survey flag then recorded the number of mussels in the cluster, the distance from the transect start to the detection (hereafter transect distance), and the perpendicular distance from the location of the detection to the transect line (hereafter detection distance). The secondary diver then looked for zebra mussels that were missed by the primary diver. Divers rotated through the primary and secondary observer roles in order to *average out* potentially innate differences between observers [@Cook1979].
+
+<!--This function is defined as $g(y) =1 - e^{-(y/\sigma)-b}$ for $0 \leq y \leq 1$, with $\sigma$ controlling the scale of the detection function and $b$ determining the size of the shoulder of the detection function.   The second component of detection is the probability of detection on the transect line, denoted as $\pi$, and is used to scale the distance function.  We then combined the two model subcomponents to determine the probability of detecting a zebra mussel cluster within our 1 m belt, $P = \pi  \frac{\int_0^1 g(y)\, dy}{C_0}$, with the integration constant $C_0=\int_0^1 g(y)\, dy$. Hereafter, we refer to $P$ as the segment-level detection probability.  
+
+Diagnostic plots of the survey data (Figure \ref{fig:stackedHist}) suggested that the maximum detection probability initially dropped slowly from the transect line. Therefore, we used the hazard-rate detection model [@Buckland1985]. First, we fit  a standard half-normal detection function, which assumes detection is maximized on the transect line [@Buckland2015]. The detection function was defined as $g(y) =1 - e^{-(y/\sigma)-b}$ for $0\leq y \leq 1$, with $\sigma$ controlling the scale of the detection function and $b$ determining the size of the shoulder of the detection function.  
+
+We assumed that each dive team collected data independently; thus, we used the point independence assumption described by @Borchers2006. Point independence accounts for the effects of unmodeled covariates that can induce unexpected correlations between observers. For example, if both dive teams find it easier to detect larger mussels, and mussel size is not included in the model, then the observers' detections may be correlated even though the dive teams acted independently. Point independence addresses this issue by modeling the detection probability at a single detection distance. This distance is usually specified to be on the transect line, where detection is maximized. We incorporated the effect of cluster size on this probability of detection using the 
+-->
+
+
+* remove habitat survey information?
+
+*How were survey transects separated?*
+
+## Statistical analysis
+ 
+
+* Distance sampling: the counts for each transect are denoted as $x_i$ with the total counts in the lake with $k$ transects is denoted as $X=\sum_i^k x_i$. The length of each transect is denoted as $l_i$ and the total length of $L=\sum_i^k l_i$. The encounter rate $x_i/l_i$ is used to weight the survey effort. The estiamted detection probability on a transect is denoted as $\hat{P}$ and the cluster size of each detection event is denoted as $s$. The estimated density and variance in density [@Buckland2001] are given by
+
+\begin{align}
+  \hat{D} &= \frac{\displaystyle\sum_i^k  x_i}{\hat{P} \displaystyle\sum_i^k a_i}\label{eq:hatD}\\
+  \mathrm{var}(\hat{D}) &= \hat{D}^2 \left(  \frac{\mathrm{var}(X)}{X^2}+ \frac{\mathrm{var}(\mathrm{E}(s))}{\mathrm{E}(s)^2} + \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right), \label{eq:varD}
+\end{align}
+with $\mathrm{var}(X) = \left(L \sum_{i}^k l_i (x_i/l_i - X/L)^2 \right)/(k-1)$, and the expected value and variance in the expected cluster size (denoted as $\mathrm{E}(s)$ and $\mathrm{var}(\mathrm{E}(s))$, respectively.  Below we describe how to determine the detection probability component using distance sampling.
+
+In distance sampling the transect distance is used to estimate how detectability changes with distance from the transect line. We modeled detection probabilities using two model subcomponents. The distance component of the detection function, describes how distance ($y$) leads to changes in the probability of detecting a zebra mussel. Based on our initial inspection of the detections (Figure \ref{fig:detectDist}) we used the hazard-rate detectability model, which incorporates a shoulder in the detection function. A major assumption in the conventional distance sampling framework is that detection is perfect on the transect line, an assumption that has been shown to not hold for zebra mussel surveys [@Ferguson2018]. The mark-recapture component of the model is used to relax this assumption by using the removal surveys to estimate detectability on the transect line. In the mark-recapture model we assumed that each dive team collected data independently; thus, we used the point independence assumption described by @Borchers2006. Point independence accounts for the effects of unmodeled covariates that can induce unexpected correlations between observers. We also included the effect of cluster size as a covariate influencing detection in the mark-recapture component of the model.  We estimated detection using the mrds package [@Laake2018], which accounts for removal survey and for the effect of distance on detectability. We obtain the transect-level detectability $\hat{P}$ of detecting an zebra mussel cluster by integrating the detectability function over the transect strip-width [@Buckland2001]. 
+
+
+We obtained estimates of density from quadrat sampling by modifying equations \ref{eq:hatD} and \ref{eq:varD} to assume that detection is perfect ($\hat{P} = 0$ and $\mathrm{var}\left(\hat{P}\right)=0$) and to account for counting individuals, not clusters ($\mathrm{var}\left( \mathrm{E}(S) \right)=0$). 
+
+
+**Finally, we looked at whether informally surveying an area can accurately represent the relative density of zebra mussels, Here, we used the initial surveys conducted at the start point of each transect for a fixed amount of time over an unknown area. We calculated the correlation between these count rates and the estimated densities on each transect.**
+
+## Time budget analysis
+
+* In order to determine the efficiency of each method, we quantified how much time each method required to complete a transect and the time required to move between transects. 
+* We modeled the time to conduct a transect survey by breaking up the total survey time into two components, the time to setup the transect and the time to perform the transect survey **I am not including time to do habitat survey because it is same across all types of survey, and we don't use habitat data in the analysis**. The first component, the time to setup the transect survey (hereafter referred to as the setup time), was the time required to place the transect line(s). We modeled the setup time using linear mixed-effects regression analysis with fixed-effect covariates of survey type (distance or quadrat, included as a qualitative variable), and the transect length (continuous variable). We also included lake as a random intercept term. The second component of the time budget was the time to perform the survey on each transect (hereafter referred to as the search time *word choice*). The model structure of this component was identitical to the setup time but we also included the detection rate (number of detections per meter of transect length) as a covariate and *included a random slope term allowing detection rate varies with lake* to account for heterogeneity that occurs due to lake conditions. 
+* We used the fitted models to predict the setup time and search time for a transect of length 30 m under using the  estimated from the three lakes in this study. 
+* We modeled the time to move between consecutive transects as a function of distance between transects (hereafter, referred to as the movement time). We built the movement time model using a linear mixed-effects model to relate the time spent relocating between consecutively sampled transects to the distance between those transects fore each lake in the initial density survey (for a total of six lakes). We included lake name as a random intercept term. All random effects models in this study were fit using lmer in the lme4 package (*citation*). 
+* We investigated the movement time for surveys with fewer transects by sequentially removing every $i$th transect and calculating the empirical distance between the new transect start locations. We iteratively removed every $i$th transect from the original 15 transects (for $i=2$ to $8$) in each of our lakes and calculated the distance between those sites. We used the travel time model described above to predict the the average time travel time for a study with $n$ transects conducted on each lake. We modeled the travel time to conduct a survey on each lake with $n$ transects. 
+* We combined the the setup time model (denoted at $\tau_\mathrm{S}$), search time model ($\tau_\mathrm{E}$), and movement time model ($\tau_\mathrm{M}$) to determine the expected number of transects that can be under a specific amount of time. We then determined the maximum number of transects that can be completed when a fixed total amount of time is available to complete the surveys ($\tau_\mathrm{T}$). The maximum number of transects that can be completed can be determined by minimimizing the quantity $C(n)$ with respect to the number of transects surveyed, $n$, in the constrained optimization  
+
+$$
+\begin{aligned}
+  C(n) &= \tau_\mathrm{T} - n \left( \tau_\mathrm{S} + \tau_\mathrm{E}(D,\, \hat{P}) + \tau_\mathrm{M} (n) \right) \\
+  C(n) &\geq 0.
+\end{aligned}
+$$ 
+**remove equation?**
+
+* We determined the maximum number of surveys conducted, $n_\mathrm{max}$, obtained from solving the above optimization problem. We used $n_\mathrm{max}$ and the empirical estimates of the standard error in lake density that were rescaled to a sample with $n_\mathrm{max}$ transects, $\hat{\sigma}\sqrt{\frac{n}{n_\mathrm{max}}}$, where $n$ is the number of transects from the original sample (given in Table \ref{tab:survSummTable}). This rescaled standard error was used to compare the efficiency of the two different survey designs in each lake.
+
+## Simulation study
+
+Look at tradeoffs in density and system size (travel time)...
+
+
+# Results
+
+## Surveys
+
+* Quadrat surveys: The amount of area surveyed and number of zebra mussels counted in each lake are given in (Table \ref{tab:survSummTable}). Estimates of density along with the corresponding standard errors are give in (Figure \ref{fig:densEstFig}). We estimated that Lake Florida has the lowest density, Little Birch Lake had the highest density, and Lake Burgan had an intermediate density. 
+
+```{r survSummTable, echo=F}
+quad.est <- c(length(LF.quadrat.est$Area), sum(LF.quadrat.est$Area), sum(LF.quadrat.est$Mussels), length(LB.quadrat.est$Area), sum(LB.quadrat.est$Area), sum(LB.quadrat.est$Mussels), length(LBL.quadrat.est$Area), sum(LBL.quadrat.est$Area), sum(LBL.quadrat.est$Mussels))
+
+dist.est <- c(length(LF.distance.est$Area), sum(LF.distance.est$Area), sum(LF.distance.est$Detections), length(LB.distance.est$Area), sum(LB.distance.est$Area), sum(LB.distance.est$Detections), length(LBL.distance.est$Area), sum(LBL.distance.est$Area), sum(LBL.distance.est$Detections))
+
+dataf <- data.frame(rbind(quad.est, dist.est))
+#dimnames(dataf)[[1]] <- c("Quadrat", "Distance sampling")
+dataf <- cbind(Design = c("Quadrat", "Distance"), dataf)
+#dataf <- dataf[-1,]
+
+kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Design", "Transects", "Area surveyed", "Detections", "Transects", "Area surveyed", "Detections", "Transects", "Area surveyed", "Detections"), caption="Summary of survey results.", align='lccccccccc') %>% add_header_above(c("", "Lake Florida"=3, "Lake Burgan"=3, "Little Birch Lake"=3), bold=F) 
+
+```
+
+
+
+```{r densEstFig, echo=F, fig.asp=0.5, fig.cap="Density estimates and standard errors."}
+
+dataf <- data.frame(Lake=rep(c("Lake Florida", "Lake Burgan", "Little Birch Lake"),2), Design=c(rep("Quadrat", 3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est$Dhat, LF.distance.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
+
+dataf$Lake <- relevel(dataf$Lake, "Lake Florida")
+surveyTypeCols <- wes_palette("Darjeeling1")
+ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Density estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
+
+#print(p)
+
+```
+
+* Distance survey summary: The amount of area surveyed and number of zebra mussel detections made in each lake are given in (Table \ref{tab:survSummTable}). In Lake Florida all detections were of single zebra mussels, in Lake Burgan the average cluster size was `r round(LB.distance.est$eS, 2)` (standard deviation = `r round(sqrt(LB.distance.est$varS), 2)`), and Little Birch Lake had the largest average cluster size with `r round(LBL.distance.est$eS,2)` (`r round(sqrt(LBL.distance.est$varS), 2)`). 
+* Our estimates of the detection functions indicated that the detectability of a cluster were similar between lakes with the estimated detectability in Lake Florida (reported as mean (standard error)) `r round(LF.distance.est$phat, 2)` (`r round(LF.distance.est$phat.se, 2)`), Lake Burgan `r round(LB.distance.est$phat, 2)` (`r round(LB.distance.est$phat.se, 2)`), and in Little Birch Lake `r round(LBL.distance.est$phat, 2)` (`r round(LBL.distance.est$phat.se, 2)`). Despite these similarities there was some differences in the shoulder width of the detection functions, potentially due to the higher vegetation levels in Little Birch Lake *Aislyn* (Figure \ref{fig:detectFunc}).
+
+```{r detectDist, echo=F, warning=F, fig.asp=0.6, fig.cap='Stacked histogram showing the total number zebra mussel detections made by the primary and secondary diver in each lake. Distance bin widths are 0.1 m.'}
+
+distance.dat <- rbind(LB.distance.est$distance.dat, LBL.distance.est$distance.dat, LF.distance.est$distance.dat)
+
+distance.dat$Lake     <- factor(distance.dat$'Lake name', levels = c("Lake Florida", "Lake Burgan", "Little Birch Lake"))
+
+#remove secondary observerations that were also made by primary
+rm.ind <- NULL
+for(j in levels(distance.dat$Lake)) {
+for(i in unique(subset(distance.dat, Lake == j)$object)) {
+    ind <- which(distance.dat$Lake == j & distance.dat$object == i)
+    if(all(distance.dat$detected[ind] == 1)) {
+      rm.ind <- c(rm.ind, ind[which(distance.dat$observer[ind] == 2)] )
+    }
+  }
+}
+distance.dat <- distance.dat[-rm.ind,]
+
+#remove observertations that weren't actually made
+distance.dat          <- distance.dat %>% subset(detected==1) %>% mutate(Observer = factor(observer)) #%>% 
+
+distance.dat$Observer <-  recode(distance.dat$observer, "1"="Primary", "2"="Secondary")
+
+ggplot(data=distance.dat, aes(x=distance, fill=Observer)) + geom_histogram(binwidth=0.1, col="black") + xlab("Distance from transect line") + ylab("Detections") + theme_bw() + scale_fill_manual(values=wes_palette("Moonrise2"))  + facet_wrap(~Lake) + theme(axis.text=element_text(size=10), axis.title=element_text(size=14), axis.line = element_line(colour = "black"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.border = element_blank(), panel.background = element_blank()) + theme_classic()
+  
+```
+
+
+* Estimated detection functions par estimates, 
+* Distance surveys: amount of area surveyed and number of detections in each lake, are given in Table \ref{tab:survSummTable}. The average cluster size of detections in Lake Florida was , density estimate and standard error. Estimates of density along with the corresponding standard errors are give in (Figure \ref{fig:densEstFig}). We determined that Lake Florida has the lowest density, Little Birch Lake had the highest density, and Lake Burgan had an intermediate density. 
+
+
+```{r detectFunc, echo=F, warning=F, fig.asp=1, fig.cap="Average detection probability as a function of distance estimated using distance sampling for each lake. Consider removing figure..."}
+
+lake.cols <- wes_palette("FantasticFox1", 3)
+LBL.lines <- hazardDetect.predict(LBL.distance.est$ddf)
+LB.lines  <- hazardDetect.predict(LB.distance.est$ddf)
+LF.lines  <- hazardDetect.predict(LF.distance.est$ddf)
+
+plot(LF.lines$x, LF.lines$y, lwd=2, xlab="Distance from transect", ylab="Probability of detection by either observer", type='l', col=lake.cols[1])
+
+lines(LB.lines$x, LB.lines$y, lwd=2, col=lake.cols[2])
+lines(LBL.lines$x, LBL.lines$y, lwd=2, col=lake.cols[3])
+legend('topright', lwd=2, col=lake.cols, legend=c("Lake Florida", "Lake Burgan", "Little Birch Lake"))
+```
+
+## Time budget analysis
+
+```{r timebudgFig, echo=F, warning=F, fig.cap="Empirical times for the setup and search. Consider removing figure..."}
+
+load('TimeBudgetEst.Rdata')
+p.enc <- ggplot(time.df, aes(x=Type, y=t.enc/60, fill=Type)) +  geom_boxplot() + labs(title="Search", x="Survey type", y = "") + theme_classic() + guides(fill=FALSE) + scale_fill_manual(values=surveyTypeCols) + ylim(200/60, 30) + theme(plot.title = element_text(hjust = 0.5))
+
+p.set <- ggplot(time.df, aes(x=Type, y=t.set/60, fill=Type)) +  geom_boxplot() + labs(title="Setup", x="Survey type", y = "Time (minutes)") + theme_classic() + guides(fill=FALSE) + scale_fill_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(p.set, p.enc, nrow = 1)                
+
+```
+
+* In both the setup time and search time models we found that transect length and detection rate had postive effects on the time budget (Figure \ref{fig:timeFig}). 
+
+```{R timeFig, echo=F, fig.cap="marginal effects", warning=F, message=F, fig.asp=0.5}
+
+p1 <- ggplot(subset(length.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+p2 <- ggplot(subset(length.pred, Type=="Encounter time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="", title="Search time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+p3 <- ggplot(rate.pred, aes(x, predicted/60, group=group, color=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Detection rate", y="", title="Search time") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(p1, p2, p3, nrow=1, ncol=3, widths=c(8, 8, 12))
+
+```
+
+* We found that the transit time varied by transect distance, however 
+
+```{r, echo=F, fig.cap="Predicted travel time at each lake.", fig.asp=1}
+
+plot( nvec.cont, LF.predict/60, type='l', col=lake.cols[1], lwd=2, ylim=c(10,20), ylab="Time to travel between sites (minutes)", xlab="Number of sites")
+lines(nvec.cont, LB.predict/60, lwd=2, col=lake.cols[2])
+lines(nvec.cont, LBL.predict/60, lwd=2, col=lake.cols[3])
+legend('topright', lwd=2, col=lake.cols, legend=c("Lake Florida", "Lake Burgan", "Little Birch Lake"))
+
+```
+
+* We found that the transit time varied by transect distance, however 
+
+
+
+```{r, echo=F, fig.asp=0.6, fig.cap="Maximum number of transects surveyed as a function of the total time available to conduct surveys."}
+
+
+ggplot(totalTime.df, aes(x=N, y=Time/60^2, colour=Design)) + geom_line(size=1.5) + facet_wrap(~Lake, ncol=3) + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + labs(x="Number of transects", y="Total survey time (hours)") + theme(legend.title=element_blank()) 
+
+```
+
+
+
+```{r, echo=F, fig.asp=0.6, fig.cap="The predicted coefficient of variation in each lake. Fix x-axis."}
+
+totalPrec.df <- totalTime.df
+origN.vec    <- c(rep(15, 30), rep(15, 30), rep(4, 15), rep(15, 15))
+origSE.vec   <- c(rep(LF.distance.est$Dhat.se, 15), rep(LF.quadrat.est$Dhat.se, 15), rep(LB.distance.est$Dhat.se, 15), rep(LB.quadrat.est$Dhat.se, 15), rep(LBL.distance.est$Dhat.se, 15), rep(LBL.quadrat.est$Dhat.se, 15))
+origCV.vec   <- c(rep(LF.distance.est$Dhat.se/LF.distance.est$Dhat, 15), rep(LF.quadrat.est$Dhat.se/LF.quadrat.est$Dhat, 15), rep(LB.distance.est$Dhat.se/LB.distance.est$Dhat, 15), rep(LB.quadrat.est$Dhat.se/LB.quadrat.est$Dhat, 15), rep(LBL.distance.est$Dhat.se/LBL.distance.est$Dhat, 15), rep(LBL.quadrat.est$Dhat.se/LBL.quadrat.est$Dhat, 15))
+
+totalPrec.df <- totalPrec.df %>% mutate(SE=origSE.vec*sqrt(origN.vec/N), CV=origCV.vec*sqrt(origCV.vec/N))
+
+ggplot(totalPrec.df, aes(x=Time/60^2, y=CV, colour=Design)) + geom_line(size=1.5) + facet_wrap(~Lake, ncol=3) + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + labs(x="Time (hours)", y=expression(paste("Precision of density estimate ", group("(", hat(sigma)/hat(D), ")"))) )+ theme(legend.title=element_blank()) 
+
+```
+
+## Simulation study
+
+Look at tradeoffs in density and system size (travel time)...
+
+# Discussion
+
++ scale_fill_manual(values=surveyTypeCols)
