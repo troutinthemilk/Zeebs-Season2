@@ -36,10 +36,10 @@ load('DensEst.Rdata')
 
 # Introduction
 
-* impacts and costs of surveying invasive species: Past work has focused primarily on the early detection of invasions [e.g., @Ferguson2014b, @Holden2016] or detecting rare and endangered species [@Chades2008], however the complementary problem of designing efficient surveys to determine population distribution and density of animals post-detection is often a larger component of the management efforts. Determining how to optimize these efforts has received much less attention.
+* impacts and costs of surveying invasive species: Past work has focused primarily on the early detection [e.g., @Ferguson2014b, @Holden2016] and eradication [@Regan2006] of invasive species or detecting rare and endangered species [@Chades2008], however the complementary problem of designing efficient surveys to determine population distribution and density of animals post-detection is often a larger component of the management efforts. Determining how to optimize these efforts has received much less attention.
 * Something about usefulness of Unionids as a study system for studying detection methods [Green1993, Smith2006]...
 * There likely exists an empirical tradeoff between survey efficiency and survey coverage in most study designs. Surveys performed deliberately (*word choice*) will likely be time-consuming and thus cover a limited area, but have a higher probability of detecting indidivuals. If a survey is performed quickly it can cover more area at the expense of lower detection rates. 
-* Here we explored two types of surveys for zebra mussels. We used transect surveys with distance sampling, which covers a larger area but has imperfect detection and quadrat surveys, which represent a low efficiency type of survey with high detection probability. We examined how each study design performed under a range of densities. Finally, we provide a general treatment of XX to examine tradeoffs in survey coverage and efficiency. 
+* Here we explored two types of surveys for zebra mussels. We used transect surveys with distance sampling, which covers a larger area but has imperfect detection, and quadrat surveys, which represent a low efficiency type of survey with high detection probability. We examined how each design performed under a range of densities. Finally, we used the empirical studies to parameterize a general model that allowed us to examine the determine the best survey approach for a given problem based on **system size and density**.  
 
 # Methods
 
@@ -99,7 +99,7 @@ We obtained estimates of density from quadrat sampling by modifying equations \r
 ## Time budget analysis
 
 * In order to determine the efficiency of each method, we quantified how much time each method required to complete a transect and the time required to move between transects. 
-* We modeled the time to conduct a transect survey by breaking up the total survey time into two components, the time to setup the transect and the time to perform the transect survey **I am not including time to do habitat survey because it is same across all types of survey, and we don't use habitat data in the analysis**. The first component, the time to setup the transect survey (hereafter referred to as the setup time), was the time required to place the transect line(s). We modeled the setup time using linear mixed-effects regression analysis with fixed-effect covariates of survey type (distance or quadrat, included as a qualitative variable), and the transect length (continuous variable). We also included lake as a random intercept term. The second component of the time budget was the time to perform the survey on each transect (hereafter referred to as the search time *word choice*). The model structure of this component was identitical to the setup time but we also included the detection rate (number of detections per meter of transect length) as a covariate and *included a random slope term allowing detection rate varies with lake* to account for heterogeneity that occurs due to lake conditions. 
+* We modeled the time to conduct a transect survey by breaking up the total survey time into two components, the time to setup the transect and the time to perform the transect survey **I am not including time to do habitat survey because it is same across all types of survey, and we don't use habitat data in the analysis**. The first component, the time to setup the transect survey (hereafter referred to as the setup time), was the time required to place the transect line(s). We modeled the setup time using linear mixed-effects regression analysis with fixed-effect covariates of survey type (distance or quadrat, included as a qualitative variable), and the transect length (continuous variable). We also included lake as a random intercept term. The second component of the time budget was the time to perform the survey on each transect (hereafter referred to as the search time *word choice*). The model structure of this component included fixed effects of transect length, an interaction between the type of survey and the detection rate (number of detections per meter of transect length) and a random slope term allowing detection time to vary with lake to account for heterogeneity that occurs due to lake conditions. 
 * We used the fitted models to predict the setup time and search time for a transect of length 30 m under using the  estimated from the three lakes in this study. 
 * We modeled the time to move between consecutive transects as a function of distance between transects (hereafter, referred to as the movement time). We built the movement time model using a linear mixed-effects model to relate the time spent relocating between consecutively sampled transects to the distance between those transects fore each lake in the initial density survey (for a total of six lakes). We included lake name as a random intercept term. All random effects models in this study were fit using lmer in the lme4 package (*citation*). 
 * We investigated the movement time for surveys with fewer transects by sequentially removing every $i$th transect and calculating the empirical distance between the new transect start locations. We iteratively removed every $i$th transect from the original 15 transects (for $i=2$ to $8$) in each of our lakes and calculated the distance between those sites. We used the travel time model described above to predict the the average time travel time for a study with $n$ transects conducted on each lake. We modeled the travel time to conduct a survey on each lake with $n$ transects. 
@@ -118,7 +118,9 @@ $$
 ## Simulation study
 
 Look at tradeoffs in density and system size (travel time)...
-
+Options:
+* use empirical model to figure out time budget. 
+* Use variance formula with Poisson/Tweedie/NB density function and ignore uncertainty in detection?. Plug into variance model. 
 
 # Results
 
@@ -155,7 +157,7 @@ ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + f
 ```
 
 * Distance survey summary: The amount of area surveyed and number of zebra mussel detections made in each lake are given in (Table \ref{tab:survSummTable}). In Lake Florida all detections were of single zebra mussels, in Lake Burgan the average cluster size was `r round(LB.distance.est$eS, 2)` (standard deviation = `r round(sqrt(LB.distance.est$varS), 2)`), and Little Birch Lake had the largest average cluster size with `r round(LBL.distance.est$eS,2)` (`r round(sqrt(LBL.distance.est$varS), 2)`). 
-* Our estimates of the detection functions indicated that the detectability of a cluster were similar between lakes with the estimated detectability in Lake Florida (reported as mean (standard error)) `r round(LF.distance.est$phat, 2)` (`r round(LF.distance.est$phat.se, 2)`), Lake Burgan `r round(LB.distance.est$phat, 2)` (`r round(LB.distance.est$phat.se, 2)`), and in Little Birch Lake `r round(LBL.distance.est$phat, 2)` (`r round(LBL.distance.est$phat.se, 2)`). Despite these similarities there was some differences in the shoulder width of the detection functions, potentially due to the higher vegetation levels in Little Birch Lake *Aislyn* (Figure \ref{fig:detectFunc}).
+* Our estimates of the detection functions indicated that the detectability of a cluster were similar between lakes with the estimated transect detectability in Lake Florida (reported as mean (standard error)) `r round(LF.distance.est$phat, 2)` (`r round(LF.distance.est$phat.se, 2)`), Lake Burgan `r round(LB.distance.est$phat, 2)` (`r round(LB.distance.est$phat.se, 2)`), and in Little Birch Lake `r round(LBL.distance.est$phat, 2)` (`r round(LBL.distance.est$phat.se, 2)`). Unfortunately, a lack of detections by observer 2 in Lake Florida likely leads us to be overconfident of our detection function. Despite the similarities in the overall estimates of detectability there was some differences in the shoulder width of the detection functions, potentially due to the higher vegetation levels in Little Birch Lake leading to a shorter shoulder (Figure \ref{fig:detectFunc}).
 
 ```{r detectDist, echo=F, warning=F, fig.asp=0.6, fig.cap='Stacked histogram showing the total number zebra mussel detections made by the primary and secondary diver in each lake. Distance bin widths are 0.1 m.'}
 
@@ -218,7 +220,7 @@ grid.arrange(p.set, p.enc, nrow = 1)
 
 * In both the setup time and search time models we found that transect length and detection rate had postive effects on the time budget (Figure \ref{fig:timeFig}). 
 
-```{R timeFig, echo=F, fig.cap="marginal effects", warning=F, message=F, fig.asp=0.5}
+```{R timeFig, echo=F, fig.cap="The impact of transect distance and detection rate on on the setup and search time. Predictinos are of the fixed effects. Bands represent 95\% confidence intervals of the predicted values. ", warning=F, message=F, fig.asp=0.5}
 
 p1 <- ggplot(subset(length.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
 
@@ -273,4 +275,4 @@ Look at tradeoffs in density and system size (travel time)...
 
 # Discussion
 
-+ scale_fill_manual(values=surveyTypeCols)
+* Theory tells that all else being equal, faster surveying methods are optimal as density increases. Here, we show that the practical 
