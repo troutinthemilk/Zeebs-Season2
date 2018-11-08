@@ -16,17 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r library, echo=F, include=FALSE, warning=F}
 library(MASS)
-#library(lme4)
 library(dplyr)
-#library(sjPlot)
-#library(ggeffects)
-#library(unmarked)
 library(ggplot2)
 library(gridExtra)
-#library(readxl)
-#library(plotrix)
 library(kableExtra)
-#library(sp)
 library(RColorBrewer)
 library(wesanderson)
 
@@ -50,8 +43,10 @@ We conducted two different types of surveys in three Minnesota lakes in 2018. We
 Based on our initial 15 minute exploratory dives we conducted full surveys on Lake Florida in Kandiyohi County, Lake Burgan in Douglas County, and Little Birch Lake in Todd County. Lake Florida covers an area of 273 hectares and has a maximum depth of 12 m, Lake Burgan covers an area of 74 hectares and has a maximum depth of 13 m, Little Birch Lake covers 339 hectares and has a maximum depth of 27 m. We surveyed each of the 15 previously selected sites in each lake using two type of surveys; quadrat and distance sampling with removal. 
 
 ```{r mapFig, echo=F, fig.asp=1, fig.cap="Map of survey sites, each point indicates the starting location of a transect. Remove place name labels. Fix x-axis on Florida."}
+
 load("ZeebMaps.Rdata")
-x <- grid.arrange(p1, p2, p3, nrow = 1)
+x <- grid.arrange(p1, p2, p3, nrow=1, ncol=3)
+
 ```
 
 ### Quadrat surveys
@@ -83,10 +78,10 @@ We assumed that each dive team collected data independently; thus, we used the p
 * Distance sampling: the counts for each transect are denoted as $x_i$ with the total counts in the lake with $k$ transects is denoted as $X=\sum_i^k x_i$. The length of each transect is denoted as $l_i$ and the total length of $L=\sum_i^k l_i$. The encounter rate $x_i/l_i$ is used to weight the survey effort. The estiamted detection probability on a transect is denoted as $\hat{P}$ and the cluster size of each detection event is denoted as $s$. The estimated density and variance in density [@Buckland2001] are given by
 
 \begin{align}
-  \hat{D} &= \frac{\displaystyle\sum_i^k  x_i}{\hat{P} \displaystyle\sum_i^k a_i}\label{eq:hatD}\\
-  \mathrm{var}(\hat{D}) &= \hat{D}^2 \left(  \frac{\mathrm{var}(X)}{X^2}+ \frac{\mathrm{var}(\mathrm{E}(s))}{\mathrm{E}(s)^2} + \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right), \label{eq:varD}
+  \hat{D} &= \frac{\displaystyle\sum_i^k  x_i}{\hat{P} A}\label{eq:hatD}\\
+  \mathrm{var}(\hat{D}) &= \hat{D}^2 \left(  \frac{\mathrm{var}(X)}{X^2}+ \frac{\mathrm{var}(\mathrm{E}(s))}{\mathrm{E}(s)^2} + \frac{\mathrm{var}(A\hat{P})}{A^2\hat{P}^2} \right), \label{eq:varD}
 \end{align}
-with $\mathrm{var}(X) = \left(L \sum_{i}^k l_i (x_i/l_i - X/L)^2 \right)/(k-1)$, and the expected value and variance in the expected cluster size (denoted as $\mathrm{E}(s)$ and $\mathrm{var}(\mathrm{E}(s))$, respectively.  Below we describe how to determine the detection probability component using distance sampling.
+with the total survey area $A=\displaystyle\sum_i^k a_i$, variance in counts $\mathrm{var}(X) = \left(L \sum_{i}^k l_i (x_i/l_i - X/L)^2 \right)/(k-1)$, and the expected value and variance in the expected cluster size (denoted as $\mathrm{E}(s)$ and $\mathrm{var}(\mathrm{E}(s))$, respectively. The variance in the detectability $\mathrm{var}(A\hat{P}$ is **XX**. Below we describe how to determine the detection probability component using distance sampling.
 
 In distance sampling the transect distance is used to estimate how detectability changes with distance from the transect line. We modeled detection probabilities using two model subcomponents. The distance component of the detection function, describes how distance ($y$) leads to changes in the probability of detecting a zebra mussel. Based on our initial inspection of the detections (Figure \ref{fig:detectDist}) we used the hazard-rate detectability model, which incorporates a shoulder in the detection function. A major assumption in the conventional distance sampling framework is that detection is perfect on the transect line, an assumption that has been shown to not hold for zebra mussel surveys [@Ferguson2018]. The mark-recapture component of the model is used to relax this assumption by using the removal surveys to estimate detectability on the transect line. In the mark-recapture model we assumed that each dive team collected data independently; thus, we used the point independence assumption described by @Borchers2006. Point independence accounts for the effects of unmodeled covariates that can induce unexpected correlations between observers. We also included the effect of cluster size as a covariate influencing detection in the mark-recapture component of the model.  We estimated detection using the mrds package [@Laake2018], which accounts for removal survey and for the effect of distance on detectability. We obtain the transect-level detectability $\hat{P}$ of detecting an zebra mussel cluster by integrating the detectability function over the transect strip-width [@Buckland2001]. 
 
@@ -196,11 +191,11 @@ ggplot(data=distance.dat, aes(x=distance, fill=Observer)) + geom_histogram(binwi
 lake.cols <- wes_palette("FantasticFox1", 3)
 LBL.lines <- hazardDetect.predict(LBL.distance.est$ddf)
 LB.lines  <- hazardDetect.predict(LB.distance.est$ddf)
-LF.lines  <- hazardDetect.predict(LF.distance.est$ddf)
+#LF.lines  <- halfnormDetect.predict(LF.distance.est$ddf)
 
-plot(LF.lines$x, LF.lines$y, lwd=2, xlab="Distance from transect", ylab="Probability of detection by either observer", type='l', col=lake.cols[1])
+plot(LB.lines$x, LB.lines$y, lwd=2, xlab="Distance from transect", ylab="Probability of detection by either observer", type='l', col=lake.cols[2], ylim=c(0,1))
 
-lines(LB.lines$x, LB.lines$y, lwd=2, col=lake.cols[2])
+#lines(LF.lines$x, LF.lines$y, lwd=2, col=lake.cols[1])
 lines(LBL.lines$x, LBL.lines$y, lwd=2, col=lake.cols[3])
 legend('topright', lwd=2, col=lake.cols, legend=c("Lake Florida", "Lake Burgan", "Little Birch Lake"))
 ```
@@ -220,7 +215,7 @@ grid.arrange(p.set, p.enc, nrow = 1)
 
 * In both the setup time and search time models we found that transect length and detection rate had postive effects on the time budget (Figure \ref{fig:timeFig}). 
 
-```{R timeFig, echo=F, fig.cap="The impact of transect distance and detection rate on on the setup and search time. Predictinos are of the fixed effects. Bands represent 95\% confidence intervals of the predicted values. ", warning=F, message=F, fig.asp=0.5}
+```{R timeFig, echo=F, fig.cap="The impact of transect distance and detection rate on on the setup and search time. Predictinos are of the fixed effects. Bands represent 95% confidence intervals of the predicted values.", warning=F, message=F, fig.asp=0.5}
 
 p1 <- ggplot(subset(length.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
 
@@ -249,7 +244,6 @@ legend('topright', lwd=2, col=lake.cols, legend=c("Lake Florida", "Lake Burgan",
 
 ```{r, echo=F, fig.asp=0.6, fig.cap="Maximum number of transects surveyed as a function of the total time available to conduct surveys."}
 
-
 ggplot(totalTime.df, aes(x=N, y=Time/60^2, colour=Design)) + geom_line(size=1.5) + facet_wrap(~Lake, ncol=3) + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + labs(x="Number of transects", y="Total survey time (hours)") + theme(legend.title=element_blank()) 
 
 ```
@@ -272,6 +266,126 @@ ggplot(totalPrec.df, aes(x=Time/60^2, y=CV, colour=Design)) + geom_line(size=1.5
 ## Simulation study
 
 Look at tradeoffs in density and system size (travel time)...
+ We used the results on the timebudget analysis to construct a more general model of the survey coverage/efficiency tradeoff. We start with the density variance model in equation \eqref{eq:varD}, making a few simplifying assumptions. We will start by assuming that all transects are of the same length and cover and area, $a$. We also assume that the mean and variance of the counts follow a Tweedie distribution with mean $\mathrm{E}(X)=\lambda\, n\, a$ and variance $\mathrm{var}(X)=n\,b( a\, \lambda)^\phi$, where $n$ is the number of transects completed, and $\phi$ is a value that typically falls between 1 and 2. We start by assuming that the detection probability is known $(\mathrm{var}(\hat{P}) =0)$. Thus, $\mathrm{var}(\hat{D})=\frac{n\, b(a\, \lambda)^\phi}{(n\,a\,P)^2}$.
+ 
+ From the results in the previous section, we know that the total time to conduct a single survey can be modeled as $\tau = \tau_0 + \tau_S \mathrm{E}(X)$ so the total number of transects that can be completed in a chunk of time, $\tau_T$, is $n=\tau_T/(\tau_0 + \tau_ S\,a\, \lambda)$. We can then plug in the this to the variance expression above. Finally, we assume that detectability is a monotonic function of the search time with the following properties $\frac{d\, P}{d\tau_S} \equiv P' > 0$ and $\frac{d^2\, P}{d\tau_S^2} \equiv P'' < 0$. This ensures that the function is monotonically increasing with diminishing returns on increases of effort.
+ 
+We want to solve for the value of $\tau_S$ when the estimator variance is minimized $\frac{d\, \mathrm{var}(\hat{D})}{d\tau_S} = 0$.  Now solving:
+\begin{align*}
+  \frac{d\, \mathrm{var}(\hat{D})}{d\tau_S} = 0 &= \frac{d}{d\tau_S} \frac{(\tau_0 + \tau_S a \lambda)^{\phi-2}}{P^2}\\
+  0 &= \frac{(\phi-2) a \lambda }{P^2} \left( \tau_0 + \tau_S a \lambda\right)^{\phi-3} - 2 \frac{P'}{P^3}\left( \tau_0 + \tau_S a \lambda\right)^{\phi-2}\\
+  0 &= (\phi-2) a \lambda - 2 \frac{P'}{P}\left( \tau_0 + \tau_S a \lambda\right).
+\end{align*}
+
+
+The results depends critically on the ratio $P/P'$, which will in general be a function of the search time $\tau_S$. One approach is to model detection using the disc equation, $P=\tau_S/(\epsilon + \tau_S)$. In this case $P/P' = \frac{\tau_S}{\epsilon} (\epsilon + \tau_S)$. We can then get the solution for the optimal search time as, 
+
+```{r, echo=F, warning=F, message=F}
+library(reshape)
+library(wesanderson)
+
+e <- 0.05
+a <- 0.1
+lambda <- 10 
+t0 <- 0.25
+tt <- 1
+b <- 1
+phi <- 1
+
+var.tweedie <- function(ts, lambda, a, t0, tt, e) {
+  P <- ts/(e+ts)
+  n <- tt/(t0+ts*a*lambda*P)
+  
+  return(b*n*P*(a*lambda)^phi/(n*a*P)^2)
+}
+
+var.negbin <- function(ts, lambda, a, t0, e) {
+  n   <- tt/(t0+ts*a*lambda)
+  P   <- ts/(e+ts)
+  vN  <- (lambda*a + b*lambda^2*a^2)
+  vZ  <- n*(lambda*a*P*(1-P) + P^2*vN)
+  return(vZ/(n*a*P)^2)
+}
+
+
+t0.vec <- seq(0, tt, length.out=100)
+tt.vec <- seq(1, 10, length.out=100)
+
+lambda.vec <- seq(0, 10, length.out=100)
+ts.opt <- matrix(NA, length(t0.vec), length(lambda.vec))
+for(i in 1:length(t0.vec)) {
+  for(j in 1:length(lambda.vec)) {
+    ts.opt[i,j] <- optimize(var.tweedie, interval=c(1e-6, t0.vec[i]), lambda=lambda.vec[j], a=a, t0=t0, tt=tt.vec[i], e=e)$minimum
+    if(ts.opt[i,j] > 0.999) {
+      ts.opt[i,j] <- NA
+    }
+  }
+}
+
+dimnames(ts.opt)[[1]] <- t0.vec
+dimnames(ts.opt)[[2]] <- lambda.vec
+ts.long <- melt(ts.opt)
+names(ts.long) <- c('t0', 'lambda', 'ts')
+
+#color_palette <- colorRampPalette(c("#3794bf", "#FFFFFF", "#df8640"))(length(quantile_range) - 1)
+
+v <- ggplot(ts.long, aes(t0, lambda, z=ts, fill=ts))
+v + geom_tile(aes(fill=ts)) + geom_contour(color = "white", alpha = 0.5) + scale_fill_distiller(palette="Spectral", na.value="white") + theme_bw()
+
+#scale_fill_gradientn(colours = c("#3794bf", "#df8640"), values = c(0,1)) + theme_bw() #+ scale_colour_brewer(palette="Greens") 
+#+ scale_fill_distiller(palette=wes_palette("Royal1", 2, type = "continuous"), na.value="white") #+ guides(fill = guide_colorbar(title = “¼ Mi. Time (s)”))
+
+#filled.contour(x=t0.vec, y=lambda.vec, z=ts.opt, col=wes_palette("BottleRocket1", 2, type = "continuous"))
+
+#plot(ts.vec, obj, type='l')
+#abline(v=ts.vec[which.min(obj)], col='red')
+
+plot(lambda.vec, ts.opt[length(t0.vec)/2,], type='l', lwd=2, ylab="Optimal search time", xlab=expression(lambda))
+```
+
+
+We can do the same deal for a negative-binomial-like distribution with $\mathrm{var}(A\hat{P})=\alpha a\lambda + \beta a^2\lambda^2$.
+
+### Uncertainty in detectability
+
+Now, we assume there is variation in the detectability, we assume that the estimator can be modeled with a beta-like distribution, $\mathrm{var}(a\hat{P}) =  \delta \hat{P} (1 - \hat{P})$, where $\delta$ is a scaling constant. 
+
+
+```{r, echo=F, warning=F, message=F}
+
+t0.vec      <- seq(0, tt, length.out=100)
+lambda.vec  <- seq(0, 10, length.out=100)
+ts.opt      <- matrix(NA, length(t0.vec), length(lambda.vec))
+
+var.poisson.full <- function(ts, lambda, a, t0, e, beta) {
+  
+  n     <- tt/(t0+ts*a*lambda)
+  P     <- ts/(e+ts)
+  eX    <- n*lambda*P
+  dhat  <- lambda
+  
+  return(b*n*P*(a*lambda)/(n*a*P)^2 + dhat^2*beta*P*(1-P)/P^2/eX)
+  
+}
+
+for(i in 1:length(t0.vec)) {
+  for(j in 1:length(lambda.vec)) {
+    ts.opt[i,j] <- optimize(var.poisson.full, interval=c(1e-6, tt), lambda=lambda.vec[j], a=a, t0=t0.vec[i], e=e, beta=100)$minimum
+    if(ts.opt[i,j] > 0.999) {
+      ts.opt[i,j] <- NA
+    }
+  }
+}
+
+dimnames(ts.opt)[[1]] <- t0.vec
+dimnames(ts.opt)[[2]] <- lambda.vec
+ts.long <- melt(ts.opt)
+names(ts.long) <- c('t0', 'lambda', 'ts')
+
+v <- ggplot(ts.long, aes(t0, lambda, z = ts, fill=ts))
+v + geom_tile(aes(fill=ts)) + geom_contour(color = "white", alpha = 0.5) + scale_fill_distiller(palette="Spectral", na.value="white") + theme_bw()
+
+```
 
 # Discussion
 

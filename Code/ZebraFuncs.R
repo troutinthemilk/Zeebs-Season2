@@ -822,12 +822,20 @@ doubleObs.duplicate <- function(obs.dat) {
 
 
 ##estimate densities using distnace survey
-distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.type="hr", size=FALSE) {
+distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.type="hr", size=FALSE, transects=NULL) {
   
   #distance.title    <- suppressMessages(gs_title("Encounters - Double observer - distance survey (Responses)"))
   #distance.dat      <- suppressMessages(gs_read(distance.title, verbose=FALSE))
   distance.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1)
-  distance.dat      <- distance.dat %>% subset(`Lake name` == curr.lake)
+  distance.dat      <- distance.dat %>% subset(`Lake name` == curr.lake[1])
+  if(length(transects) > 0) {
+    ind <- NULL
+    for(i in 1:length(transects)) {
+      ind <- c(ind, which(distance.dat$`Transect #` == transects[i]))
+    }
+    distance.dat <- distance.dat[ind,]
+  }
+  
   distance.dat      <- distance.dat[order(distance.dat$`Transect #`),]
   distance.dat      <- dplyr::rename(distance.dat, size="Number of mussels in cluster")
   
@@ -852,6 +860,16 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   transect.dat <- transect.dat %>% subset(`Lake name:` == curr.lake2) 
   transect.dat <- transect.dat %>% subset(`Survey type` == "Double observer distance")
   transect.dat <- transect.dat[order(transect.dat$"Transect number"),]
+  
+  if(length(transects) > 0) {
+    ind <- NULL
+    for(i in 1:length(transects)) {
+      ind               <- c(ind, which(transect.dat$`Transect number` == transects[i]))
+    }
+    transect.dat <- transect.dat[ind,]
+  }
+  
+  
   
   setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
   hab.time     <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)
@@ -883,15 +901,12 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
 
   for(i in transect.dat$`Transect number`) {
     count.vec[i]  <- sum(distanceorig.dat[which(distanceorig.dat$`Transect #` == i),]$size)
-    detect.vec[i] <- sum(distance.dat[which(distance.dat$`Transect #` == i),]$detected)
+    detect.vec[i] <- dim(distanceorig.dat[which(distanceorig.dat$`Transect #` == i),])[1]
   }
   names(count.vec) <- names(detect.vec) <- transect.dat$`Transect number`
   if(any(is.na(count.vec))) {
-    #count.vec[which(is.na(count.vec))]   <- 0
-    #detect.vec[which(is.na(detect.vec))] <- 0
-    count.vec  <- count.vec[-which(is.na(count.vec))]  # <- 0
-    detect.vec <- detect.vec[-which(is.na(detect.vec))] #<- 0
-    
+    count.vec  <- count.vec[-which(is.na(count.vec))] 
+    detect.vec <- detect.vec[-which(is.na(detect.vec))]
   }
   area.vec <- t(as.matrix(2*transect.dat$`Transect length (if transect survey)`))[1,]
   names(area.vec) <- transect.dat$`Transect number`
@@ -1475,9 +1490,9 @@ time.predict <- function(time.df, curr.lake="Lake Burgan") {
   #tset.length <- lm(t.set ~ Length + Lake + Type + D.dens, data=time.df)
   #thab.length <- lm(t.hab ~ Length + Lake + Type + D.dens, data=time.df)
   #tenc.length <- lm(t.enc ~ Length + Lake + Type + D.dens, data=time.df)
-  tset.length <- lm(t.set ~ Length + Type + (1|Lake), data=time.df)
-  thab.length <- lm(t.hab ~ Length + Type + (1|Lake), data=time.df)
-  tenc.length <- lm(t.enc ~ Length + Type + (1|Lake), data=time.df)
+  tset.length <- lmer(t.set ~ Length + Type + (1|Lake), data=time.df)
+  thab.length <- lmer(t.hab ~ Length + Type + (1|Lake), data=time.df)
+  tenc.length <- lmer(t.enc ~ Length + Type + (1|Lake), data=time.df)
   
   #We'll look at Lake Burgan first
   lake.index  <- which(time.df$Lake == curr.lake)
@@ -1507,6 +1522,27 @@ hazardDetect.predict <- function(ddf.obj) {
 
 subSample.dist <- function(dist.mat) {
  
+  dist.vec <- ss.vec <- NULL
+  
+  for(step in 1:7) {
+    
+    dist.temp <- NULL
+    
+    for(i in 1:(15-step)) {
+      dist.temp <- c(dist.temp, dist.mat[i + step, i])
+    }
+    
+    dist.vec <- c(dist.vec, dist.temp) #mean(dist.temp)
+    ss.vec   <- c(ss.vec, rep(15 %/% step, length(dist.temp)))
+    
+  }
+  return(list(Distance=dist.vec, SampleSize=ss.vec))
+}
+
+
+
+subSample.dhatSE <- function(dist.mat) {
+  
   dist.vec <- ss.vec <- NULL
   
   for(step in 1:7) {
