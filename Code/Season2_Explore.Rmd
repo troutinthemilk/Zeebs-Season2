@@ -27,6 +27,7 @@ library(mrds)
 library(dplyr)
 #library(dsm)
 #require(pscl)
+library(lme4)
 library(lubridate)
 library(unmarked)
 library(ggplot2)
@@ -41,12 +42,12 @@ source('ZebraFuncs.R') ##assumed working directory is in Code folder
 
 curr.lake   <- c("Lake Burgan", "Little Birch Lake", "Lake Florida")
 curr.lake2  <- c("Burgan", "Little Birch Lake", "Florida")
-var.type    <- "jack"
+var.type    <- "design"
 
 index             <- 1
 dist.type <- "hr"
-LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type, dist.type="hr")
-LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
+LB.distance.est   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type, dist.type="hr", size=TRUE)
+LB.double.est     <- double.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type, size=TRUE)
 LB.quadrat.est    <- quadrat.dens.est(curr.lake[index], curr.lake2[index], var.type=var.type)
 
 LB.distance.est.jack   <- distance.dens.est(curr.lake[index], curr.lake2[index], var.type="jack", dist.type="hr")
@@ -124,9 +125,10 @@ LF.quadrat.est.model     <- quadrat.dens.est(curr.lake[index], curr.lake2[index]
 
 ## Density & Detection Estimates
 
-We estimated the density in each lake following three different survey methods (Figure \ref{fig:densityEst}). Distance survey (*in which the distance from the transect line is recorded*), double observer survey (*in which a narrower transect is surveyed and distance is not recorded*), and quadrat survey (*in which a number of smaller quadrats on each transect are surveyed, assuming detection is perfect*). The bars in Figure \ref{fig:densityEst} correspond to one standard error. A potentially interesting outcome is that quadrat surveys are consistenlty estimating higher densities than the other designs, though it is clear from the amount of uncertainty in the estimates that we cannot make very strong conclusions on this point yet.  All counts were modeled using design-based estimates.
+We estimated the density in each lake following three different survey methods (Figure \ref{fig:densityEst}). Distance survey (*in which the distance from the transect line is recorded*), double observer survey (*in which a narrower transect is surveyed and distance is not recorded*), and quadrat survey (*in which a number of smaller quadrats on each transect are surveyed, assuming detection is perfect*). The bars in Figure \ref{fig:densityEst} correspond to one standard error. A potentially interesting outcome is that quadrat surveys are consistently estimating higher densities than the other designs, though it is clear from the amount of uncertainty in the estimates that we cannot make very strong conclusions on this point yet.  All counts were modeled using design-based estimates.
 
 ```{r densityEst, echo=F, warning=F, out.width='50%', fig.asp=0.75, fig.cap="Y-axis is logarithmic. Bars are 2 standard errors.", fig.align="center"}
+
 library(RColorBrewer)
 
 col.vec <- brewer.pal(3, "Dark2")
@@ -136,6 +138,7 @@ tol <- 1e-10
 plotCI(x=c(1,1,1, 2,2,2, 3,3,3) + c(-0.1, 0, 0.1), y=dhat.vec, ui=dhat.vec+dhat.se.vec, li=sapply(dhat.vec - dhat.se.vec, max, tol), xaxt = 'n', ylab="Estimated density", xlab="Lake name", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, ylim=c(01e-2, 2e3), log="y", cex.lab=1.3)
 axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
 legend('topright', legend=c("Distance survey", "Double observer", "Quadrat survey"), pch=19, cex=1.3, col=col.vec)
+
 ```
 
 There are a number of ways to estimate the variance in the surveyed data. We tested three on Lake Burgan below. The total variance in the double observer methods is given by $\mathrm{Var}(\hat{D})= \hat{D}^2\left(\frac{\mathrm{Var}(n)}{n^2} + \frac{\mathrm{Var(\mathrm{E}(s)}}{\mathrm{E}(s)^2} + \frac{\mathrm{Var}(a \hat{P})}{ (a \hat{P})^2 } \right)$. For a design-based estimate with $K$ transects each of length $l_k$ the first variance component is $\mathrm{Var}(n) = \left(\frac{\sum l_k}{K-1}\right) \displaystyle\sum l_k \left(\frac{n_k}{l_k} - \frac{\sum n_k}{\sum l_k} \right)^2$.
@@ -160,7 +163,9 @@ We can also look at the detection probabilities in each transect (Figure \ref{fi
 ```{r detectionEst, echo=F, warnings=F, out.width='50%', fig.asp=0.75, messages=F, fig.cap="Numbers on the figure denote the total number of detections used to estimate detection probabilities. Bars are two standard errors. Horizontal dashed lines give the average of the lake estimates. ", fig.align="center"}
 
 phat.vec    <- c(LB.distance.est$phat, LB.double.est$phat, LBL.distance.est$phat, LBL.double.est$phat, LF.distance.est$phat, LF.double.est$phat)
+
 phat.se.vec <- c(LB.distance.est$phat.se, LB.double.est$phat.se, LBL.distance.est$phat.se, LBL.double.est$phat.se, LF.distance.est$phat.se, LF.double.est$phat.se)
+
 ss.vec      <- c(sum(LB.distance.est$Detections), sum(LB.double.est$Detections), sum(LBL.distance.est$Detections), sum(LBL.double.est$Detections), sum(LF.distance.est$Detections), sum(LF.double.est$Detections))
 
 par(mar=c(5.1, 6.5, 4.1, 2.1))
@@ -324,7 +329,6 @@ Here we will look at how to partition out a fixed amount of time into surveyed t
 time.df     <- mutate(time.df, D.dens=Detections/Length)
 time.out    <- time.predict(time.df, curr.lake="Lake Burgan")
 
-
 #tset.length <- lm(t.set ~ Length + Type + D.dens, data=time.burgan)
 #thab.length <- lm(t.hab ~ Length + Type + D.dens, data=time.burgan)
 #tenc.length <- lm(t.enc ~ Length + Type + D.dens, data=time.burgan)
@@ -347,7 +351,7 @@ kable(time.table, digits=2, booktabs=T, row.names=T, col.names=c( "Setup time", 
 
 ```
 
-We found that habitat time did not vary depending on survey type, therefore we pooled those values together. The $R^2$ values for these regressions were around 40\%, though the encounter time was more like 30\%. It's also worth noting tha9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999t time to conduct the survey varies with detections, but this was not modeled as the number of detections varies the type of survey. Below we look at some plots of the time to conduct a transect on Lake Burgan:
+We found that habitat time did not vary depending on survey type, therefore we pooled those values together. The $R^2$ values for these regressions were around 40\%, though the encounter time was more like 30\%. It's also worth noting that the time to conduct the survey varies with detections, but this was not modeled as the number of detections varies the type of survey. Below we look at some plots of the time to conduct a transect on Lake Burgan:
 ```{r, echo=F, warning=F}
 time.burgan <- subset(time.df, Lake=="Lake Burgan")
 
@@ -368,7 +372,9 @@ We also looked at the travel time between sites based on distance between sites.
 ```{r, echo=F, warning=F}
 phase2.dat      <- read_xlsx(path="../Data/Season2/Zebra mussel survey_ Day 1 (Responses).xlsx", sheet=1)
 phase2.dat <- phase2.dat %>% subset(Observer=="Aislyn") %>% mutate(Lake = as.factor(Lake), TravelTime=NA, TravelDist=NA)
-
+#subset(Lake!="Christmas") %>%
+#subset(Lake!="East Lake Sylvia")
+#subset(Lake!="Sylvia") %>% 
 for(i in 1:nlevels(phase2.dat$Lake)) {
   
   phase2.subset <- subset(phase2.dat, Lake == levels(Lake)[i])
@@ -396,7 +402,9 @@ ggplot(phase2.dat, aes(x=TravelDist, y=TravelTime/60)) + geom_point(aes(col=Lake
 #   +
 #  labs(y="Time to survey transect", x="Length of transect")
 
-travel.lm <- lm(TravelTime ~ TravelDist + Lake, data=phase2.dat)
+travel.lm  <- lm(TravelTime ~ TravelDist + Lake, data=phase2.dat)
+#travel.glm <- glm(TravelTime ~ TravelDist + Lake, family=inverse.gaussian, data=phase2.dat)
+
 ```
 
 Moving between sites on Lake Burgan the average time is  `r round(mean(subset(phase2.dat, Lake == "Burgen")$TravelTime, na.rm=T)/60)` minutes to travel `r round(mean(subset(phase2.dat, Lake == "Burgen")$TravelDist, na.rm=T))` meters. Our model suggests that doubling this distance increases the travel time by `r round(coef(travel.lm)[2]*mean(subset(phase2.dat, Lake == "Burgen")$TravelDist, na.rm=T)/60, 1)` minutes. Below we plot our estimates of travel time for Lake Burgan and Lake Florida (still working on Little Birch Lake).

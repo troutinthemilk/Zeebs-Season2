@@ -1,6 +1,6 @@
 Ratio estimates of density
 ================
-2018-08-24
+2018-08-27
 
 #### Quad sampling: assuming perfect detection
 

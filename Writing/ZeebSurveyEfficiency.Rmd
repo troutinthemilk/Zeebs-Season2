@@ -75,7 +75,7 @@ We assumed that each dive team collected data independently; thus, we used the p
 ## Statistical analysis
  
 
-* Distance sampling: the counts for each transect are denoted as $x_i$ with the total counts in the lake with $k$ transects is denoted as $X=\sum_i^k x_i$. The length of each transect is denoted as $l_i$ and the total length of $L=\sum_i^k l_i$. The encounter rate $x_i/l_i$ is used to weight the survey effort. The estiamted detection probability on a transect is denoted as $\hat{P}$ and the cluster size of each detection event is denoted as $s$. The estimated density and variance in density [@Buckland2001] are given by
+* Distance sampling: the counts for each transect are denoted as $x_i$ with the total counts in the lake with $k$ transects is denoted as $X=\sum_i^k x_i$. The length of each transect is denoted as $l_i$ and the total length of $L=\sum_i^k l_i$. The encounter rate $x_i/l_i$ is used to weight the survey effort. The estimated detection probability on a transect is denoted as $\hat{P}$ and the cluster size of each detection event is denoted as $s$. The estimated density and variance in density [@Buckland2001] are given by
 
 \begin{align}
   \hat{D} &= \frac{\displaystyle\sum_i^k  x_i}{\hat{P} A}\label{eq:hatD}\\
@@ -124,7 +124,7 @@ Options:
 * Quadrat surveys: The amount of area surveyed and number of zebra mussels counted in each lake are given in (Table \ref{tab:survSummTable}). Estimates of density along with the corresponding standard errors are give in (Figure \ref{fig:densEstFig}). We estimated that Lake Florida has the lowest density, Little Birch Lake had the highest density, and Lake Burgan had an intermediate density. 
 
 ```{r survSummTable, echo=F}
-quad.est <- c(length(LF.quadrat.est$Area), sum(LF.quadrat.est$Area), sum(LF.quadrat.est$Mussels), length(LB.quadrat.est$Area), sum(LB.quadrat.est$Area), sum(LB.quadrat.est$Mussels), length(LBL.quadrat.est$Area), sum(LBL.quadrat.est$Area), sum(LBL.quadrat.est$Mussels))
+quad.est <- c(length(LF.quadrat.est$Area), sum(LF.quadrat.est$Area), sum(LF.quadrat.est$Mussels), length(LB.quadrat.est$Area), sum(LB.quadrat.est$Area), sum(LB.quadrat.est$Mussels), length(LBL.quadrat.est.subset$Area), sum(LBL.quadrat.est.subset$Area), sum(LBL.quadrat.est.subset$Mussels))
 
 dist.est <- c(length(LF.distance.est$Area), sum(LF.distance.est$Area), sum(LF.distance.est$Detections), length(LB.distance.est$Area), sum(LB.distance.est$Area), sum(LB.distance.est$Detections), length(LBL.distance.est$Area), sum(LBL.distance.est$Area), sum(LBL.distance.est$Detections))
 
@@ -141,7 +141,7 @@ kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Design", "Transects
 
 ```{r densEstFig, echo=F, fig.asp=0.5, fig.cap="Density estimates and standard errors."}
 
-dataf <- data.frame(Lake=rep(c("Lake Florida", "Lake Burgan", "Little Birch Lake"),2), Design=c(rep("Quadrat", 3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est$Dhat, LF.distance.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
+dataf <- data.frame(Lake=rep(c("Lake Florida", "Lake Burgan", "Little Birch Lake"),2), Design=c(rep("Quadrat", 3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est.subset$Dhat, LF.distance.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est.subset$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
 
 dataf$Lake <- relevel(dataf$Lake, "Lake Florida")
 surveyTypeCols <- wes_palette("Darjeeling1")
@@ -254,8 +254,8 @@ ggplot(totalTime.df, aes(x=N, y=Time/60^2, colour=Design)) + geom_line(size=1.5)
 
 totalPrec.df <- totalTime.df
 origN.vec    <- c(rep(15, 30), rep(15, 30), rep(4, 15), rep(15, 15))
-origSE.vec   <- c(rep(LF.distance.est$Dhat.se, 15), rep(LF.quadrat.est$Dhat.se, 15), rep(LB.distance.est$Dhat.se, 15), rep(LB.quadrat.est$Dhat.se, 15), rep(LBL.distance.est$Dhat.se, 15), rep(LBL.quadrat.est$Dhat.se, 15))
-origCV.vec   <- c(rep(LF.distance.est$Dhat.se/LF.distance.est$Dhat, 15), rep(LF.quadrat.est$Dhat.se/LF.quadrat.est$Dhat, 15), rep(LB.distance.est$Dhat.se/LB.distance.est$Dhat, 15), rep(LB.quadrat.est$Dhat.se/LB.quadrat.est$Dhat, 15), rep(LBL.distance.est$Dhat.se/LBL.distance.est$Dhat, 15), rep(LBL.quadrat.est$Dhat.se/LBL.quadrat.est$Dhat, 15))
+origSE.vec   <- c(rep(LF.distance.est$Dhat.se, 15), rep(LF.quadrat.est$Dhat.se, 15), rep(LB.distance.est$Dhat.se, 15), rep(LB.quadrat.est$Dhat.se, 15), rep(LBL.distance.est$Dhat.se, 15), rep(LBL.quadrat.est.subset$Dhat.se, 15))
+origCV.vec   <- c(rep(LF.distance.est$Dhat.se/LF.distance.est$Dhat, 15), rep(LF.quadrat.est$Dhat.se/LF.quadrat.est$Dhat, 15), rep(LB.distance.est$Dhat.se/LB.distance.est$Dhat, 15), rep(LB.quadrat.est$Dhat.se/LB.quadrat.est$Dhat, 15), rep(LBL.distance.est$Dhat.se/LBL.distance.est$Dhat, 15), rep(LBL.quadrat.est.subset$Dhat.se/LBL.quadrat.est.subset$Dhat, 15))
 
 totalPrec.df <- totalPrec.df %>% mutate(SE=origSE.vec*sqrt(origN.vec/N), CV=origCV.vec*sqrt(origCV.vec/N))
 

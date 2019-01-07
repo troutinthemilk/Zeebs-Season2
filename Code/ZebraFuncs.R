@@ -975,19 +975,23 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
 
 
 ##estimate density from quadrats
-quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
+quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5, quad.subset=FALSE) {
   
   #quadrat.title    <- suppressMessages(gs_title("Encounters - Quadrats (Responses)"))
   #quadrat.dat      <- suppressMessages(gs_read(quadrat.title, verbose=FALSE))
   quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
   quadrat.dat      <- quadrat.dat %>% subset(`Lake name` == curr.lake)
   if(curr.lake == "Little Birch Lake") {
-    quadrat1.dat <- subset(quadrat.dat, (`Transect #` == 1 | `Transect #` == 2 | `Transect #` == 3 | `Transect #` == 4 | `Transect #` == 5 | `Transect #` == 6 | `Transect #` == 7 | `Transect #` == 8 | `Transect #` == 9 | `Transect #` == 10 | `Transect #` == 11) &  `Observer name` =="Austen" )
-    #for quadrats 1-11 only use Aislyn
+    quadrat1.dat <- subset(quadrat.dat, (`Transect #` == 1 | `Transect #` == 2 | `Transect #` == 3 | `Transect #` == 4 | `Transect #` == 5 | `Transect #` == 6 | `Transect #` == 7 | `Transect #` == 8 | `Transect #` == 9 | `Transect #` == 10 | `Transect #` == 11) &  `Observer name` =="Aislyn" )
+    #for quadrats 1-11 only use Aislyn, who tended to have higher counts that Austen
     quadrat2.dat <- subset(quadrat.dat, `Transect #` == 15 | `Transect #` == 14 | `Transect #` == 13 | `Transect #` == 12)
     quadrat.dat <- rbind(quadrat1.dat, quadrat2.dat)
   }
 
+  if(quad.subset) {
+    quadrat.dat <- quadrat2.dat
+  }
+  
   quadrat.dat <- quadrat.dat[order(quadrat.dat$`Transect #`),]
   
   if(any(is.na(quadrat.dat$`Number of mussels in quadrat`))) {
@@ -1006,7 +1010,9 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5) {
     #for transects 1-11 only use Aislyn because sruvyes were done on the same transect
   #  transect2.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
   #  transect.dat <- rbind(transect1.dat, transect2.dat)
-    #transect.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
+  if(quad.subset) {
+    transect.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
+  }
   #}
   
   setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
