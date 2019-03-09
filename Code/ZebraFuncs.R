@@ -824,8 +824,6 @@ doubleObs.duplicate <- function(obs.dat) {
 ##estimate densities using distnace survey
 distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.type="hr", size=FALSE, transects=NULL) {
   
-  #distance.title    <- suppressMessages(gs_title("Encounters - Double observer - distance survey (Responses)"))
-  #distance.dat      <- suppressMessages(gs_read(distance.title, verbose=FALSE))
   distance.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1)
   distance.dat      <- distance.dat %>% subset(`Lake name` == curr.lake[1])
   if(length(transects) > 0) {
@@ -853,8 +851,6 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   
   distanceorig.dat  <- distance.dat
   
-  #transect.title  <- suppressMessages(gs_title("Transect datasheets (Responses)"))
-  #transect.dat    <- suppressMessages(gs_read(transect.title, verbose=FALSE))
   transect.dat      <- read_xlsx(path="../Data/Season2/Transect datasheets (Responses).xlsx", sheet=1)
   
   transect.dat <- transect.dat %>% subset(`Lake name:` == curr.lake2) 
@@ -868,8 +864,6 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     }
     transect.dat <- transect.dat[ind,]
   }
-  
-  
   
   setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
   hab.time     <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)

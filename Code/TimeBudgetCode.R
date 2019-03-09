@@ -9,7 +9,8 @@ library(sp)
 source('ZebraFuncs.R')
 
 #######################Encounter time and setup time
-time.df <- rbind(LB.distance.est$df, LB.quadrat.est$df, LBL.distance.est$df, LBL.quadrat.est.subset$df, LF.distance.est$df, LF.quadrat.est$df)
+#time.df <- rbind(LB.distance.est$df, LB.quadrat.est$df, LBL.distance.est$df, LBL.quadrat.est.subset$df, LF.distance.est$df, LF.quadrat.est$df)
+time.df <- rbind(LB.distance.est$df, LB.double.est$df, LB.quadrat.est$df, LBL.distance.est$df ,LBL.double.est$df, LBL.quadrat.est.subset$df, LF.distance.est$df, LF.double.est$df, LF.quadrat.est$df)
 
 #contrasts(lm$Lake) <- contr.treatment(3)
 #tset.length <- lm(t.set ~ Length + Type + (1|Lake), data=time.df)

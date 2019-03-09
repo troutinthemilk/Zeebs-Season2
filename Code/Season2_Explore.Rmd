@@ -137,7 +137,7 @@ dhat.se.vec <- c(dhat.se.LB.vec, dhat.se.LBL.vec, dhat.se.LF.vec)
 tol <- 1e-10
 plotCI(x=c(1,1,1, 2,2,2, 3,3,3) + c(-0.1, 0, 0.1), y=dhat.vec, ui=dhat.vec+dhat.se.vec, li=sapply(dhat.vec - dhat.se.vec, max, tol), xaxt = 'n', ylab="Estimated density", xlab="Lake name", col=col.vec, pch=19, lwd=2, cex=1.3, sfrac=0, ylim=c(01e-2, 2e3), log="y", cex.lab=1.3)
 axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
-legend('topright', legend=c("Distance survey", "Double observer", "Quadrat survey"), pch=19, cex=1.3, col=col.vec)
+legend('topright', legend=c("Distance survey", "Double observer", "Quadrat survey"), pch=19, cex=1, col=col.vec)
 
 ```
 
@@ -157,7 +157,6 @@ EstimatorComparisonPlot(distance.est.design=LF.distance.est.design, distance.est
 
 ```
 
-
 We can also look at the detection probabilities in each transect (Figure \ref{fig:detectionEst}). The detection probabilities of the distance survey are consistently lower than the double observer survey. The numbers are the pooled (total) number of detections by both observers. Note that I did not include observer effects in the models (both observers are assumed to have same detection probability).
 
 ```{r detectionEst, echo=F, warnings=F, out.width='50%', fig.asp=0.75, messages=F, fig.cap="Numbers on the figure denote the total number of detections used to estimate detection probabilities. Bars are two standard errors. Horizontal dashed lines give the average of the lake estimates. ", fig.align="center"}
@@ -169,7 +168,7 @@ phat.se.vec <- c(LB.distance.est$phat.se, LB.double.est$phat.se, LBL.distance.es
 ss.vec      <- c(sum(LB.distance.est$Detections), sum(LB.double.est$Detections), sum(LBL.distance.est$Detections), sum(LBL.double.est$Detections), sum(LF.distance.est$Detections), sum(LF.double.est$Detections))
 
 par(mar=c(5.1, 6.5, 4.1, 2.1))
-plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=phat.se.vec, liw=phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec[-3], pch=19, lwd=2, cex=1.3, sfrac=0, cex.lab=1.3, ylim=c(0,1))
+plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=phat.se.vec, liw=phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec[-3], pch=19, lwd=2, cex=2, sfrac=0, cex.lab=1.3, ylim=c(0,1))
 abline(h=mean(phat.vec[c(1,3,5)]), col=col.vec[1], lty=3)
 abline(h=mean(phat.vec[c(2,4,6)]), col=col.vec[2], lty=3)
 axis(1, at=c(1,2,3), labels=c("Burgan", "Little Birch", "Florida"))
