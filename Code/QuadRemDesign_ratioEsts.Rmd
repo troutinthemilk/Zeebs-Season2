@@ -120,6 +120,7 @@ transect.dat <- transect.dat %>% dplyr::rename(`Transect #` = `Transect number`,
 double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1) %>% select(-1)
 double.dat$`Number of mussels in cluster`[is.na(double.dat$`Number of mussels in cluster`)] <- 0
 ```
+
 ```{r}
 #restructure transect data
 transect.dat <- transect.dat %>% gather(key = observer, value = name, "primary", "secondary") 
