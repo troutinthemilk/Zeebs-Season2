@@ -1,0 +1,15 @@
+---
+title: "Notes"
+output: html_document
+---
+
+ 
+- There are other options besides the design-based estimator (for both designs), correct?
+
+More detail would help in places
+
+- info on alternative detection functions?
+- reference/citation for distance sampling
+- link to some of David Miller's stuff on his web page that goes through distance sampling methods with several worked examples.
+- there are some warnings that should be checked/addressed
+- a way for interested folks to get the helper functions
