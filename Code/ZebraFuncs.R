@@ -821,7 +821,7 @@ doubleObs.duplicate <- function(obs.dat) {
 
 
 
-##estimate densities using distnace survey
+##estimate densities using distance survey
 distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.type="hr", size=FALSE, transects=NULL) {
   
   distance.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1)
@@ -838,7 +838,7 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   distance.dat      <- dplyr::rename(distance.dat, size="Number of mussels in cluster")
   
   #remove 'empty' observations
-  if(any(distance.dat$size == 0)){
+  if(any(distance.dat$size == 0)) {
     rm.vec <- which(distance.dat$size ==0)
     distance.dat <- distance.dat[-rm.vec,]
   }
@@ -872,14 +872,15 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   trans.length  <- sum(transect.dat$`Transect length (if transect survey)`)
   trans.area    <- trans.length*2
   
-  dimnames(distance.dat)[[2]][7] <- "distance"
-  distance.dat$distance <- distance.dat$distance/100
+  dimnames(distance.dat)[[2]][7]  <- "distance"
+  distance.dat$distance           <- distance.dat$distance/100
   
   distance.dat <- distance.dat %>% mutate(detected = rep(1, dim(distance.dat)[1]), object=1:dim(distance.dat)[1])
   distance.dat <- create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat)
   
-  dis.totdetect <- dim(distance.dat)[1]
-  distance.dat$`Observer name` <- as.factor(distance.dat$`Observer name`)
+  dis.totdetect                 <- dim(distance.dat)[1]
+  distance.dat$`Observer name`  <- as.factor(distance.dat$`Observer name`)
+
   if(size) {
     dis.detect.model <- ddf(method="rem", dsmodel=~cds(key=dist.type, formula=~1), mrmodel=~glm(formula=~size), data=distance.dat, meta.data=list(width=1))
   } else {

@@ -147,15 +147,15 @@ setup.Time  <- as.matrix(newDat)%*%(coef(tset.length)[1:3])
 
 
 dr.dist.vec <- c(sum(LF.distance.est$Detections), sum(LB.distance.est$Detections), sum(LBL.distance.est$Detections))/c(sum(LB.distance.est$df$Length), sum(LB.distance.est$df$Length), sum(LBL.distance.est$df$Length))
-
+dr.double.vec <- c(sum(LF.double.est$Detections), sum(LB.double.est$Detections), sum(LBL.double.est$Detections))/c(sum(LB.double.est$df$Length), sum(LB.double.est$df$Length), sum(LBL.double.est$df$Length))
 dr.quad.vec <- c(sum(LF.quadrat.est$Mussels), sum(LB.quadrat.est$Mussels), sum(LBL.quadrat.est.subset$Mussels))/c(sum(LF.quadrat.est$df$Length), sum(LB.quadrat.est$df$Length), sum(LBL.quadrat.est.subset$df$Length))
 
 
 
-encDat <- data.frame(Intercept=1, Length=30, detection.rate=c(dr.dist.vec[1], dr.quad.vec[1], dr.dist.vec[2], dr.quad.vec[2], dr.dist.vec[3], dr.quad.vec[3]), Type=rep(c("Distance", "Quadrat"), 3))
+encDat <- data.frame(Intercept=1, Length=30, detection.rate=c(dr.double.vec[1], dr.quad.vec[1], dr.double.vec[2], dr.quad.vec[2], dr.double.vec[3], dr.quad.vec[3]), Type=rep(c("Double", "Quadrat"), 3))
 encDat$Type <- as.numeric(encDat$Type)-1
 encDat      <- encDat %>% mutate(Interaction=detection.rate*encDat$Type)
-search.Time <- as.matrix(encDat)%*%(coef(tenc.length)[c(1,2,3,4,7)])
+#search.Time <- as.matrix(encDat)%*%(coef(tenc.length)[c(1,2,3,4,7)])
 
 #search.Time <- as.matrix(encDat)%*%coef(tenc.length)[c(1,2,3,4,7)]
 #search.Time <- as.matrix(encDat)[,1:4]%*%coef(tenc.length)[c(1,2,3,4)]

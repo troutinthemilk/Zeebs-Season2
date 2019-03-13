@@ -5,10 +5,16 @@ author: Jake M. Ferguson, Aislyn Keyes, Michael McCartney, Katie
   St. Clair, Douglas Johnson, John Fieberg
 header-includes:
    - \usepackage{amsmath}
+   - \usepackage{graphicx}
+   - \usepackage{lineno}
+   - \linenumbers
+   - \usepackage{setspace}\doublespacing
 output:
-  pdf_document: default
+  pdf_document: 
+    fig_caption: yes
   html_document: default
 bibliography: Zebra_mussels.bib
+geometry: margin=1in
 ---
 
 ```{r setup, include=FALSE}
@@ -345,7 +351,12 @@ legend('topright', legend=c("model", "Approximation at low P", "Approximation at
 
 From the section on the Time budget analysis, modeling the total time to conduct a single survey as $\tau = \tau_0 + \tau_S X_i$, seems reasonable. Here, $\tau_0$ is the activities such as setting up the transect that doesn't vary with density or effort, $\tau_S$ is the stuff, such as search time, that does vary with density and effort, and $X_i$ is a random variable of the counts in a transect. For now we will only condsider $E[X_i]=DaP$, the expected number of counts in a transect. We can use this equation to determine the number of transects that can be completed in a given chunk of time, $\tau_T$, as $n=\lfloor \tau_T/(\tau_0 + \tau_ S D a P)\rfloor \approx \tau_T/(\tau_0 + \tau_ S D a P)$. **Here we are treating the travel time as a constant.**
 
-Now we want to relate the search efficiency to the search time. We can model the detection probability of an observer as a monotonically increasing function of effort, a simple choice is the disc equation, $p=\tau_S/(\epsilon + \tau_S)$, where $\epsilon$ is the half-saturation constant. Larger values of $\epsilon$ correspond to less efficient search behavior. We want to find the value of $\tau_S$ that minimizes the estimator precision  by plugging in our equations for $P(\tau_S)$ and $n(\tau_S)$ into $\mathrm{cv}(\hat{D})$, then figuring out the value of $\tau_S$ that minimizes this objective function.Another option would be exponential saturation, $1 - e^{-\varepsilon\tau_S}$ but we won't look at this one. 
+Now we want to relate the search efficiency to the search time. We can model the detection probability of an observer as a monotonically increasing function of effort, a simple choice is the disc equation, $p=\tau_S/(\epsilon + \tau_S)$, where $\epsilon$ is the half-saturation constant. 
+
+The disc equation can be derived by considering the total number of targets disovered to be proportional to the time spent searching for it, $X=a\tau_S N$. If it takes a bit of time to measure and record each detection (denoted this time as $b$) then the total time available for search will depend on the number of detection events, $\tau_S=\tau_T - b X$, Combining these gives $X= \frac{N}{a\tau_T-abN}$ or $X/N = p = 1/(a\tau_T-ab) = \tau_T/(a-ab\tau_T)$ **WRONG**
+Larger values of $\epsilon$ correspond to less efficient search behavior. We want to find the value of $\tau_S$ that minimizes the estimator precision  by plugging in our equations for $P(\tau_S)$ and $n(\tau_S)$ into $\mathrm{cv}(\hat{D})$, then figuring out the value of $\tau_S$ that minimizes this objective function.
+
+Another option would be exponential saturation, $1 - e^{-\varepsilon\tau_S}$. This can be derived by assuming that the rate that targets are detected is equaiotn to the proportion of targets remaining $dX/dt=k(N-X)$. The solution is $X(t) = N\left(1 - e^{-t/k}\right)$, or #X(\tau_S)/N =  1 - e^{-t/k}$. Denoting the proportion of targets detected as the probability of detecting any single target, we get $P(\tau_S) = 1 - e^{-t/k}$
 
 #### A single-observer with calibrated detection
 
@@ -371,46 +382,21 @@ epsilon <- ts/phat - ts
 ts.vec <- seq(0, 1, length.out=100)
 #plot(ts.vec, ts.vec/(epsilon+ts.vec), type='l')
 ```
-Thus, when the error in detection is low (corresponding to very high detection rates), the strategy should be to spend less time searching in higher density areas. The scaling constant $\tau_0 \epsilon$ is an important factor that tells us as the time to do setup increases, or as search efficiency decreases we need to spend more time doing search but that these changes are not linear functions. Thus if we quadruple the time to do setup then we double to search time. Overdisperion will not affect these results because this affects the coefficient of variation as a constant term, that will dissapear when differentiating. We can also get the optimal number of transects to complete in transects with average density, $n^*=\frac{\tau_T}{\tau_0 + \tau_S^* aDP}$ **Get formula**. Plotting these quantities below for a transect strip of length 30 meters, with $\epsilon=$ `r epsilon` (determined from $\hat{P}=$ `r Phat`, averaged across lakes and $\tau_S\approx 0.5$ from analysis of search time for a 30 meter transet) and a total search time of 8 hours:
+Thus, when the error in detection is low (corresponding to very high detection rates), the strategy should be to spend less time searching in higher density areas. The scaling constant $\tau_0 \epsilon$ is an important factor that tells us as the time to do setup increases, or as search efficiency decreases we need to spend more time doing search but that these changes are not linear functions. Thus if we quadruple the time to do setup then we double to search time. Overdisperion will not affect these results because this affects the coefficient of variation as a constant term, that will dissapear when differentiating. We can also get the optimal number of transects to complete in transects with average density, $n^*=\frac{\tau_T}{\tau_0 + \tau_S^* aDP}$ **Get formula**. Plotting these quantities below (Figure \ref{fig:optSingleDetect}) for a transect strip of length 30 meters, with $\epsilon=$ `r round(epsilon, 2)` (determined from $\hat{P}=$ `r round(Phat, 2)`, averaged across lakes and $\tau_S\approx 0.5$ from analysis of search time for a 30 meter transet) and a total search time of 8 hours:
 
-```{R optSingleDetect, echo=F, fig.cap="Optimal search time and number of transects in a single observer survey when the variability in detectability is negligible. fix axes.", fig.asp=0.6}
+```{r optSingleDetect, echo=F, fig.cap="Optimal search time and number of transects in a single observer survey when the variability in detectability is negligible. fix axes.", fig.asp=0.6}
+
 par(mfrow=c(1,2))
-n.opt <- function(tau0, tauS, D, tauT, epsilon, a, P) {
-  tauT/(tau0 + tau0*a*D*tauS*P)
-}
-
-
-a <- 30
-#epsilon <- 145.41/60^2 #marshmallow data give epsilon=145 (seconds)
-tauT   <- 8 #8 hours of searching
-tau0 <- seq(0.2, 0.6, length.out=100)
-D <- seq(0.01, 10, length.out=100)
-m <- 10
-
-nopt.mat <- nopt2.mat <- ts.mat <- ts2.mat <- matrix(NA, length(tau0), length(D))
-
-for(i in 1:length(tau0)) {
-  for(j in 1:length(D)) {
-    ts.mat[i,j]   <- sqrt(epsilon*tau0[i]/(a*D[j]))
-    nopt.mat[i,j] <- n.opt(tau0[i], D[j], tauT=tauT, epsilon=epsilon, a=a, tauS=ts.mat[i,j], P = ts.mat[i,j]/(epsilon+ts.mat[i,j]))
-   
-    ts2.mat[i,j]  <- sqrt(epsilon*tau0[i]/(a*D[j]) + tauT*epsilon/m)
-    nopt2.mat[i,j] <- n.opt(tau0[i], D[j], tauT=tauT, epsilon=epsilon, a=a, tauS=ts2.mat[i,j], P =(2*epsilon*ts.mat[i,j] + ts.mat[i,j]^2)/(epsilon+ts.mat[i,j])^2)
-   
-  }
-}
-
-
 col.vec <- brewer.pal(3, 'Set1')
-contour(z=ts.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal search time (t*)")
+#contour(z=ts.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal search time (t*)")
 mean.travel <- aggregate(phase2.dat$TravelTime, list(phase2.dat$Lake), mean, na.rm=T)$x[c(1,5,4)]/60^2
 
 tau.setup <- 5/60 + mean.travel#c(LB.predict[10], LBL.predict[10], LF.predict[10])/60^2
 Density.est <- c(LB.double.est$Dhat, LBL.double.est$Dhat, LF.double.est$Dhat)
-points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
+#points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
 
-contour(z=nopt.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal number of transects (n*)")
-points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
+#contour(z=nopt.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal number of transects (n*)")
+#points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
 
 ```
 
@@ -565,7 +551,7 @@ P = 1/2 &= \frac{2\varepsilon \epsilon + \varepsilon^2}{(\varepsilon + \epsilon)
 \end{aligned}
 $$
 
-In figure \ref{fig:doubleObsApprox} we compare the predictions. Fro this initial figure it looks as if plugging in the effective half-width, $\varepsilon$, into the solution for the single observer model equation (\ref{eq:optTau}) $\left(\tau_S^* = \sqrt{\frac{\tau_0\epsilon }{a D}+ \frac{\tau_T\epsilon}{m}}\right)$ qualitativly captures the actual solution.
+In figure \ref{fig:doubleObsApprox} we compare the predictions. Fro this initial figure it looks as if plugging in the effective half-width, $\varepsilon$, into the solution for the single observer model equation (\ref{eq:optTau}) $\left(\tau_S^* = \sqrt{\frac{\tau_0\epsilon }{a D}+ \frac{\tau_T\epsilon}{m}}\right)$ qualitatively captures the actual solution.
 
 ```{r doubleObsApprox, echo=F, fig.cap="Approximation to double observer. Plugged in m=35 into equation just guessing randomly. How to determine what m should be more principlied?", fig.asp=0.6}
 tsapprox.mat <- matrix(NA, length(tau0), length(D))
@@ -593,7 +579,8 @@ detection.rate <- c(mean(LB.double.est$Mussels/LB.double.est$Area), mean(LBL.dou
 newDat <- time.df[c(16,50,80),]
 newDat$Area   <- c(30,30,30)
 newDat$Length <- c(30,30,30)
-enc.predict   <- predict(tenc.length, newdata=newDat, se=TRUE)
+
+enc.double.predict   <- predict(tenc.length, newdata=newDat, se=TRUE)
 tsopt <- vector('numeric' ,length(tau.setup))
 
 for(i in 1:length(tau.setup)) {
@@ -615,17 +602,31 @@ for(j in 1:length(D.vec)) {
     ts.pred[j]    <- ts.vec[opt.index]
 }
   
-plotCI(Density.est, enc.predict$fit/60^2, uiw=2*enc.predict$se.fit/60^2, sfrac=0, col=col.vec, pch=19, xlab="Density", ylab="Search time", log="xy", ylim=c(0.1, 3.3))
+plotCI(Density.est, enc.double.predict$fit/60^2, uiw=2*enc.double.predict$se.fit/60^2, sfrac=0, col=col.vec, pch=19, xlab="Density", ylab="Search time", log="xy", ylim=c(0.1, 3.3))
 
 lines(D.vec, ts.pred, col="gray")
 points(Density.est, tsopt)
 
 ```
 
+to do: need a plot of the cv as a funciton of the densities for double observer and quadrat designs. where do they cross?
+```{r, echo=F}
+D <- c(0, 30)
+
+#mean(LBL.double.est$Mussels/LBL.double.est$Area), mean(LF.double.est$Mussels/LF.double.est$Area))
+#newDat <- time.df[c(16,16,50,50,80,80),]
+#newDat$Area   <- rep(30, dim(newDat)[1])
+#newDat$Length <- rep(30, dim(newDat)[1])
+#newDat$
+#detection.rate <- rep(D/30*Phat, dim(newDat)[1]/2)  #c(mean(LB.double.est$Mussels/LB.double.est$Area), 
+#enc.double.predict   <- predict(tenc.length, newdata=newDat, se=TRUE)
+#plot(detection.rate[1:2], enc.double.predict$fit[1:2], type='l')
+```
 
 # Summary
 
 * Theory tells that all else being equal, faster surveying methods are optimal as density increases. 
 * Our results for a single observer qualitavely match the double observer results in terms of optimal search times and optimal number of transects.
 * Our searchers innate behavior is the opposite of what theory predicts.
-* Can approximate double observer search with a single observer, though not exactly clear on how to set $m$, the sample size of the single observers calibration to estimate $\var{\hat{P}$.
+* Can approximate double observer search with a single observer, though not exactly clear on how to set the sample size of the single observers calibration to account for variation in detection.
+* Our analysis provides a direct connection between sampling theory and a version of optimal foraging theory, through the type II functional response that also turns out to describe the empirical behavior of searchers looking for marshmallows (and probably zeebs, too).
