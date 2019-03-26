@@ -62,22 +62,20 @@ library(FSA)
 #get the length of each transect
 length.vec  <- transect.dat %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
 
-# apply the removal function to each transect to estimate
-# the number of mussels in each transect
-remove.out  <- lapply(removal.list, removal, just.ests=TRUE) 
+remove.ests <- removal(removal.list, just.ests=TRUE)
 
 # now sum the results over all transects to estimate
 # population size at the transect level 
-Nhat       <- sum(data.frame(remove.out)[1,])
-Nhat.SE    <- sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE))
+Nhat       <- remove.ests[1]
+Nhat.SE    <- remove.ests[2]#remove.ests[1]sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE))
 
 # estimate of density in the transect
 Dhat       <- Nhat/sum(length.vec$length)
 Dhat.SE    <- Nhat.SE/sum(length.vec$length)
 
 # estimate of detection probability in the transect
-bp.hat      <- sum(length.vec$length*unlist(data.frame(remove.out)[5,]), na.rm = TRUE)/sum(length.vec$length)
-bpSE.phat   <- sqrt(sum(length.vec$length*unlist(data.frame(remove.out)[6,])^2, na.rm = TRUE)/sum(length.vec$length))
+bp.hat      <- remove.ests[5]
+bpSE.phat   <- remove.ests[6]
 
 ```
 
@@ -118,7 +116,6 @@ source('HelperFuncs.R')
 distance.dat      <- distance.dat[order(distance.dat$`Transect #`),]
 
 distance.dat      <- distance.dat %>% mutate(detected = rep(1, dim(distance.dat)[1]), object=1:dim(distance.dat)[1]) 
-#distance.dat      <- distance.dat[-which(is.na(distance.dat$distance)),]
 distance.rem.dat  <- create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat) 
 
 ```
