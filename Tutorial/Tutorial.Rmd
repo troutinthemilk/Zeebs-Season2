@@ -12,7 +12,7 @@ options(tibble.width = Inf)
 ```
 
 
-This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, "[Monitoring Zebra Mussels in Lakes](https://vimeo.com/317738991/9189d0dcc0)". Here, we  describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density.
+This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://vimeo.com/317738991/9189d0dcc0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. All data and files are available for download [here](#links).
 
 # Estimating density and quantifying uncertainty
 
@@ -44,7 +44,8 @@ transect.dat    <- read_xlsx(path="TransectsDoubleTutorial.xlsx", sheet=1)
 transect.dat    <- transect.dat %>% gather(key = observer, value = name, "primary", "secondary") 
 ```
 
-Now we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`RSA`) package to calculate the estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file `HelperFuncs.R`, which we source here (making the function available to us in the current R session). 
+Now we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`RSA`) package to calculate the estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file [`HelperFuncs.R`](HelperFuncs.R), which we source here (making the function available to us in the current R session). Tutorials on the estimator used here are available at the [FishR](http://derekogle.com/fishR/examples/oldFishRVignettes/Depletion.pdf) site. 
+
 ```{r, warning=F}
 source('HelperFuncs.R')
 
@@ -56,7 +57,7 @@ removal.list <- create.removal(double.dat, transect.dat)
 ## The analysis
 
 Here we apply the function `removal` to each transect seperately, then combine the estimates by weighting by transect length. This function calculates the variance for us so we don't need to apply the variance formula.
-```{r}
+```{r, warning=F, messages=F}
 library(FSA)
 #get the length of each transect
 length.vec  <- transect.dat %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
@@ -80,11 +81,11 @@ bpSE.phat   <- sqrt(sum(length.vec$length*unlist(data.frame(remove.out)[6,])^2, 
 
 ```
 
-We see the estimate of density is $\hat{D}=$ `r round(Dhat,2)` with a standard error of `r round(Dhat.SE,2)`.
+We get an estimate of density $\hat{D}=$ `r round(Dhat,2)` mussels per square meter with a standard error of `r round(Dhat.SE,2)`. We estimate the detection to be $\hat{P}=$ `r round(bp.hat,2)` with a standard error of `r round(bpSE.phat,2)`,
 
 # Dependent Double-observer Survey with Distance Data
 
-The dependent double-observer survey with distance data is  similar to the dependent double-observer survey described above. However, in this case, the divers swim along a a transect line (lead line).  Further, whenever a diver detects a mussel or cluster of mussels, the diver also measures the perpendicular distance from the detected mussel(s) to the transect line.  The secondary diver again follows the primary diver, looking for mussels that were missed by the primary diver. These distance to detection measurements are then used to model how detection probabilities decline with distance from the transect line. This distance model is then used to correct counts for imperfect detection. 
+The dependent double-observer survey with distance data is  similar to the dependent double-observer survey described above. However, in this case, both divers swim along a single transect line (lead line).  Further, whenever a diver detects a mussel or cluster of mussels, the diver also measures the perpendicular distance from the detected mussel(s) to the transect line.  The secondary diver again follows the primary diver, looking for mussels that were missed by the primary diver. These distance to detection measurements are then used to model how detection probabilities decline with distance from the transect line. This distance model is then used to correct counts for imperfect detection. The [distancesampling.org](http://distancesampling.org/R/index.html) website provides tutorials on using the R package described here, as well as several other packages that can be used to do distance sampling with either single- or double-observer designs.
 
 ## The data
 
@@ -122,7 +123,7 @@ distance.rem.dat  <- create.removal.Observer(transect.dat=transect.dat, obs.dat=
 
 ```
 
-Based on the diagnostic figure of detection distances we chose  to use the hazard rate model to model how detection drops off with distance. 
+Based on the diagnostic figure of detection distances we chose  to use the hazard rate model (`dsmodel=~cds(key="hr")`) to capture the drop-off of detection with distance. Alternative distance functions in the `mrds` package are the half-normal (`hn`), gamma function (`gamma`), and uniform (`unif`).
 ```{r, warning=F}
 distance.model  <- ddf(method="rem", dsmodel=~cds(key="hr"), mrmodel=~glm(formula=~1), data=distance.rem.dat, meta.data=list(width=100))
 
@@ -134,10 +135,7 @@ The average probability of detecting a mussel by one of the observers is $\hat{P
 plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 ```
 
-
-
 The variance in the total counts can be estimated using the design estimator, $\mathrm{var}(X) = \left(L \sum_{i}^n l_i (x_i/l_i - X/L)^2 \right)/(n-1)$. Below we calculate the estimated density and it's uncertainty by by using the output from the distance model.
-
 
 ```{r}
 area    <- transect.dat$`Transect length (if transect survey)` #length of transects
@@ -155,3 +153,28 @@ VarD <- Dhat^2*(VarX/sum(counts)^2 + VarP/Phat^2)
 ```
 
 We get an estimate for $\hat{D}=$ `r round(Dhat, 2)` with a standard error of $\sqrt{\mathrm{var}({\hat{D}})}=$ `r round(sqrt(VarD), 2)`.
+
+## Resources
+
+Book: [Buckland et al. (2015) Distance sampling: methods and applications.](https://www.springer.com/us/book/9783319192185)
+
+[distancesampling.org](http://distancesampling.org/R/index.html). Tutorials on distance sampling in R.
+
+[FishR](http://derekogle.com/fishR/examples/). Tutorial on depeletion sampling in R.
+
+### Files used in this tutorial {#links}
+
+[Distance survey detections](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDistanceTutorial.xlsx)
+
+[Distance survey transects](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/TransectsDistanceTutorial.xlsx)
+
+[Double-observer survey detections](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDoubleTutorial.xlsx)
+
+[Double-observer survey transects](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/TransectsDoubleTutorial.xlsx)
+
+[HelperFuncs.R](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/HelperFuncs.R)
+
+[Tutorial markdown file](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/Tutorial.Rmd)
+
+
+

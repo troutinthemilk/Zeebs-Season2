@@ -61,20 +61,14 @@ create.removal <- function(double.dat, transect.dat) {
   double.dat <- left_join(double.dat, transect.dat, by = c("Transect number", "Observer name"= "name")) 
   
   counts <- double.dat %>% group_by(`Transect number`, observer) %>%  summarize(y = sum(`size`))
-  #counts %>% group_by(observer) %>% summarize(meany = mean(y), medy = median(y), toty = sum(y), n = n())
   counts.wide <- counts %>% spread(key = observer, value = y)
   
-  #counts      <-  double.dat %>% group_by(`Transect number`, observer) 
-  #counts      %>% group_by(observer) %>% summarize(meany = mean(y), medy = median(y), toty = sum(y), n = n())
-  #counts.wide <-  counts %>% spread(key = observer, value = y)
-  
   counts.wide$secondary[which(is.na(counts.wide$secondary))] <- 0
+
+  if(any(is.na(counts.wide))) {
+    counts.wide[is.na(counts.wide)] <- 0
+  } 
   
-  #counts.wide %>% left_join(select(double.dat, `Transect number`, length), by=c("Transect number"))
-  
-  count.mat.b <- as.matrix(counts.wide[,2:3])
-  #covDf.b <- double.dat %>% group_by(`Transect number`) %>% summarize(area = first(length) )
-  #bFrame <- unmarkedFrameMPois(y=count.mat.b, siteCovs = covDf.b, type="removal")
   n.list      <- split(as.matrix(counts.wide[,2:3]), f = counts.wide$`Transect number`)
   
   return(n.list)

@@ -103,7 +103,7 @@ We obtained estimates of density from quadrat sampling by modifying equations \r
 ## Time budget analysis
 
 * In order to determine the efficiency of each method, we quantified how much time each method required to complete a transect and the time required to move between transects. 
-* We modeled the time to conduct a transect survey by breaking up the total survey time into two components, the time to setup the transect and the time to perform the transect survey **I am not including time to do habitat survey because it is same across all types of survey, and we don't use habitat data in the analysis**. The first component, the time to setup the transect survey (hereafter referred to as the setup time), was the time required to place the transect line(s). We modeled the setup time using linear mixed-effects regression analysis with fixed-effect covariates of survey type (distance or quadrat, included as a qualitative variable), and the transect length (continuous variable). We also included lake as a random intercept term. The second component of the time budget was the time to perform the survey on each transect (hereafter referred to as the search time *word choice*). The model structure of this component included fixed effects of transect length, an interaction between the type of survey and the detection rate (number of detections per meter of transect length) and a random slope term allowing detection time to vary with lake to account for heterogeneity that occurs due to lake conditions. 
+* We modeled the time to conduct a transect survey by breaking up the total survey time into two components, the time to setup the transect and the time to perform the transect survey **I am not including time to do habitat survey because it is same across all types of survey, and we don't use habitat data in the analysis**. The first component, the time to setup the transect survey (hereafter referred to as the setup time), was the time required to place the transect line(s). We modeled the setup time using linear mixed-effects regression analysis with fixed-effect covariates of survey type (distance or quadrat, included as a qualitative variable), and the transect length (continuous variable). The second component of the time budget was the time to perform the survey on each transect (hereafter referred to as the survey time). The model structure of this component included fixed effects of transect length, an interaction between the type of survey and the detection rate (number of detections per meter of transect length) and a random slope term allowing detection time to vary with lake to account for heterogeneity that occurs due to lake conditions. We note that this survey time can be broken up into a piece that is proportional to the number of detections and a piece that is due to the time it takes to swim the transect that is proportional to the transect length.
 * We used the fitted models to predict the setup time and search time for a transect of length 30 m under using the  estimated from the three lakes in this study. 
 * We modeled the time to move between consecutive transects as a function of distance between transects (hereafter, referred to as the movement time). We built the movement time model using a linear mixed-effects model to relate the time spent relocating between consecutively sampled transects to the distance between those transects fore each lake in the initial density survey (for a total of six lakes). We included lake name as a random intercept term. All random effects models in this study were fit using lmer in the lme4 package (*citation*). 
 * We investigated the movement time for surveys with fewer transects by sequentially removing every $i$th transect and calculating the empirical distance between the new transect start locations. We iteratively removed every $i$th transect from the original 15 transects (for $i=2$ to $8$) in each of our lakes and calculated the distance between those sites. We used the travel time model described above to predict the the average time travel time for a study with $n$ transects conducted on each lake. We modeled the travel time to conduct a survey on each lake with $n$ transects. 
@@ -349,14 +349,27 @@ legend('topright', legend=c("model", "Approximation at low P", "Approximation at
 
 ### Incorporating time into the precision
 
-From the section on the Time budget analysis, modeling the total time to conduct a single survey as $\tau = \tau_0 + \tau_S X_i$, seems reasonable. Here, $\tau_0$ is the activities such as setting up the transect that doesn't vary with density or effort, $\tau_S$ is the stuff, such as search time, that does vary with density and effort, and $X_i$ is a random variable of the counts in a transect. For now we will only condsider $E[X_i]=DaP$, the expected number of counts in a transect. We can use this equation to determine the number of transects that can be completed in a given chunk of time, $\tau_T$, as $n=\lfloor \tau_T/(\tau_0 + \tau_ S D a P)\rfloor \approx \tau_T/(\tau_0 + \tau_ S D a P)$. **Here we are treating the travel time as a constant.**
+From the section on the Time budget analysis, modeling the total time to conduct a single survey as $\tau = \tau_0 + \tau_H X_i$, seems reasonable. Here, $\tau_0$ are the activities that don't vary with density or effort, this includes the setup of the transect and the swimming of the transect. The stuff that does vary with density is, $\tau_H$, the time it takes to record, or "handle", a zebra mussel. This term scales the total travel time by the total counts in the transect, $X_i$, a random variable. For now we will only consider $E[X_i]=Dap \equiv X$, the expected number of counts in a transect. We can use this equation to determine the number of transects that can be completed in a given chunk of time, $\tau_T$, as $n=\lfloor \tau_T/(\tau_0 + \tau_H X)\rfloor \approx \tau_T/(\tau_0 + \tau_H X)$.
 
-Now we want to relate the search efficiency to the search time. We can model the detection probability of an observer as a monotonically increasing function of effort, a simple choice is the disc equation, $p=\tau_S/(\epsilon + \tau_S)$, where $\epsilon$ is the half-saturation constant. 
+Now we want to relate this search time to the efficiency of a searcher. We will start by assuming that the diver swims with velocity $v$ over a transect of length $l$. Then $\tau_0$ can be broken up into the time to setup the transect ($\tau_\mathrm{set}$) and the time to swim the transect ($\tau_\mathrm{swim}$), $\tau_0 = \tau_\mathrm{set} + \tau_\mathrm{swim} = \tau_\mathrm{set} + \ell/v$. We will assume that the swimmers velocity is the only factor that can be controlled through changes to the study design, but the other timescales cannot be controlled. The total number of detected targets is $X=Dap$
+\begin{align}
+\tau_T &= \tau_\mathrm{set} + \ell/v + \tau_H X\nonumber\\
+\tau_T &= \tau_\mathrm{set} + \ell/v + \tau_H pDa\nonumber\\
+p &= \frac{\tau_T - \tau_\mathrm{set} - \ell/v}{\tau_H D a}.
+\end{align}
 
-The disc equation can be derived by considering the total number of targets disovered to be proportional to the time spent searching for it, $X=a\tau_S N$. If it takes a bit of time to measure and record each detection (denoted this time as $b$) then the total time available for search will depend on the number of detection events, $\tau_S=\tau_T - b X$, Combining these gives $X= \frac{N}{a\tau_T-abN}$ or $X/N = p = 1/(a\tau_T-ab) = \tau_T/(a-ab\tau_T)$ **WRONG**
-Larger values of $\epsilon$ correspond to less efficient search behavior. We want to find the value of $\tau_S$ that minimizes the estimator precision  by plugging in our equations for $P(\tau_S)$ and $n(\tau_S)$ into $\mathrm{cv}(\hat{D})$, then figuring out the value of $\tau_S$ that minimizes this objective function.
-
-Another option would be exponential saturation, $1 - e^{-\varepsilon\tau_S}$. This can be derived by assuming that the rate that targets are detected is equaiotn to the proportion of targets remaining $dX/dt=k(N-X)$. The solution is $X(t) = N\left(1 - e^{-t/k}\right)$, or #X(\tau_S)/N =  1 - e^{-t/k}$. Denoting the proportion of targets detected as the probability of detecting any single target, we get $P(\tau_S) = 1 - e^{-t/k}$
+We can model the detection probability of an observer as a monotonically increasing function of effort, a simple choice is based on the disc equation. In this model the average time 
+$p=\tau_S/(\epsilon + \tau_S)$, where $\epsilon$ is the half-saturation constant. Larger values of $\epsilon$ correspond to less efficient search behavior. We want to find the value of $\tau_S$ that minimizes the estimator precision  by plugging in our equations for $P(\tau_S)$ and $n(\tau_S)$ into $\mathrm{cv}(\hat{D})$, then figuring out the value of $\tau_S$ that minimizes this objective function.Another option would be exponential saturation, $1 - e^{-\varepsilon\tau_S}$ but we won't look at this one. 
+```{r, echo=F}
+tauT <- 1
+tauSet <- 0
+tauH  <- 0.5
+l <- 1
+D <- 0.1
+v <- seq(tauT, 20, length.out=100)
+plot(v, (tauT-l/v)/(tauH*D), type='l', xlab="Velocity", ylab="Probability")
+lines(v, (tauT-l/v)/(tauH*1), type='l')
+```
 
 #### A single-observer with calibrated detection
 
@@ -382,21 +395,43 @@ epsilon <- ts/phat - ts
 ts.vec <- seq(0, 1, length.out=100)
 #plot(ts.vec, ts.vec/(epsilon+ts.vec), type='l')
 ```
-Thus, when the error in detection is low (corresponding to very high detection rates), the strategy should be to spend less time searching in higher density areas. The scaling constant $\tau_0 \epsilon$ is an important factor that tells us as the time to do setup increases, or as search efficiency decreases we need to spend more time doing search but that these changes are not linear functions. Thus if we quadruple the time to do setup then we double to search time. Overdisperion will not affect these results because this affects the coefficient of variation as a constant term, that will dissapear when differentiating. We can also get the optimal number of transects to complete in transects with average density, $n^*=\frac{\tau_T}{\tau_0 + \tau_S^* aDP}$ **Get formula**. Plotting these quantities below (Figure \ref{fig:optSingleDetect}) for a transect strip of length 30 meters, with $\epsilon=$ `r round(epsilon, 2)` (determined from $\hat{P}=$ `r round(Phat, 2)`, averaged across lakes and $\tau_S\approx 0.5$ from analysis of search time for a 30 meter transet) and a total search time of 8 hours:
+Thus, when the error in detection is low (corresponding to very high detection rates), the strategy should be to spend less time searching in higher density areas. The scaling constant $\tau_0 \epsilon$ is an important factor that tells us as the time to do setup increases, or as search efficiency decreases we need to spend more time doing search but that these changes are not linear functions. Thus if we quadruple the time to do setup then we double to search time. Overdisperion will not affect these results because this affects the coefficient of variation as a constant term, that will dissapear when differentiating. We can also get the optimal number of transects to complete in transects with average density, $n^*=\frac{\tau_T}{\tau_0 + \tau_S^* aDP}$ **Get formula**. Plotting these quantities below for a transect strip of length 30 meters, with $\epsilon=$ `r round(epsilon, 2)` (determined from $\hat{P}=$ `r round(Phat, 2)`, averaged across lakes and $\tau_S\approx 0.5$ from analysis of search time for a 30 meter transet) and a total search time of 8 hours:
 
-```{r optSingleDetect, echo=F, fig.cap="Optimal search time and number of transects in a single observer survey when the variability in detectability is negligible. fix axes.", fig.asp=0.6}
+```{R optSingleDetect, echo=F, fig.cap="Optimal search time and number of transects in a single observer survey when the variability in detectability is negligible. fix axes.", fig.asp=0.6}
+
+n.opt <- function(tau0, tauS, D, tauT, epsilon, a, P) {
+  tauT/(tau0 + tau0*a*D*tauS*P)
+}
+a <- 30
+tauT   <- 8 #8 hours of searching
+tau0 <- seq(0.2, 0.6, length.out=100)
+D <- seq(0.01, 10, length.out=100)
+m <- 10
+
+nopt.mat <- nopt2.mat <- ts.mat <- ts2.mat <- matrix(NA, length(tau0), length(D))
+
+for(i in 1:length(tau0)) {
+  for(j in 1:length(D)) {
+    ts.mat[i,j]   <- sqrt(epsilon*tau0[i]/(a*D[j]))
+    nopt.mat[i,j] <- n.opt(tau0[i], D[j], tauT=tauT, epsilon=epsilon, a=a, tauS=ts.mat[i,j], P = ts.mat[i,j]/(epsilon+ts.mat[i,j]))
+   
+    ts2.mat[i,j]  <- sqrt(epsilon*tau0[i]/(a*D[j]) + tauT*epsilon/m)
+    nopt2.mat[i,j] <- n.opt(tau0[i], D[j], tauT=tauT, epsilon=epsilon, a=a, tauS=ts2.mat[i,j], P =(2*epsilon*ts.mat[i,j] + ts.mat[i,j]^2)/(epsilon+ts.mat[i,j])^2)
+   
+  }
+}
 
 par(mfrow=c(1,2))
 col.vec <- brewer.pal(3, 'Set1')
-#contour(z=ts.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal search time (t*)")
+contour(z=ts.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal search time (t*)")
 mean.travel <- aggregate(phase2.dat$TravelTime, list(phase2.dat$Lake), mean, na.rm=T)$x[c(1,5,4)]/60^2
 
 tau.setup <- 5/60 + mean.travel#c(LB.predict[10], LBL.predict[10], LF.predict[10])/60^2
 Density.est <- c(LB.double.est$Dhat, LBL.double.est$Dhat, LF.double.est$Dhat)
-#points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
+points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
 
-#contour(z=nopt.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal number of transects (n*)")
-#points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
+contour(z=nopt.mat, x=log(tau0), y=log(D), xlab="Setup time (hours)", ylab="Density (mussels per square-meter)", lwd=2, main="Optimal number of transects (n*)")
+points(log(tau.setup), log(Density.est), pch=19, col=col.vec, cex=1.5)
 
 ```
 
