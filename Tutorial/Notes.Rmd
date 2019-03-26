@@ -3,6 +3,23 @@ title: "Notes"
 output: html_document
 ---
 
+Questions:
+
+1. By applying the removal function separately to each transect, are we assuming that p varies by transect?  If not, how are the data "pooled" to estimate p? If so, could we increase precision by pooling the data when estimating p? Also, if so, then we should probably modify the equation for estimating density which seems to imply a single p rather than p_i.
+
+2. There is a warning after the following line:
+
+`bp.hat      <- sum(length.vec$length*unlist(data.frame(remove.out)[5,]), na.rm = TRUE)/sum(length.vec$length)`
+
+it looks to me like there are no data for transect 3. This seems like an issue.  There is no data for transect 3 in removal.out, yet there is a transect length - this throws off the multiplication here... 
+
+I think the new functions pivot_wide() and pivot_long() might(?) take care of this, but they would need to be used in the helper functions. Alternatively, treating Transect Number as a character might fill in the 0's for transects without any observations.
+ 
+3. Most of the data manipulation steps are rather opaque. To figure out what was going on, I had to run the code and inspect all the created objects.  Some more detail would help - e.g., including the reason why you are manipulating data and showing the first few lines of the original object and then a newly created object.
+
+4. I suspect most "readers" will not know what the "design" estimator is or why you are using it instead of the model-based SE (e.g., the output from program distance). Would it be worth showing both estimators?  In the latter case, we just use the output for N^ and SE N^ (and adjust based on total area), correct?
+
+5. Thinking about how we might distribute this to people interested in using this approach...what do you think about creating a small package that would hold the helper functions and example data?  This wouldn't have to be distributed on CRAN, but I think it would be relatively easy to do using devtools, especially with only 2 helper functions.
  
 - There are other options besides the design-based estimator (for both designs), correct?
 
