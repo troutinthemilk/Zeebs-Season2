@@ -826,6 +826,7 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   
   distance.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - distance survey (Responses).xlsx", sheet=1)
   distance.dat      <- distance.dat %>% subset(`Lake name` == curr.lake[1])
+  
   if(length(transects) > 0) {
     ind <- NULL
     for(i in 1:length(transects)) {
@@ -921,7 +922,6 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     n  <- detect.vec
     N  <- sum(detect.vec)
     var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
-    
     dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/K/eS^2 + phat.se^2/phat^2))
     
     return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, distance.dat=distance.dat, eS=eS, varS=varS)
@@ -954,13 +954,12 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
     
   } 
   if(var.type == "model") {
-    dist.glm      <- glm.nb(detect.vec~1 + offset(log(phat*area.vec)))
+    dist.glm      <- glm.nb(detect.vec ~ 1 + offset(log(phat*area.vec)))
     dist.predict <- predict(dist.glm, type="response", se.fit=T)
     
     dhat.se <- sqrt(dhat^2*(sum(dist.predict$se.fit^2)/sum(dist.predict$fit)^2 + varS/length(detect.vec)/eS^2 + phat.se^2/phat^2))
-   # dhat.se <- sqrt(dhat^2*(var.n/N^2 + varS/eS^2 + phat.se^2/phat^2))
     
-    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, eS=eS, varS=varS)
+    return.list <- list(Dhat=dhat, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Transects=length(area.vec), Area=area.vec, Detections=detect.vec, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=dis.detect.model, distance.dat=distance.dat, eS=eS, varS=varS)
     
   }
   
@@ -968,6 +967,27 @@ distance.dens.est <- function(curr.lake, curr.lake2, var.type="design", dist.typ
   return(return.list)
 }
 
+
+create.removal <- function(double.dat, transect.dat, pool.transects=TRUE) {
+  
+  double.dat <- left_join(double.dat, transect.dat, by = c("Transect number", "Observer name")) 
+  
+  counts <- double.dat %>% group_by(`Transect number`, `Observer name`) %>%  summarize(y = sum(`size`))
+  counts.wide <- counts %>% spread(key = "Observer name", value = y)
+  
+  counts.wide$secondary[which(is.na(counts.wide$secondary))] <- 0
+  
+  if(any(is.na(counts.wide))) {
+    counts.wide[is.na(counts.wide)] <- 0
+  } 
+  counts.wide$primary
+  if(pool.transects) {
+    return(c(sum(counts.wide$primary), sum(counts.wide$secondary)))
+  }
+  n.list      <- split(as.matrix(counts.wide[,2:3]), f = counts.wide$`Transect number`)
+  
+  return(n.list)
+}
 
 ##estimate density from quadrats
 quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5, quad.subset=FALSE) {
@@ -1010,7 +1030,7 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5, qua
   }
   #}
   
-  setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
+  setup.time  <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
   hab.time    <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)
   enc.time    <- 60^2*hour(transect.dat$`Encounter time`) + 60*minute(transect.dat$`Encounter time`) + second(transect.dat$`Encounter time`)
   
@@ -1032,8 +1052,8 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5, qua
   
   #trans.counts <- quad.counts
   names(trans.counts) <- transect.dat$`Transect number`
-  area.vec <- trans.quads*quad.area
-  names(area.vec) <- transect.dat$`Transect number`
+  area.vec            <- trans.quads*quad.area
+  names(area.vec)     <- transect.dat$`Transect number`
   
   dhat <- sum(trans.counts)/sum(area.vec)
      
@@ -1052,6 +1072,7 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5, qua
     
     quad.list <- list(Quadrats=trans.quads, Area=area.vec, Mussels=trans.counts, Dhat=dhat, Dhat.se=dhat.se, Time=setup.time + hab.time + enc.time, df=df)
   } 
+  
   if(var.type == "jack") {
       
     K       <- length(trans.quads)
@@ -1087,8 +1108,7 @@ quadrat.dens.est <- function(curr.lake, curr.lake2, var.type, quad.side=0.5, qua
 
 double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
   
-  #double.title    <- suppressMessages(gs_title("Encounters - Double observer - no distance (Responses)"))
-  #double.dat      <- suppressMessages(gs_read(double.title, verbose=FALSE))
+
   double.dat      <- read_xlsx(path="../Data/Season2/Encounters - Double observer - no distance (Responses).xlsx", sheet=1)
   double.dat      <- double.dat %>% subset(`Lake name` == curr.lake)
   double.dat      <- double.dat[order(double.dat$`Transect #`),]
@@ -1108,8 +1128,6 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
   eS <- mean(double.dat$size, na.rm=T)
   varS <- var(double.dat$size, na.rm=T)#/length(double.dat$size) 
 
-  #transect.title  <- suppressMessages(gs_title("Transect datasheets (Responses)"))
-  #transect.dat    <- suppressMessages(gs_read(transect.title, verbose=FALSE))
   transect.dat      <- read_xlsx(path="../Data/Season2/Transect datasheets (Responses).xlsx", sheet=1)
   transect.dat <- transect.dat %>% subset(`Lake name:` == curr.lake2)
   transect.dat <- transect.dat %>% subset(`Survey type` == "Double observer no distance")
@@ -1118,7 +1136,6 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
     transect.dat <- subset(transect.dat, `Transect number` == 15 | `Transect number` == 14 | `Transect number` == 13 | `Transect number` == 12)
   }
   
-  
   setup.time   <- 60^2*hour(transect.dat$`Setup time`) + 60*minute(transect.dat$`Setup time`) + second(transect.dat$`Setup time`)
   hab.time     <- 60^2*hour(transect.dat$`Habitat time`) + 60*minute(transect.dat$`Habitat time`) + second(transect.dat$`Habitat time`)
   enc.time     <- 60^2*hour(transect.dat$`Encounter time`) + 60*minute(transect.dat$`Encounter time`) + second(transect.dat$`Encounter time`)
@@ -1126,10 +1143,10 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
   trans.length  <- transect.dat$`Transect length (if transect survey)`
   trans.area    <- trans.length
   
-  
   #get number of obsevations made by primary and secondary observers
   count.primary <- count.secondary <- detect.primary <- detect.secondary <- rep(NA, max(transect.dat$`Transect number`))
   for(i in unique(transect.dat$`Transect number`)) {
+    
     curr.prim <- transect.dat[transect.dat$`Transect number` == i,]$`Primary observer (double observer survey)`
     curr.dat  <- double.dat[double.dat$`Transect #`== i,] 
     
@@ -1151,7 +1168,6 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
     
   double.dat <- double.dat %>% mutate(detected = rep(1, dim(double.dat)[1]), distance=rep(0.99, dim(double.dat)[1]), object=1:dim(double.dat)[1])
   
-  #double.dat <- doubleObs.duplicate(obs.dat=double.dat)
   double.dat$object <- 1:dim(double.dat)[1]
   double.dat <- create.removal.Observer(transect.dat=transect.dat, obs.dat=double.dat)
   
@@ -1162,9 +1178,8 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
   }
   phat    <- summary(doubleDetect.model)$average.p0.1
   phat.se <- summary(doubleDetect.model)$average.p0.1.se[1,1]
-#print(doubleDetect.model)
 
-  count.vec <- count.primary + count.secondary
+  count.vec  <- count.primary + count.secondary
   detect.vec <- detect.primary + detect.secondary
   
   count.vec <- t(as.matrix(count.vec))
@@ -1173,11 +1188,43 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
   area.vec                <- trans.length
   names(area.vec) <- transect.dat$`Transect number`
   
-  trans.area <- sum(transect.dat$`Transect length (if transect survey)`)
+  trans.area  <- sum(transect.dat$`Transect length (if transect survey)`)
+  dhat.double <- sum(detect.vec, na.rm=T)*eS/phat/trans.area
+  df          <- data.frame(Detections=detect.vec, Mussels=count.vec[1,], D=detect.vec*eS/area.vec/phat, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec, Length=area.vec, Type=rep("Double", length(trans.area)), Lake=rep(curr.lake, length(trans.area)), Lat=transect.dat$`GPS latitude`, Long=transect.dat$`GPS longitude`)
   
-  dhat.double   <- sum(detect.vec, na.rm=T)*eS/phat/trans.area
+  if(var.type == "removal") {
+    
+    transect.dat %>% gather(key=observer, value=name, "Primary observer (double observer survey)", "Secondary observer (double observer survey)") 
+    library(FSA)
+    
+    counts.primary <- dim(double.dat[double.dat$primary == double.dat$`Observer name`,])[1]
+    counts.secondary <- dim(double.dat[double.dat$primary != double.dat$`Observer name`,])[1]
+    
+    remove.ests <- removal(c(counts.primary, counts.secondary), just.ests=TRUE, method="Seber2")
+    K  <- length(detect.vec)
+    l  <- area.vec
+    L  <- sum(l)
+    n  <- detect.vec
+    N  <- sum(detect.vec)
+    #var.n <- L^2*(K/(L^2*(K-1))*sum(l^2*(n/l - N/L)^2))#/N^2
+    var.n <- L/(K-1)*sum(l*(n/l - N/L)^2)
+    #cat(N, sqrt(var.n), '\n')
+    # now sum the results over all transects to estimate
+    # population size at the transect level 
+    #N       <- remove.ests[1]
+    #var.n   <- remove.ests[2]
+    phat    <- remove.ests[5]
+    p <- 1 - sqrt(1-phat)
+    phat.se <- remove.ests[6]
+    phat.cv <- 4*(1-p)^3*p/N*phat^2
+    
+    #dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/K/eS^2 + phat.se^2/phat^2))
+    dhat.se <- sqrt(dhat.double^2*(var.n/N^2 + varS/K/eS^2 + phat.cv))
+    
+    return.list <- list(Dhat=dhat.double, Dhat.se=dhat.se, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
+    
+  }
   
-  df <- data.frame(Detections=detect.vec, Mussels=count.vec[1,], D=detect.vec*eS/area.vec/phat, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, Area=area.vec, Length=area.vec, Type=rep("Double", length(trans.area)), Lake=rep(curr.lake, length(trans.area)), Lat=transect.dat$`GPS latitude`, Long=transect.dat$`GPS longitude`)
   
   if(var.type == "design") {
     K  <- length(detect.vec)
@@ -1227,6 +1274,7 @@ double.dens.est <- function(curr.lake, curr.lake2, var.type, size=FALSE) {
     se.double     <- sqrt(dhat.double^2*(sum(double.predict$se.fit^2)/sum(double.predict$fit)^2 + varS/length(detect.vec)/eS^2 + phat.se^2/phat^2))#+ varS/eS^2
     
     return.list <- list(Dhat=dhat.double, Dhat.se=se.double, phat=phat, phat.se=phat.se, Area=area.vec, Detections=detect.primary+detect.secondary, Mussels=count.vec, Time=setup.time+hab.time+enc.time, t.set=setup.time, t.hab=hab.time, t.enc=enc.time, df=df, ddf=doubleDetect.model, eS=eS, varS=varS)
+
   }
   
   return(return.list)

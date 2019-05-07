@@ -16,6 +16,7 @@ time.df <- rbind(LB.distance.est$df, LB.double.est$df, LB.quadrat.est$df, LBL.di
 #tset.length <- lm(t.set ~ Length + Type + (1|Lake), data=time.df)
 
 tset.length <- lm(t.set ~ Length + Type + Lake, data=time.df,  contrasts=list(Lake="contr.helmert"))
+tset.length <- lm(t.set ~ Length + Type, data=time.df)
 
 #tset.length <- lm(t.set ~ Length + Type, data=time.df)
 #lm(y ~ f, contrasts = list(f = "contr.helmert"))
@@ -26,6 +27,7 @@ contrasts(time.df$Lake) <- "contr.helmert"
 #tenc.length2   <- lm(t.enc ~ Length + detection.rate*Type + Lake, data=time.df)
 #tenc.length    <- lm(t.enc ~ Length + detection.rate*Type + Lake, data=time.df)
 tenc.length    <- lm(t.enc ~ Length + detection.rate*Type + Lake, data=time.df)
+tenc.length    <- lm(t.enc ~ Length + detection.rate*Type, data=time.df)
 
 #tenc.length <- lm(t.set ~ Length + detection.rate + Type + Lake, data=time.df, contrasts=list(Lake="contr.helmert"))
 
