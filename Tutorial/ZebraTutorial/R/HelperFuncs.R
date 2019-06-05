@@ -2,6 +2,22 @@
 #primary coded as 1
 #secondary coded as 2
 #secondary sees all that 1 does but then a bit more
+
+suppressPackageStartupMessages(library(tidyverse)) #loads the tidyverse quietly
+library(readxl)
+library(FSA)
+library(mrds)
+  
+
+#' Create data object for removal analysis with distance
+#'
+#' A helper function to format the data appropriately for a ddf analysis using the R package `MRDS`.
+#' @param transect.dat Data table of each transect.
+#' @param obs.dat Data table observations in each transect.
+#' @return Data table with counts summarized on each transect
+#' @export
+#' @examples  
+#' create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat) 
 create.removal.Observer <- function(transect.dat, obs.dat) {
   
   primary   <- transect.dat$`Primary observer (double observer survey)`
@@ -56,7 +72,18 @@ create.removal.Observer <- function(transect.dat, obs.dat) {
 }
 
 
-create.removal <- function(double.dat, transect.dat) {
+
+#' Create data object for removal analysis without distance
+#'
+#' A helper function to format the data appropriately for a removal analysis the R package `FSA`.
+#' @param transect.dat Data table of each transect.
+#' @param obs.dat ata table observations in each transect.
+#' @param pool.transects Analyze transects seperately (FALSE) or together (TRUE)
+#' @return A list object with counts summarized on each transect or over all transects
+#' @export
+#' @examples
+#' create.removal(transect.dat, obs.dat, pool.transects=TRUE)
+create.removal <- function(double.dat, transect.dat, pool.transects=TRUE) {
   
   double.dat <- left_join(double.dat, transect.dat, by = c("Transect number", "Observer name"= "name")) 
   
@@ -68,7 +95,10 @@ create.removal <- function(double.dat, transect.dat) {
   if(any(is.na(counts.wide))) {
     counts.wide[is.na(counts.wide)] <- 0
   } 
-  
+  counts.wide$primary
+  if(pool.transects) {
+    return(c(sum(counts.wide$primary), sum(counts.wide$secondary)))
+  }
   n.list      <- split(as.matrix(counts.wide[,2:3]), f = counts.wide$`Transect number`)
   
   return(n.list)

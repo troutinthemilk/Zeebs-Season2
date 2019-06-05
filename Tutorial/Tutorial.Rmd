@@ -34,8 +34,6 @@ To conduct the dependent double-observer  survey, 2 divers  survey 30-meter x 1-
 Data should be entered in a manner that ensures reliability. For this dataset, we entered data using Google Forms. This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We entered data of each detection event (called EncountersDoubleTutorial.xlsx) and a sheet that described each transect (TransectsDoubleTutorial.xlsx). The unique variable "Transect number" links these sheets. 
 Read in the encounter data:
 ```{r}
-suppressPackageStartupMessages(library(tidyverse)) #loads the tidyverse quietly
-library(readxl)
 double.dat      <- read_xlsx(path="EncountersDoubleTutorial.xlsx", sheet=1)
 ```
 And read in the transect data:
@@ -47,6 +45,7 @@ transect.dat    <- transect.dat %>% gather(key = observer, value = name, "primar
 Now we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`RSA`) package to calculate the estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file [`HelperFuncs.R`](HelperFuncs.R), which we source here (making the function available to us in the current R session). Tutorials on the estimator used here are available at the [FishR](http://derekogle.com/fishR/examples/oldFishRVignettes/Depletion.pdf) site. 
 
 ```{r, warning=F}
+
 source('HelperFuncs.R')
 
 #returns data in a form that can be used by removal in FSA
@@ -58,7 +57,7 @@ removal.list <- create.removal(double.dat, transect.dat)
 
 Here we apply the function `removal` to each transect seperately, then combine the estimates by weighting by transect length. This function calculates the variance for us so we don't need to apply the variance formula.
 ```{r, warning=F, messages=F}
-library(FSA)
+
 #get the length of each transect
 length.vec  <- transect.dat %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
 
