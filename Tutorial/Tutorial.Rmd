@@ -40,6 +40,7 @@ Our goal is to estimate zebra mussel density in a lake and to quantify uncertain
 
 \begin{align}
   \hat{D} &= \frac{\displaystyle\sum_i^n  x_i}{\hat{P} \sum_i^n  w l_i}\label{eq:hatD},\\
+\end{align}
 
 where $\hat{P}$ denotes the estimated probability of detecting a zebra mussel by one or both observers.
 
@@ -87,7 +88,6 @@ removal.list <- create.removal(DoubleEncounter, DoubleTransect)
 
 Here we apply the function `removal` to each transect separately, then combine the estimates by weighting by transect length. This function calculates the variance for us so we don't need to apply the variance formula.
 
-JF: **Jake - check the comments/documentation, below. Also, do we need this line: #remove.ests[1]sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE))**
 ```{r, warning=F, messages=F}
 
 #get the length of each transect
@@ -97,7 +97,7 @@ length.vec  <- DoubleTransect %>% group_by(`Transect number`) %>% summarize(leng
 # population size at the transect level 
 remove.ests <- removal(removal.list, just.ests=TRUE)
 Nhat       <- remove.ests[1]
-Nhat.SE    <- remove.ests[2]#remove.ests[1]sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE))
+Nhat.SE    <- remove.ests[2]
 
 # estimate of density along the transect
 Dhat       <- Nhat/sum(length.vec$length)
@@ -111,7 +111,6 @@ bpSE.phat   <- remove.ests[6]
 
 We get an estimate of density $\hat{D}=$ `r round(Dhat,2)` mussels per square meter with a standard error of `r round(Dhat.SE,2)`. We estimate the detection to be $\hat{P}=$ `r round(bp.hat,2)` with a standard error of `r round(bpSE.phat,2)`.
 
-**JAKE: this SE seems really low - is it accurate?**
 
 # Dependent Double-Observer Survey with Distance Data
 
@@ -169,7 +168,7 @@ distance.model  <- ddf(method="rem", dsmodel=~cds(key="hr"),
 print(summary(distance.model))
 ```
 
-The average probability of detecting a mussel by one of the observers is $\hat{P}=0.58$ with a standard error of $\sigma_\hat{P}=0.06$.  Below, we overlay the estimated detection model on the histogram of detection distances made by the two observers. 
+The average probability of detecting a mussel by one of the observers is $\hat{P}=0.58$ with a standard error of $0.06$.  Below, we overlay the estimated detection model on the histogram of detection distances made by the two observers. 
 ```{r, warning=F}
 plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 ```
@@ -191,7 +190,7 @@ VarX    <- sum(area)*sum(area*(counts/area - sum(counts)/sum(area))^2)/(n-1)
 VarD <- Dhat^2*(VarX/sum(counts)^2 + VarP/Phat^2)
 ```
 
-We get an estimate for $\hat{D}=$ `r round(Dhat, 2)` with a standard error of $\sqrt{\mathrm{var}({\hat{D}})}=$ `r round(sqrt(VarD), 2)`.
+We get an estimate for $\hat{D}=$ `r round(Dhat, 2)` with a standard error of `r round(sqrt(VarD), 2)`.
 
 ## Resources
 
