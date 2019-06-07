@@ -117,11 +117,13 @@ code > span.ot { color: #007020; }
 
 <div id="post">
 <article class="post-content">
-<p>This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, <a href="https://vimeo.com/317738991/9189d0dcc0">“Monitoring Zebra Mussels in Lakes”</a>. Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as “removal designs” (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018. Both of these survey designs allow you to estimate the probability of detecting mussels, and thus, obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. We have an R package to go along wiht the tutorial, it includes all the necessary functions and data to replicate our analyses. You can download the R package <a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.0.1.tar.gz">here</a> and install from source using the following code:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(path_to_file, <span class="dt">repos =</span> <span class="ot">NULL</span>, <span class="dt">type=</span><span class="st">&quot;source&quot;</span>) <span class="co">#path_to_file is a character string that points to the downloaded file, e.g., &quot;ZebraTutorial_0.0.1.tar.gz&quot; if the file is in your working directory</span></a></code></pre></div>
+<p>This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, <a href="https://youtu.be/E3ui8SVeBC0">“Monitoring Zebra Mussels in Lakes”</a>. Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as “removal designs” (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018. Both of these survey designs allow you to estimate the probability of detecting mussels, and thus, obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. We have an R package to go along wiht the tutorial, it includes all the necessary functions and data to replicate our analyses. You can download the R package <a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.1.0.tar.gz">here</a> and install from source using the following code:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(path_to_file, <span class="dt">repos =</span> <span class="ot">NULL</span>, <span class="dt">type=</span><span class="st">&quot;source&quot;</span>) <span class="co">#path_to_file is a character string that points to </span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="co">#the downloaded file, e.g., install.packages(&quot;ZebraTutorial_0.1.0.tar.gz&quot;, repos = NULL, type=&quot;source&quot;) </span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  <span class="co">#if the file is in your working directory</span></a></code></pre></div>
 <p>If you use Rstudio you can also install the downloaded file by clicking the Packages tab -&gt; Install -&gt; Install from: Package archive file (.tar.gz). Alternatively you can install from github using the following code:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(devtools) <span class="co">#this takes awhile to install so install from source if you don't want to bother install devtools</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">install_github</span>(<span class="st">&quot;Zeebs-Season2/Tutorial/ZebraTutorial/&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(devtools) <span class="co">#this takes awhile to install so install from source if you don't want to bother</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">install_github</span>(<span class="st">&quot;troutinthemilk/Zeebs-Season2/Tutorial/ZebraTutorial&quot;</span>)</a></code></pre></div>
 <p>The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To load the library:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">library</span>(ZebraTutorial)</a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">library</span>(tidyverse) <span class="co">#we will use some functions from this set of packages</span></a></code></pre></div>
@@ -130,7 +132,7 @@ code > span.ot { color: #007020; }
 <p>Our goal is to estimate zebra mussel density in a lake and to quantify uncertainty associated with that estimate. To do this, we need the counts in each transect, denoted as <span class="math inline">\(x_i\)</span> for the <span class="math inline">\(i\)</span>th transect, the transect length, <span class="math inline">\(l_i\)</span>, and the width, <span class="math inline">\(w\)</span>, to determine the surveyed area, <span class="math inline">\(a_i=w l_i\)</span>. The degree of uncertainty in our density estimate will depend on the variance of the counts among the different transects, <span class="math inline">\(x_i\)</span>, and the variance in the estimated detection probability, <span class="math inline">\(\mathrm{var}(\hat{P})\)</span>, where <span class="math inline">\(\hat{P}\)</span> denotes the estimated probability of detection of a zebra mussel by either observer. Here are the formulae we used to estimate density and its variance:</p>
 <p><span class="math display">\[\begin{align}
   \hat{D} &amp;= \frac{\displaystyle\sum_i^n  x_i}{\hat{P} \sum_i^n  w l_i}\label{eq:hatD}\\
-  \mathrm{var}(\hat{D}) &amp;= \hat{D}^2 \left(  \frac{\mathrm{var}(\sum_i^n  x_i)}{(\sum_i^n  x_i)^2} + \frac{\mathsrm{var}(\hat{P})}{\hat{P}^2} \right). \label{eq:varD}
+  \mathrm{var}(\hat{D}) &amp;= \hat{D}^2 \left(  \frac{\mathrm{var}(\sum_i^n  x_i)}{(\sum_i^n  x_i)^2} + \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right). \label{eq:varD}
 \end{align}\]</span></p>
 <p>Our estimate of <span class="math inline">\(\mathrm{var}(\hat{P})\)</span> will depend on the survey design.</p>
 </div>
@@ -332,12 +334,14 @@ code > span.ot { color: #007020; }
 <p><a href="http://derekogle.com/fishR/examples/">FishR</a>. Tutorial on depeletion sampling in R.</p>
 <div id="links" class="section level3">
 <h3>Files used in this tutorial</h3>
+<p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.1.0.tar.gz">R package: ZebraTutorial</a></p>
+<p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/Tutorial.Rmd">Tutorial markdown file</a></p>
+<p>Data and functions that are available in the ZebraTutorial R package.</p>
 <p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDistanceTutorial.xlsx">Distance survey detections</a></p>
 <p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/TransectsDistanceTutorial.xlsx">Distance survey transects</a></p>
 <p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDoubleTutorial.xlsx">Double-observer survey detections</a></p>
 <p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/TransectsDoubleTutorial.xlsx">Double-observer survey transects</a></p>
-<p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/HelperFuncs.R">HelperFuncs.R</a></p>
-<p><a href="https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/Tutorial.Rmd">Tutorial markdown file</a></p>
+<p><a href="https://github.com/troutinthemilk/Zeebs-Season2/blob/master/Tutorial/ZebraTutorial/R/HelperFuncs.R">HelperFuncs.R</a></p>
 </div>
 </div>
 </div>

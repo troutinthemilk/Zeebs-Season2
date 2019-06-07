@@ -12,18 +12,19 @@ options(tibble.width = Inf)
 ```
 
 
-This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://vimeo.com/317738991/9189d0dcc0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. We have an R package to go along wiht the tutorial, it includes all the necessary functions and data to replicate our analyses. You can download the R package [here](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.0.1.tar.gz) and install from source using the following code:
+This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://youtu.be/E3ui8SVeBC0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. We have an R package to go along wiht the tutorial, it includes all the necessary functions and data to replicate our analyses. You can download the R package [here](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.1.0.tar.gz) and install from source using the following code:
 
 ```{r, echo=T, eval=F}
 install.packages(path_to_file, repos = NULL, type="source") #path_to_file is a character string that points to 
-  #the downloaded file, e.g., "ZebraTutorial_0.1.0.tar.gz" if the file is in your working directory
+  #the downloaded file, e.g., install.packages("ZebraTutorial_0.1.0.tar.gz", repos = NULL, type="source") 
+  #if the file is in your working directory
 ```
 
 If you use Rstudio you can also install the downloaded file by clicking the Packages tab -> Install -> Install from: Package archive file (.tar.gz). Alternatively you can install from github using the following code: 
 
 ```{r, echo=T, eval=F}
 library(devtools) #this takes awhile to install so install from source if you don't want to bother
-install_github("Zeebs-Season2/Tutorial/ZebraTutorial/")
+install_github("troutinthemilk/Zeebs-Season2/Tutorial/ZebraTutorial")
 ```
 
 The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To load the library:
@@ -184,7 +185,11 @@ Book: [Buckland et al. (2015) Distance sampling: methods and applications.](http
 
 ### Files used in this tutorial {#links}
 
-[R package: ZebraTutorial](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDistanceTutorial.xlsx)
+[R package: ZebraTutorial](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.1.0.tar.gz)
+
+[Tutorial markdown file](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/Tutorial.Rmd)
+
+Data and functions that are available in the ZebraTutorial R package.
 
 [Distance survey detections](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDistanceTutorial.xlsx)
 
@@ -194,9 +199,9 @@ Book: [Buckland et al. (2015) Distance sampling: methods and applications.](http
 
 [Double-observer survey transects](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/TransectsDoubleTutorial.xlsx)
 
-[HelperFuncs.R](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/HelperFuncs.R)
+[HelperFuncs.R](https://github.com/troutinthemilk/Zeebs-Season2/blob/master/Tutorial/ZebraTutorial/R/HelperFuncs.R)
 
-[Tutorial markdown file](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/Tutorial.Rmd)
+
 
 
 
