@@ -12,7 +12,26 @@ options(tibble.width = Inf)
 ```
 
 
-This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://vimeo.com/317738991/9189d0dcc0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. All data and files are available for download [here](#links).
+This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://vimeo.com/317738991/9189d0dcc0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. We have an R package to go along wiht the tutorial, it includes all the necessary functions and data to replicate our analyses. You can download the R package [here](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.0.1.tar.gz) and install from source using the following code:
+
+```{r, echo=T, eval=F}
+install.packages(path_to_file, repos = NULL, type="source") #path_to_file is a character string that points to 
+  #the downloaded file, e.g., "ZebraTutorial_0.1.0.tar.gz" if the file is in your working directory
+```
+
+If you use Rstudio you can also install the downloaded file by clicking the Packages tab -> Install -> Install from: Package archive file (.tar.gz). Alternatively you can install from github using the following code: 
+
+```{r, echo=T, eval=F}
+library(devtools) #this takes awhile to install so install from source if you don't want to bother
+install_github("Zeebs-Season2/Tutorial/ZebraTutorial/")
+```
+
+The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To load the library:
+
+```{r, echo=TRUE, warning=F, message=F}
+library(ZebraTutorial)
+library(tidyverse) #we will use some functions from this set of packages
+```
 
 # Estimating density and quantifying uncertainty
 
@@ -31,25 +50,28 @@ To conduct the dependent double-observer  survey, 2 divers  survey 30-meter x 1-
 
 ## The data
 
-Data should be entered in a manner that ensures reliability. For this dataset, we entered data using Google Forms. This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We entered data of each detection event (called EncountersDoubleTutorial.xlsx) and a sheet that described each transect (TransectsDoubleTutorial.xlsx). The unique variable "Transect number" links these sheets. 
-Read in the encounter data:
+Data should be entered in a manner that ensures reliability. For this dataset, we entered data using Google Forms. This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We created a datasheet of detection events and a datasheetsheet that described each transect. The variable "Transect number" is a unique identifier for each transect that links these sheets. Below we print the first few lines from the dataframe of the detection events:
+
 ```{r}
-double.dat      <- read_xlsx(path="EncountersDoubleTutorial.xlsx", sheet=1)
-```
-And read in the transect data:
-```{r}
-transect.dat    <- read_xlsx(path="TransectsDoubleTutorial.xlsx", sheet=1)
-transect.dat    <- transect.dat %>% gather(key = observer, value = name, "primary", "secondary") 
+data(DoubleEncounter)
+head(DoubleEncounter)
 ```
 
-Now we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`RSA`) package to calculate the estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file [`HelperFuncs.R`](HelperFuncs.R), which we source here (making the function available to us in the current R session). Tutorials on the estimator used here are available at the [FishR](http://derekogle.com/fishR/examples/oldFishRVignettes/Depletion.pdf) site. 
+And here is the transect data. We will load it, then create new columns in the transect data that denotes the observers name and whether that observer was primary or secondary.
+```{r}
+data(DoubleTransect)
+head(DoubleTransect)
+
+DoubleTransect    <- DoubleTransect %>% gather(key = observer, value = name, "primary", "secondary") 
+```
+
+Now we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`FSA`) package to calculate the estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file [`HelperFuncs.R`](HelperFuncs.R), which we source here (making the function available to us in the current R session). Tutorials on the estimator used here are available at the [FishR](http://derekogle.com/fishR/examples/oldFishRVignettes/Depletion.pdf) site. 
 
 ```{r, warning=F}
-
-source('HelperFuncs.R')
+library(FSA) #load the FSA library
 
 #returns data in a form that can be used by removal in FSA
-removal.list <- create.removal(double.dat, transect.dat) 
+removal.list <- create.removal(DoubleEncounter, DoubleTransect) 
 ```
 
 
@@ -59,7 +81,7 @@ Here we apply the function `removal` to each transect seperately, then combine t
 ```{r, warning=F, messages=F}
 
 #get the length of each transect
-length.vec  <- transect.dat %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
+length.vec  <- DoubleTransect %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
 
 remove.ests <- removal(removal.list, just.ests=TRUE)
 
@@ -88,18 +110,20 @@ The dependent double-observer survey with distance data is  similar to the depen
 
 Here we enter each dataset. Read in the encounter data:
 ```{r}
-suppressPackageStartupMessages(library(tidyverse)) #loads the tidyverse quietly
-distance.dat      <- read_xlsx(path="EncountersDistanceTutorial.xlsx", sheet=1)
+data("DistanceEncounter")
+head(DistanceEncounter)
 ```
 And read in the transect data:
 ```{r}
-transect.dat    <- read_xlsx(path="TransectsDistanceTutorial.xlsx", sheet=1)
-transect.dat    <- transect.dat[order(transect.dat$"Transect number"),]
+data("DistanceTransect")
+head(DistanceTransect)
+
+DistanceTransect    <- DistanceTransect[order(DistanceTransect$"Transect number"),]
 ```
 
 It is useful to construct some initial diagnostic plots to ensure  data were entered correctly and assumptions of distance sampling are met (e.g., detection declines monotonically with distance from the transect line). 
 ```{r pressure, fig.cap="Diagnositic plot of the detection distance, the distance of each detection from the transect line.", fig.asp=0.7}
-hist(distance.dat$distance, col="black", border="white",
+hist(DistanceEncounter$distance, col="black", border="white",
      xlab='Distance of detection from transect (cm)', main="")
 ```
 
@@ -110,12 +134,12 @@ Here we see a pattern that is consistent with our expectation - i.e., the number
 Here we use a helper function to format the data appropriately for the R package `MRDS`. 
 
 ```{r, warning=F}
-library(mrds)
-source('HelperFuncs.R')
-distance.dat      <- distance.dat[order(distance.dat$`Transect #`),]
+library(mrds) #load the mrds package
 
-distance.dat      <- distance.dat %>% mutate(detected = rep(1, dim(distance.dat)[1]), object=1:dim(distance.dat)[1]) 
-distance.rem.dat  <- create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat) 
+DistanceEncounter     <- DistanceEncounter[order(DistanceEncounter$`Transect #`),]
+
+DistanceEncounter     <- DistanceEncounter %>% mutate(detected = rep(1, dim(DistanceEncounter)[1]), object=1:dim(DistanceEncounter)[1]) 
+distance.rem.dat      <- create.removal.Observer(transect.dat=DistanceTransect, obs.dat=DistanceEncounter) 
 
 ```
 
@@ -134,8 +158,8 @@ plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 The variance in the total counts can be estimated using the design estimator, $\mathrm{var}(X) = \left(L \sum_{i}^n l_i (x_i/l_i - X/L)^2 \right)/(n-1)$. Below we calculate the estimated density and it's uncertainty by by using the output from the distance model.
 
 ```{r}
-area    <- transect.dat$`Transect length (if transect survey)` #length of transects
-counts  <- table(distance.dat$`Transect #`) #count in each transect
+area    <- DistanceTransect$`Transect length (if transect survey)` #length of transects
+counts  <- table(DistanceEncounter$`Transect #`) #count in each transect
 n       <- length(area) #total number of transects
 w       <- 2 #width of transects
 Phat    <- 0.58 #from distance model
@@ -159,6 +183,8 @@ Book: [Buckland et al. (2015) Distance sampling: methods and applications.](http
 [FishR](http://derekogle.com/fishR/examples/). Tutorial on depeletion sampling in R.
 
 ### Files used in this tutorial {#links}
+
+[R package: ZebraTutorial](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDistanceTutorial.xlsx)
 
 [Distance survey detections](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/EncountersDistanceTutorial.xlsx)
 

@@ -1,7 +1,7 @@
 Package: ZebraTutorial
 Title: Density estimation tutorial for zebra mussel survey methods
 Description: We describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). Here we show how to use design-based estimators of density.
-Version: 0.0.1
+Version: 0.1.0
 Author: Jake Ferguson (troutinthemilk@gmail.com)
 Maintainer: Jake Ferguson <troutinthemilk@gmail.com>
 License: CC0

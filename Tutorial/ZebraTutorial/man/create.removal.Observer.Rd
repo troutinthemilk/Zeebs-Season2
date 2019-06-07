@@ -18,6 +18,5 @@ Data table with counts summarized on each transect
 A helper function to format the data appropriately for a ddf analysis using the R package `MRDS`.
 }
 \examples{
- 
-create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat) 
+create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat)
 }
