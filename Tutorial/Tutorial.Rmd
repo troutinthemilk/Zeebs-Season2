@@ -42,7 +42,7 @@ Our goal is to estimate zebra mussel density in a lake and to quantify uncertain
   \hat{D} &= \frac{\displaystyle\sum_i^n  x_i}{\hat{P} \sum_i^n  w l_i}\label{eq:hatD},\\
 \end{align}
 
-where $\hat{P}$ denotes the estimated probability of detecting a zebra mussel by one or both observers.
+where $\hat{P}$ denotes the estimated probability of detecting a zebra mussel by at least one observer.
 
 The degree of uncertainty in our density estimate will depend on the variance of the counts among the different transects, $\var(x_i)$, and the variance in the estimated detection probability, $\mathrm{var}(\hat{P})$.
 
@@ -168,7 +168,7 @@ distance.model  <- ddf(method="rem", dsmodel=~cds(key="hr"),
 print(summary(distance.model))
 ```
 
-The average probability of detecting a mussel by one of the observers is $\hat{P}=0.58$ with a standard error of $0.06$.  Below, we overlay the estimated detection model on the histogram of detection distances made by the two observers. 
+The average probability of detecting a mussel by at least one observer is $\hat{P}=0.58$ with a standard error of $0.06$.  Below, we overlay the estimated detection model on the histogram of detection distances made by the two observers. 
 ```{r, warning=F}
 plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 ```
