@@ -1,5 +1,5 @@
 ---
-title: "Tutorial on estimating zebra mussel density"
+title: "Tutorial on Estimating Zebra Mussel Density"
 output:
   prettydoc::html_pretty:
     theme: leonids
@@ -12,7 +12,7 @@ options(tibble.width = Inf)
 ```
 
 
-This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://youtu.be/E3ui8SVeBC0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes refered to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here we show how to use design-based estimators of density. We have an R package to go along wiht the tutorial, it includes all the necessary functions and data to replicate our analyses. You can download the R package [here](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.1.0.tar.gz) and install from source using the following code:
+This tutorial assumes that you have collected data following one of the survey procedures documented in the MAISRC video, ["Monitoring Zebra Mussels in Lakes"](https://youtu.be/E3ui8SVeBC0). Here, we describe how to analyze data collected using dependent double-observer surveys with and without distance sampling. These designs are sometimes referred to as "removal designs" (rather than dependent double-observer designs). We will demonstrate these techniques using data collected on Lake Burgan, Minnesota in the summer of 2018.  Both of these survey designs allow you to estimate the probability of detecting  mussels, and thus,  obtain estimates of density adjusted for imperfect detection. Here, we show how to use design-based estimators of density. We have an R package to go along with the tutorial; it includes all the necessary functions and data to replicate our analyses. You can download the R package [here](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/ZebraTutorial_0.1.0.tar.gz) and install from source using the following code:
 
 ```{r, echo=T, eval=F}
 install.packages(path_to_file, repos = NULL, type="source") #path_to_file is a character string that points to 
@@ -27,46 +27,53 @@ library(devtools) #this takes awhile to install so install from source if you do
 install_github("troutinthemilk/Zeebs-Season2/Tutorial/ZebraTutorial")
 ```
 
-The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To load the library:
+The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To load the library type:
 
 ```{r, echo=TRUE, warning=F, message=F}
 library(ZebraTutorial)
 library(tidyverse) #we will use some functions from this set of packages
 ```
 
-# Estimating density and quantifying uncertainty
+# Estimating Density and Quantifying Uncertainty
 
-Our goal is to estimate zebra mussel density in a lake and to quantify uncertainty associated with that estimate. To do this, we need the counts in each transect, denoted as $x_i$ for the $i$th transect, the transect length, $l_i$, and the width, $w$, to determine the surveyed area, $a_i=w l_i$.  The degree of uncertainty in our density estimate will depend on the variance of the counts among the different transects, $x_i$, and the variance in the estimated detection probability, $\mathrm{var}(\hat{P})$, where $\hat{P}$ denotes the estimated probability of detection of a zebra mussel by either observer. Here are the formulae we used to estimate density and its variance:
+Our goal is to estimate zebra mussel density in a lake and to quantify uncertainty associated with that estimate. To do this, we need the counts in each transect, denoted as $x_i$ for the $i$th transect, the transect length, $l_i$, and the width, $w$, to determine the surveyed area, $a_i=w l_i$.  We estimate the density as:
 
 \begin{align}
-  \hat{D} &= \frac{\displaystyle\sum_i^n  x_i}{\hat{P} \sum_i^n  w l_i}\label{eq:hatD}\\
+  \hat{D} &= \frac{\displaystyle\sum_i^n  x_i}{\hat{P} \sum_i^n  w l_i}\label{eq:hatD},\\
+
+where $\hat{P}$ denotes the estimated probability of detecting a zebra mussel by one or both observers.
+
+The degree of uncertainty in our density estimate will depend on the variance of the counts among the different transects, $\var(x_i)$, and the variance in the estimated detection probability, $\mathrm{var}(\hat{P})$.
+
+\begin{align}
   \mathrm{var}(\hat{D}) &= \hat{D}^2 \left(  \frac{\mathrm{var}(\sum_i^n  x_i)}{(\sum_i^n  x_i)^2} + \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right). \label{eq:varD}
 \end{align}
 
 Our estimate of $\mathrm{var}(\hat{P})$ will depend on the survey design.
 
-# Dependent Double-observer (no distance data)
+# Dependent Double-Observer (no distance data)
 
-To conduct the dependent double-observer  survey, 2 divers  survey 30-meter x 1-meter wide areas deliniated using 2 lead lines laid in parallel. The primary diver swims first, marking all the mussels she/he sees within the belt. The secondary diver follows looking for mussels that the first observer missed. We rotated the role of primary and secondary divers at each transect. 
+To conduct the dependent double-observer  survey, 2 divers  survey 30-meter x 1-meter wide areas delineated using 2 lead lines laid in parallel. The primary diver swims first, marking all the mussels she/he sees within the belt. The secondary diver follows looking for mussels that the first observer missed. We rotated the role of primary and secondary divers at each transect. 
 
-## The data
+## The Data
 
-Data should be entered in a manner that ensures reliability. For the datasets used here, we entered data using Google Forms which can be accessed [here](#GoogleForm). This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We created a datasheet of detection events and a datasheetsheet that described each transect. The variable "Transect number" is a unique identifier for each transect that links these sheets. Below we print the first few lines from the dataframe of the detection events:
+Data should be entered in a manner that ensures reliability. For the datasets used here, we entered data using Google Forms which can be accessed [here](#GoogleForm). This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We created a datasheet of detection events and a datasheet that described each transect. The variable "Transect number" is a unique identifier for each transect that links these sheets. Below we print the first few lines from the dataframe of the detection events:
 
 ```{r}
 data(DoubleEncounter)
 head(DoubleEncounter)
 ```
 
-And here is the transect data. We will load it, then create new columns in the transect data that denotes the observers name and whether that observer was primary or secondary.
+Each row contains data from a unique detection event, with the name of the observer, the transect number, and the number of zebra mussels in the cluster (`size`).
+
+We then read in the transect data containing the primary and secondary observers, the transect length, and transect number. We create new columns in the transect data that denote the observers' name and whether that observer was primary or secondary.
 ```{r}
 data(DoubleTransect)
-head(DoubleTransect)
-
 DoubleTransect    <- DoubleTransect %>% gather(key = observer, value = name, "primary", "secondary") 
+head(DoubleTransect)
 ```
 
-Now we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`FSA`) package to calculate the estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file [`HelperFuncs.R`](HelperFuncs.R), which we source here (making the function available to us in the current R session). Tutorials on the estimator used here are available at the [FishR](http://derekogle.com/fishR/examples/oldFishRVignettes/Depletion.pdf) site. 
+Now, we need to format the data for the analysis. We will be using the `removal` function in the R fisheries stock analysis (`FSA`) package to calculate the density estimates. This function will estimate the detection probability and variance in counts for us. We can use this information to determine the variance in density. We have written the `create.removal` function to properly format the data and have included it in the file [`HelperFuncs.R`](HelperFuncs.R), which we source here (making the function available to us in the current R session). Tutorials on the estimator used here are available at the [FishR](http://derekogle.com/fishR/examples/oldFishRVignettes/Depletion.pdf) site. 
 
 ```{r, warning=F}
 library(FSA) #load the FSA library
@@ -76,87 +83,98 @@ removal.list <- create.removal(DoubleEncounter, DoubleTransect)
 ```
 
 
-## The analysis
+## The Analysis
 
-Here we apply the function `removal` to each transect seperately, then combine the estimates by weighting by transect length. This function calculates the variance for us so we don't need to apply the variance formula.
+Here we apply the function `removal` to each transect separately, then combine the estimates by weighting by transect length. This function calculates the variance for us so we don't need to apply the variance formula.
+
+JF: **Jake - check the comments/documentation, below. Also, do we need this line: #remove.ests[1]sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE))**
 ```{r, warning=F, messages=F}
 
 #get the length of each transect
 length.vec  <- DoubleTransect %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
 
-remove.ests <- removal(removal.list, just.ests=TRUE)
-
 # now sum the results over all transects to estimate
 # population size at the transect level 
+remove.ests <- removal(removal.list, just.ests=TRUE)
 Nhat       <- remove.ests[1]
 Nhat.SE    <- remove.ests[2]#remove.ests[1]sqrt(sum(data.frame(remove.out)[2,]^2, na.rm = TRUE))
 
-# estimate of density in the transect
+# estimate of density along the transect
 Dhat       <- Nhat/sum(length.vec$length)
 Dhat.SE    <- Nhat.SE/sum(length.vec$length)
 
-# estimate of detection probability in the transect
+# estimate of detection probability along the transect
 bp.hat      <- remove.ests[5]
 bpSE.phat   <- remove.ests[6]
 
 ```
 
-We get an estimate of density $\hat{D}=$ `r round(Dhat,2)` mussels per square meter with a standard error of `r round(Dhat.SE,2)`. We estimate the detection to be $\hat{P}=$ `r round(bp.hat,2)` with a standard error of `r round(bpSE.phat,2)`,
+We get an estimate of density $\hat{D}=$ `r round(Dhat,2)` mussels per square meter with a standard error of `r round(Dhat.SE,2)`. We estimate the detection to be $\hat{P}=$ `r round(bp.hat,2)` with a standard error of `r round(bpSE.phat,2)`.
 
-# Dependent Double-observer Survey with Distance Data
+**JAKE: this SE seems really low - is it accurate?**
+
+# Dependent Double-Observer Survey with Distance Data
 
 The dependent double-observer survey with distance data is  similar to the dependent double-observer survey described above. However, in this case, both divers swim along a single transect line (lead line).  Further, whenever a diver detects a mussel or cluster of mussels, the diver also measures the perpendicular distance from the detected mussel(s) to the transect line.  The secondary diver again follows the primary diver, looking for mussels that were missed by the primary diver. These distance to detection measurements are then used to model how detection probabilities decline with distance from the transect line. This distance model is then used to correct counts for imperfect detection. The [distancesampling.org](http://distancesampling.org/R/index.html) website provides tutorials on using the R package described here, as well as several other packages that can be used to do distance sampling with either single- or double-observer designs.
 
-## The data
+## The Data
 
-Here we enter each dataset. Read in the encounter data:
+Here we read in the encounter data containing the observer, transect number, perpendicular distance from each mussel or cluster of mussels from the transect line, and the cluster size:
 ```{r}
 data("DistanceEncounter")
 head(DistanceEncounter)
 ```
-And read in the transect data:
+And now, we read in the transect data containing primary and secondary observers, the transect length, and transect number:
 ```{r}
 data("DistanceTransect")
 head(DistanceTransect)
 
+# order by transect number
 DistanceTransect    <- DistanceTransect[order(DistanceTransect$"Transect number"),]
 ```
 
 It is useful to construct some initial diagnostic plots to ensure  data were entered correctly and assumptions of distance sampling are met (e.g., detection declines monotonically with distance from the transect line). 
-```{r pressure, fig.cap="Diagnositic plot of the detection distance, the distance of each detection from the transect line.", fig.asp=0.7}
+```{r pressure, fig.cap="Figure 1. Diagnositic plot of the detection distance, the distance of each detection from the transect line.", fig.asp=0.7}
 hist(DistanceEncounter$distance, col="black", border="white",
      xlab='Distance of detection from transect (cm)', main="")
 ```
 
-Here we see a pattern that is consistent with our expectation - i.e., the number of detections  declines with distance from the transect line. Now we'll apply the distance survey analysis.
+Here we see a pattern that is consistent with our expectation - i.e., the number of detections  declines with distance from the transect line. 
 
 ## The analysis
 
-Here we use a helper function to format the data appropriately for the R package `MRDS`. 
+We first prepare the data for use with the R package `MRDS`, making use of a helper function `create.removal.Observer`. 
 
 ```{r, warning=F}
 library(mrds) #load the mrds package
 
+# Order the transects
 DistanceEncounter     <- DistanceEncounter[order(DistanceEncounter$`Transect #`),]
 
-DistanceEncounter     <- DistanceEncounter %>% mutate(detected = rep(1, dim(DistanceEncounter)[1]), object=1:dim(DistanceEncounter)[1]) 
+# Format distance data for use with mrds
+DistanceEncounter     <- DistanceEncounter %>% 
+        mutate(detected = rep(1, dim(DistanceEncounter)[1]),
+                                object=1:dim(DistanceEncounter)[1]) 
 distance.rem.dat      <- create.removal.Observer(transect.dat=DistanceTransect, obs.dat=DistanceEncounter) 
 
 ```
 
-Based on the diagnostic figure of detection distances we chose  to use the hazard rate model (`dsmodel=~cds(key="hr")`) to capture the drop-off of detection with distance. Alternative distance functions in the `mrds` package are the half-normal (`hn`), gamma function (`gamma`), and uniform (`unif`).
+Based on the relatively slow decline in detection with distance (Figure 1), we chose  to use the hazard rate model (`dsmodel=~cds(key="hr")`) to capture the drop-off of detection with distance. Alternative distance functions in the `mrds` package are the half-normal (`hn`), gamma function (`gamma`), and uniform (`unif`).
 ```{r, warning=F}
-distance.model  <- ddf(method="rem", dsmodel=~cds(key="hr"), mrmodel=~glm(formula=~1), data=distance.rem.dat, meta.data=list(width=100))
+distance.model  <- ddf(method="rem", dsmodel=~cds(key="hr"),
+                       mrmodel=~glm(formula=~1),
+                       data=distance.rem.dat,
+                       meta.data=list(width=100))
 
 print(summary(distance.model))
 ```
 
-The average probability of detecting a mussel by one of the observers is $\hat{P}=0.58$ with a standard error of $\sigma_\hat{P}=0.06$. We can also plot the  distance detection function. There are several possible diagnostic plots to look at. Below, we overlay the estimated detection model on the histogram of detection distances made by the two observers. 
+The average probability of detecting a mussel by one of the observers is $\hat{P}=0.58$ with a standard error of $\sigma_\hat{P}=0.06$.  Below, we overlay the estimated detection model on the histogram of detection distances made by the two observers. 
 ```{r, warning=F}
 plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 ```
 
-The variance in the total counts can be estimated using the design estimator, $\mathrm{var}(X) = \left(L \sum_{i}^n l_i (x_i/l_i - X/L)^2 \right)/(n-1)$. Below we calculate the estimated density and it's uncertainty by by using the output from the distance model.
+The variance in the total counts can be estimated using the design-based estimator, $\mathrm{var}(X) = \left(L \sum_{i}^n l_i (x_i/l_i - X/L)^2 \right)/(n-1)$. Below we calculate the estimated density and it's uncertainty by by using the output from the distance model.
 
 ```{r}
 area    <- DistanceTransect$`Transect length (if transect survey)` #length of transects
@@ -181,7 +199,7 @@ Book: [Buckland et al. (2015) Distance sampling: methods and applications.](http
 
 Tutorial: [distancesampling.org](http://distancesampling.org/R/index.html). Tutorials on distance sampling in R.
 
-Tutorial: [FishR](http://derekogle.com/fishR/examples/). Tutorial on depeletion sampling in R.
+Tutorial: [FishR](http://derekogle.com/fishR/examples/). Tutorial on depletion sampling in R.
 
 ### Files used in this tutorial {#links}
 
