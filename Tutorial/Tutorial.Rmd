@@ -51,7 +51,7 @@ To conduct the dependent double-observer  survey, 2 divers  survey 30-meter x 1-
 
 ## The data
 
-Data should be entered in a manner that ensures reliability. For this dataset, we entered data using Google Forms. This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We created a datasheet of detection events and a datasheetsheet that described each transect. The variable "Transect number" is a unique identifier for each transect that links these sheets. Below we print the first few lines from the dataframe of the detection events:
+Data should be entered in a manner that ensures reliability. For the datasets used here, we entered data using Google Forms which can be accessed [here](#GoogleForm). This software allowed us to check that no impossible values were entered (for example, transect lengths were numbers between 1 and 30 due to our design). We created a datasheet of detection events and a datasheetsheet that described each transect. The variable "Transect number" is a unique identifier for each transect that links these sheets. Below we print the first few lines from the dataframe of the detection events:
 
 ```{r}
 data(DoubleEncounter)
@@ -179,9 +179,9 @@ We get an estimate for $\hat{D}=$ `r round(Dhat, 2)` with a standard error of $\
 
 Book: [Buckland et al. (2015) Distance sampling: methods and applications.](https://www.springer.com/us/book/9783319192185)
 
-[distancesampling.org](http://distancesampling.org/R/index.html). Tutorials on distance sampling in R.
+Tutorial: [distancesampling.org](http://distancesampling.org/R/index.html). Tutorials on distance sampling in R.
 
-[FishR](http://derekogle.com/fishR/examples/). Tutorial on depeletion sampling in R.
+Tutorial: [FishR](http://derekogle.com/fishR/examples/). Tutorial on depeletion sampling in R.
 
 ### Files used in this tutorial {#links}
 
@@ -200,6 +200,26 @@ Data and functions that are available in the ZebraTutorial R package.
 [Double-observer survey transects](https://github.com/troutinthemilk/Zeebs-Season2/raw/master/Tutorial/TransectsDoubleTutorial.xlsx)
 
 [HelperFuncs.R](https://github.com/troutinthemilk/Zeebs-Season2/blob/master/Tutorial/ZebraTutorial/R/HelperFuncs.R)
+
+### Data sheets and data entry for conducting a new survey
+
+[Transect data sheet](https://drive.google.com/open?id=1-45nJezjGIyCkHm8C4yXOyYcd2LJt7PLVZ-p0HVkPfQ): used to record information associated with the surveyed transects.
+
+[Habitat data sheet](https://drive.google.com/open?id=10fc7y8jxiZuRhIgdySNxCemO76lYs2gk6TZWgpb8ts4): used to record habitat data along the transect. These data can be used to model variation in mussel density.
+
+[Dependent double-observer belt survey](https://drive.google.com/open?id=1FPQesSB9_FWfWLbkMWuVEsYQ1HlB9sMnREYqIUzlCm8): used to record observations of zebra mussels in dependent double-observer belt surveys.
+
+[Dependent double-observer distance survey](https://drive.google.com/open?id=1wRrX5L_RVaphaAXjygy5-pPpOAuY9c_CIXuNzTSwM34): used to record observations of zebra mussels in dependent double-observer distance surveys.
+
+### Google forms for data entry {#GoogleForm}
+
+[Transect data entry](https://drive.google.com/open?id=1fMAP4QSL-ae7r5CVf8oUkDv6Ag2jXPK-ruzT0Nh7UXk)
+
+[Habitat data entry](https://drive.google.com/open?id=1AjQ8CRUudThi1vMvMu8d8B4D7GjoktQY9WiLi5oQIEw)
+
+[Dependent double-observer belt survey data entry](https://drive.google.com/open?id=1JhnEW_DpCvRwW1akqnZpajxNl355rd0TBW7bL92KF14)
+
+[Dependent double-observer distance survey data entry](https://drive.google.com/open?id=1juKFanE6zK9-_A9Q5GxeyXFOY40NZtk9eRCR_KjDMCs)
 
 
 
