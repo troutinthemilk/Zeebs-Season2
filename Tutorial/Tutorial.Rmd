@@ -27,7 +27,7 @@ library(devtools) #this takes awhile to install so install from source if you do
 install_github("troutinthemilk/Zeebs-Season2/Tutorial/ZebraTutorial")
 ```
 
-The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To load the library type:
+The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To access the data and functions in this package type:
 
 ```{r, echo=TRUE, warning=F, message=F}
 library(ZebraTutorial)
@@ -44,7 +44,7 @@ Our goal is to estimate zebra mussel density in a lake and to quantify uncertain
 
 where $\hat{P}$ denotes the estimated probability of detecting a zebra mussel by at least one observer.
 
-The degree of uncertainty in our density estimate will depend on the variance of the counts among the different transects, $\var(x_i)$, and the variance in the estimated detection probability, $\mathrm{var}(\hat{P})$.
+The degree of uncertainty in our density estimate will depend on the variance of the counts among the different transects, $var(x_i)$, and the variance in the estimated detection probability, $\mathrm{var}(\hat{P})$.
 
 \begin{align}
   \mathrm{var}(\hat{D}) &= \hat{D}^2 \left(  \frac{\mathrm{var}(\sum_i^n  x_i)}{(\sum_i^n  x_i)^2} + \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right). \label{eq:varD}
