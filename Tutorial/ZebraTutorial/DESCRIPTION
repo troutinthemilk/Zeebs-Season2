@@ -6,4 +6,5 @@ Author: Jake Ferguson (troutinthemilk@gmail.com)
 Maintainer: Jake Ferguson <troutinthemilk@gmail.com>
 License: CC0
 RoxygenNote: 6.1.1
+LazyData: true
 
