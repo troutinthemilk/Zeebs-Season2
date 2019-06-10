@@ -4,11 +4,24 @@ output:
   prettydoc::html_pretty:
     theme: leonids
     highlight: github
+vignette: >
+  %\VignetteIndexEntry{ZebraTutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(tibble.width = Inf)
+
+library(ZebraTutorial)
 ```
 
 
@@ -24,7 +37,7 @@ If you use Rstudio you can also install the downloaded file by clicking the Pack
 
 ```{r, echo=T, eval=F}
 library(devtools) #this takes awhile to install so install from source if you don't want to bother
-install_github("troutinthemilk/Zeebs-Season2/Tutorial/ZebraTutorial")
+install_github("troutinthemilk/Zeebs-Season2/Tutorial/ZebraTutorial", build_vignettes = TRUE)
 ```
 
 The remainder of the tutorial assumes that you have been able to install this package. All the data and functions you will need to complete the tutorial are in this package. To access the data and functions in this package type:
@@ -65,7 +78,7 @@ data(DoubleEncounter)
 head(DoubleEncounter)
 ```
 
-Each row contains data from a unique detection event, with the name of the observer, the transect number, and the number of zebra mussels in the cluster (`size`).
+Each row contains data from a unique detection event, with the name of the observer (`Observer name`), the transect number (`Transect number`), and the number of zebra mussels in the cluster (`size`).
 
 We then read in the transect data containing the primary and secondary observers, the transect length, and transect number. We create new columns in the transect data that denote the observers' name and whether that observer was primary or secondary.
 ```{r}
@@ -86,7 +99,7 @@ removal.list <- create.removal(DoubleEncounter, DoubleTransect)
 
 ## The Analysis
 
-Here we apply the function `removal` to each transect separately, then combine the estimates by weighting by transect length. This function calculates the variance for us so we don't need to apply the variance formula.
+Here we apply the function `removal` to the combined transect counts. This function calculates the conditinal variance of the counts and the detection probabilty. We need to combine them to calculate the variance in density. 
 
 ```{r, warning=F, messages=F}
 
@@ -100,16 +113,67 @@ Nhat       <- remove.ests[1]
 Nhat.SE    <- remove.ests[2]
 
 # estimate of density along the transect
-Dhat       <- Nhat/sum(length.vec$length)
-Dhat.SE    <- Nhat.SE/sum(length.vec$length)
 
 # estimate of detection probability along the transect
 bp.hat      <- remove.ests[5]
 bpSE.phat   <- remove.ests[6]
 
+#we need to incorporate variation of detection and variation in the conditional counts into the the density estimate
+Dhat      <- Nhat/sum(length.vec$length)
+Dhat.SE   <- Dhat*sqrt((Nhat.SE^2/sum(removal.list)^2) + bpSE.phat/bp.hat^2)
+
 ```
 
 We get an estimate of density $\hat{D}=$ `r round(Dhat,2)` mussels per square meter with a standard error of `r round(Dhat.SE,2)`. We estimate the detection to be $\hat{P}=$ `r round(bp.hat,2)` with a standard error of `r round(bpSE.phat,2)`.
+
+
+```{r removalNotPooled, echo=F, eval=F}
+removal.list <- create.removal(DoubleEncounter, DoubleTransect, pool.transects = F)
+
+#get the length of each transect
+length.vec  <- DoubleTransect %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
+
+# now sum the results over all transects to estimate
+# population size at the transect level 
+remove.ests <- lapply(removal.list, removal, just.ests=TRUE)
+
+bN.hat <- sum(data.frame(remove.ests)[1,])
+bD.hat <- bN.hat/sum(length.vec)
+
+bSE.Nhat <- sqrt(sum(data.frame(remove.ests)[2,]^2, na.rm = TRUE))
+bSE.Dhat <- bSE.Nhat/sum(length.vec)#0.01341253
+
+bp.hat <- mean(unlist(data.frame(remove.ests)[5,]), na.rm = TRUE)
+bSE.phat <- sqrt(mean(unlist(data.frame(remove.ests)[6,])^2, na.rm = TRUE))
+
+Dhat.SE <- sqrt(bSE.Dhat^2 + bD.hat^2*bSE.phat/bp.hat^2) #0.05138855
+```
+
+```{r removalDesign, echo=F, eval=F}
+
+removal.list <- create.removal(DoubleEncounter, DoubleTransect, pool.transects=F) 
+length.vec  <- DoubleTransect %>% group_by(`Transect number`) %>% summarize(length = first(length)) 
+length.vec <- length.vec$length
+
+# now sum the results over all transects to estimate
+# population size at the transect level 
+#remove.ests <- lapply(removal.list, removal, just.ests=TRUE)
+
+#area    <- DistanceTransect$`Transect length (if transect survey)` #length of transects
+counts  <- unlist(lapply(removal.list, sum))
+n       <- length(length.vec) #total number of transects
+w       <- 1 #width of transects
+Phat    <- 0.8082192  #from distance model
+VarP    <- 0.06808811^2 #from calculation above
+
+#get density esimate and its standard error.
+Dhat    <- sum(counts)/(sum(area)*Phat)
+VarX    <- sum(area)*sum(area*(counts/area - sum(counts)/sum(area))^2)/(n-1)
+  
+VarD <- Dhat^2*(VarX/sum(counts)^2 + VarP/Phat^2)
+
+Dhat.SE <- sqrt(VarD) #0.07925382
+```
 
 
 # Dependent Double-Observer Survey with Distance Data
@@ -118,12 +182,13 @@ The dependent double-observer survey with distance data is  similar to the depen
 
 ## The Data
 
-Here we read in the encounter data containing the observer, transect number, perpendicular distance from each mussel or cluster of mussels from the transect line, and the cluster size:
+Here we read in the encounter data containing the observer (`Observer name`), transect number (`Transect #`), perpendicular distance from each mussel or cluster of mussels from the transect line (`distance`), and the cluster size (`size`):
 ```{r}
 data("DistanceEncounter")
 head(DistanceEncounter)
 ```
 And now, we read in the transect data containing primary and secondary observers, the transect length, and transect number:
+
 ```{r}
 data("DistanceTransect")
 head(DistanceTransect)

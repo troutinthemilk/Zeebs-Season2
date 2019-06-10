@@ -7,4 +7,7 @@ Maintainer: Jake Ferguson <troutinthemilk@gmail.com>
 License: CC0
 RoxygenNote: 6.1.1
 LazyData: true
-
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

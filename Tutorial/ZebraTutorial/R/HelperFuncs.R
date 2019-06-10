@@ -20,15 +20,14 @@ library(mrds)
 #' create.removal.Observer(transect.dat=transect.dat, obs.dat=distance.dat)
 create.removal.Observer <- function(transect.dat, obs.dat) {
 
-  primary   <- transect.dat$`Primary observer (double observer survey)`
-  secondary <- transect.dat$`Secondary observer (double observer survey)`
+  primary   <- transect.dat$`Primary observer`
+  secondary <- transect.dat$`Secondary observer`
 
   obs.dat <- obs.dat %>% mutate(primary=primary[obs.dat$`Transect #`- min(obs.dat$`Transect #`)+1], secondary=secondary[obs.dat$`Transect #`- min(obs.dat$`Transect #`)+1], observer = rep(1, dim(obs.dat)[1]))
 
   for(i in 1:dim(obs.dat)[1]) {
     curr.tran             <- obs.dat[i,]$`Transect #`
-    #obs.dat[i,]$observer  <- as.numeric(obs.dat[i,]$`Observer name` == transect.dat[transect.dat$`Transect number` == curr.tran,]$`Primary observer (double observer survey)`)
-    obs.dat[i,]$observer  <- as.numeric(obs.dat[i,]$`Observer name` == transect.dat[transect.dat$`Transect number` == curr.tran,]$`Primary observer (double observer survey)`)
+    obs.dat[i,]$observer  <- as.numeric(obs.dat[i,]$`Observer name` == transect.dat[transect.dat$`Transect number` == curr.tran,]$`Primary observer`)
   }
 
   #all observations made by secondary that were not made by primary
