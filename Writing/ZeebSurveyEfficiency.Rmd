@@ -125,12 +125,13 @@ kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Design", "Transects
 
 
 ```{r densEstFig, echo=F, fig.asp=0.4, fig.cap="Density estimates and standard errors. These double observer SE's in Little Birch  look way too low. Investigate."}
+dataf <- data.frame(Lake=rep(c("Lake Florida", "Lake Burgan", "Little Birch Lake"),3), Design=c(rep("Quadrat", 3), rep("Double",3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est.subset$Dhat, LF.double.est$Dhat, LB.double.est$Dhat, LBL.double.est$Dhat, LF.distance.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est.subset$Dhat.se, LF.double.est$Dhat.se, LB.double.est$Dhat.se, LBL.double.est$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
 
-dataf <- data.frame(Lake=rep(c("Lake Florida", "Lake Burgan", "Little Birch Lake"),3), Design=c(rep("Quadrat", 3), rep("Double",3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est.subset$Dhat, LF.double.est$Dhat, LB.double.est$Dhat, LBL.double.est$Dhat, LF.double.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est.subset$Dhat.se, LF.double.est$Dhat.se, LB.double.est$Dhat.se, LBL.double.est$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
+#dataf <- data.frame(Lake=rep(c("Lake Florida \n (low density)", "Lake Burgan \n (medium density)", "Little Birch Lake \n (high density)"),2), Design=c(rep("Quadrat", 3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est.subset$Dhat, LF.distance.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est.subset$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
 
 dataf$Lake <- relevel(dataf$Lake, "Lake Florida")
 surveyTypeCols <- wes_palette("Darjeeling1")
-ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Density estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
+ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Densit estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
 
 #print(p)
 
@@ -222,6 +223,9 @@ load('TimeBudgetEst.Rdata')
 
 
 ```{R timeFig, echo=F, fig.cap="The impact of transect distance and detection rate on on the setup and search time. Predictinos are of the fixed effects. Bands represent 95% confidence intervals of the predicted values.", warning=F, message=F, fig.asp=0.4}
+#length.pred <- subset(length.pred, group != "Double")
+#rate.pred <- subset(rate.pred, group != "Double")
+#length.pred$group <- droplevels(length.pred$group)
 
 p1 <- ggplot(subset(length.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
 
@@ -696,16 +700,16 @@ for(i in 1:length(D.vec)) {
 }
 
 cv.vec <- c(cv.dist.est, cv.dub.est, cv.quad.est)
-plot(D.vec, cv.dist.est, log="xy", lwd=2, type='l', xlab="Density", ylab="Coefficient of variation", main=expression(paste("Lake Florida (", alpha, "=3.92)")), col='white', ylim=c(0.1,10))
+plot(D.vec, cv.dist.est, log="xy", lwd=2, type='l', xlab="Density", ylab="Coefficient of variation", main=expression(paste("Lake Florida (", alpha, "=3.92)")), col='white', ylim=c(0.1,10), cex.lab=1.2)
 rug(c(LF.quadrat.est$Dhat, LF.distance.est$Dhat, LF.double.est$Dhat), ticksize=0.1, side=1, lwd=2)
-lines(D.vec, cv.dub.est, lwd=2, col="grey")
-lines(D.vec, cv.quad.est, lwd=2, col="black")
+#lines(D.vec, cv.dub.est, lwd=2, col="grey")
+lines(D.vec, cv.quad.est, lwd=2, col="cornflowerblue")
+#lines(D.vec, cv.dist.est, lwd=2, col="brown")
 
-lines(D.vec, cv.dist.est, lwd=2, col="brown")
-
-lines(D.vec, cv.dub.opt, lwd=2, col="grey", lty=2)
-lines(D.vec, cv.dist.opt, lwd=2, col="brown", lty=2)
-legend('topright', legend=c("Double-observer", "Distance", "Quadrat"), col=c('grey', 'brown', 'black'), lwd=2, lty=c(1,1,1))
+#lines(D.vec, cv.dub.opt, lwd=2, col="grey", lty=2)
+lines(D.vec, cv.dist.opt, lwd=2, col="grey")#, lty=2)
+#legend('topright', legend=c("Double-observer", "Distance", "Quadrat"), col=c('grey', 'brown', 'black'), lwd=2, lty=c(1,1,1))
+legend('topright', legend=c( "Distance", "Quadrat"), col=c('grey', 'cornflowerblue'), lwd=2, lty=c(1,1))
 
 #legend('topright', legend=c("Distance", "Double-observer", "Quadrat"), col=c('black', 'red', 'cornflowerblue'), lwd=2)
 
@@ -728,15 +732,15 @@ for(i in 1:length(D.vec)) {
 }
 
 cv.vec <- c(cv.dist.est, cv.dub.est, cv.quad.est)
-plot(D.vec, cv.dist.est, log="xy", lwd=2, type='l', xlab="Density", ylab="Coefficient of variation", ylim=c(0.01,10), main=expression(paste("Lake Burgen (", alpha, "=0.30)")), col="white")
+plot(D.vec, cv.dist.est, log="xy", lwd=2, type='l', xlab="Density", ylab="Coefficient of variation", ylim=c(0.01,10), main=expression(paste("Lake Burgen (", alpha, "=0.30)")), col="white", cex.lab=1.2)
 rug(c(LB.quadrat.est$Dhat, LB.distance.est$Dhat, LB.double.est$Dhat), ticksize=0.1, side=1, lwd=2)
-lines(D.vec, cv.dub.est, lwd=2, col="grey")
-lines(D.vec, cv.quad.est, lwd=2, col="black")
+#lines(D.vec, cv.dub.est, lwd=2, col="grey")
+lines(D.vec, cv.quad.est, lwd=2, col="cornflowerblue")
 #lines(D.vec, cv.dub.opt, lwd=2, col="orangered3", lty=2)
-lines(D.vec, cv.dist.est, lwd=2, col="brown")
+#lines(D.vec, cv.dist.est, lwd=2, col="grey")
 
-lines(D.vec, cv.dub.opt, lwd=2, col="grey", lty=2)
-lines(D.vec, cv.dist.opt, lwd=2, col="brown", lty=2)
+#lines(D.vec, cv.dub.opt, lwd=2, col="grey", lty=2)
+lines(D.vec, cv.dist.opt, lwd=2, col="grey")#, lty=2)
 
 
 
@@ -760,15 +764,16 @@ for(i in 1:length(D.vec)) {
 }
 
 cv.vec <- c(cv.dist.est, cv.dub.est, cv.quad.est)
-plot(D.vec, cv.dist.est, log="xy", lwd=2, type='l', xlab="Density", ylab="Coefficient of variation", , ylim=c(0.01, 10), main=expression(paste("Little Birch Lake (", alpha, "=0.90)")), col='white')
+plot(D.vec, cv.dist.est, log="xy", lwd=2, type='l', xlab="Density", ylab="Coefficient of variation", ylim=c(0.01, 10), main=expression(paste("Little Birch Lake (", alpha, "=0.90)")), col='white', cex.lab=1.2)
 rug(c(LBL.quadrat.est$Dhat, LBL.distance.est$Dhat, LBL.double.est$Dhat), ticksize=0.1, side=1, lwd=2)
-lines(D.vec, cv.dub.est, lwd=2, col="grey")
-lines(D.vec, cv.quad.est, lwd=2, col="black")
-lines(D.vec, cv.dist.est, lwd=2, col="brown")
+#lines(D.vec, cv.dub.est, lwd=2, col="grey")
+lines(D.vec, cv.quad.est, lwd=2, col="cornflowerblue")
+#lines(D.vec, cv.dist.est, lwd=2, col="brown")
 #legend('topright', legend=c("Distance", "Double-observer", "Quadrat"), col=c('black', 'red', 'cornflowerblue'), lwd=2)
 
-lines(D.vec, cv.dub.opt, lwd=2, col="grey", lty=2)
-lines(D.vec, cv.dist.opt, lwd=2, col="brown", lty=2)
+#lines(D.vec, cv.dub.opt, lwd=2, col="grey", lty=2)
+lines(D.vec, cv.dist.opt, lwd=2, col="grey")#, lty=2)
+
 
 
 ```
@@ -804,12 +809,13 @@ b <- v[2,1]/v[1,1]
 a <- mean(y) - mean(x)*b
 
 par(mfrow=c(1,2))
-plot(x, y, xlab="Aislyn's counts", ylab="Austen's counts", pch=19, col=rgb(0,0,0, 0.5), xlim=c(0,80), ylim=c(0, 80))
+plot(x, y, xlab="Diver 1 counts", ylab="Diver 2 counts", pch=19, col=rgb(0,0,0, 0.5), xlim=c(0,80), ylim=c(0, 80))
 abline(0, 1, col='grey', lwd=1, lty=2)
 
 resid <- y - (a*x + b)
 plot(x, resid, pch=19, col=rgb(0,0,0, 0.5), xlab="Aislyn's counts", ylab="Residuals")
-
+abline(0, 1, col='grey', lwd=1, lty=2)
+abline(0, -1, col='grey', lwd=1, lty=2)
 ```
 
 The residual variance in the counts (from PCA but could also just do one to one line, the result is about the same) is about 32, though this error structure is clearly wrong. Here I add that variation to the total variance in counts from the negative binomial model so that $var(X) = \mu + \alpha \mu^2 + 32$. This is completely ad-hoc but should give us an idea of the impact of measurement error.
@@ -904,7 +910,7 @@ Above we say that the optimal strategy switches as a function of density and the
 ```{r optStrat, echo=F, fig.asp=1, out.width = '50%', fig.cap="\\label{fig:optStrat}Illustration of the optimal strategy (double observer (gray) or quadrat survey with perfect detection (black)). We use the time budget parameters from Lake  Burgen and a total time budget of 8 hours."}
 library(akima)
 tT <- 8
-num <- 100
+num <- 25
 D.vec <- 10^seq(-2, log10(25), length.out=num)
 alpha.vec <- seq(0, 5, length.out=num)
 
@@ -926,17 +932,38 @@ for(i in 1:length(D.vec)) {
 }
 
 
-image(D.vec, alpha.vec, opt.strat, col=c('black', 'grey'), xlab="Density", ylab=expression(paste("Overdispersion (", alpha, ")")), log="x")
+image(D.vec, alpha.vec, opt.strat, col=c('cornflowerblue', 'grey'), xlab="Density", ylab=expression(paste("Overdispersion (", alpha, ")")), log="x")
 
-phi <- seq(0, 1, length.out=100)
-p <- 1 - sqrt(1 - phi)
-plot(phi, (1 - p)^3*p/phi^3)
+#phi <- seq(0, 1, length.out=100)
+#p <- 1 - sqrt(1 - phi)
+#plot(phi, (1 - p)^3*p/phi^3)
 
 ```
 
 
 At low density and at low levels of overdispersion the optimal strategy is to use double observer surveys, at higher levels the strategy switches to using quadrat surveys.
 
+```{r optSearchtime, echo=F, fig.asp=1, out.width = '50%', fig.cap="\\label{fig:optStrat}Illustration of the optimal search time parameters from Lake  Burgen and a total time budget of 8 hours."}
+library(akima)
+tT <- 16
+num <- 100
+D.vec <- seq(0.01, 10, length.out=num)#10^seq(-2, log10(10), length.out=num+10)
+alpha.vec <- seq(0, 5, length.out=num)
 
+
+dist.opt.ts <- matrix(NA, length(D.vec), length(alpha.vec))
+
+
+for(i in 1:length(D.vec)) {
+  for(j in 1:length(alpha.vec)) {
+    dist.opt.ts[i,j] <- optimize(cv.doub.sample, interval=c(0, tT), tol=1e-10, tT=tT, a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.vec[j], tH=th.dist, t0=t0.dist)$objective
+  }
+}
+
+levels =100
+filled.contour(D.vec, alpha.vec, dist.opt.ts, main="Optimal search time", nlevels=levels, plot.axes = { contour(D.vec, alpha.vec, dist.opt.ts, nlevels = 7, drawlabels = TRUE, axes = FALSE, frame.plot = FALSE, add = TRUE, col="white"); axis(1); axis(2) }, col = colorRampPalette(brewer.pal(6, "YlGnBu"))(levels+40), xlab="Density",  ylab=expression(paste("Overdispersion (", alpha, ")")), cex.lab=1.2)
+
+
+```
 
 # Some literature
