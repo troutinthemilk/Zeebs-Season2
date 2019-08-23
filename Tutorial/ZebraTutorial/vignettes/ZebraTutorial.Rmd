@@ -238,8 +238,7 @@ The average probability of detecting a mussel by at least one observer is $\hat{
 plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 ```
 
-The variance in the total counts can be estimated using the `dht` function in the `mrds` package. We need to create two tables to link the survey effort and surveyed area to the actual count data. This is done below, then we run the `dht` function to get the density and it's standard error.
-
+The variance in the total counts can be estimated using the `dht` function in the `mrds` package. We need to create two tables to link the survey effort and surveyed area to the actual count data. This is done below, then we run the `dht` function to get the density and it's standard error. Below we create these tables, then get the density estimate.
 ```{r}
 w       <- 2 #width of transects
 area    <- data.frame(Region.Label=1, Area=sum(DistanceTransect$`Transect length`)*w)
@@ -252,7 +251,7 @@ density.est <- dht(distance.model, region.table=area, sample.table=samples)
 print(density.est)
 ```
 
-Reading off the output table We get an estimate for $\hat{D}=0.25$ with a standard error of $0.06$.
+The output from `dht` provides two density estimates. The first estimate is for the density of clusters, the second estimate is for the total density of individuals. We want individual density, reading off the output table we get an estimate of $\hat{D}=0.29$ with a standard error of $0.08$.
 
 ## Resources
 
