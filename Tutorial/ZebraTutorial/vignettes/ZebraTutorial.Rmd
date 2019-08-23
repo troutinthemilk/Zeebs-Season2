@@ -199,7 +199,7 @@ DistanceTransect    <- DistanceTransect[order(DistanceTransect$"Transect number"
 It is useful to construct some initial diagnostic plots to ensure  data were entered correctly and assumptions of distance sampling are met (e.g., detection declines monotonically with distance from the transect line). 
 ```{r pressure, fig.cap="Figure 1. Diagnositic plot of the detection distance, the distance of each detection from the transect line.", fig.asp=0.7}
 hist(DistanceEncounter$distance, col="black", border="white",
-     xlab='Distance of detection from transect (cm)', main="")
+     xlab='Distance of detection from transect (m)', main="")
 ```
 
 Here we see a pattern that is consistent with our expectation - i.e., the number of detections  declines with distance from the transect line. 
@@ -220,6 +220,7 @@ DistanceEncounter     <- DistanceEncounter %>%
                                 object=1:dim(DistanceEncounter)[1]) 
 distance.rem.dat      <- create.removal.Observer(transect.dat=DistanceTransect, obs.dat=DistanceEncounter) 
 
+
 ```
 
 Based on the relatively slow decline in detection with distance (Figure 1), we chose  to use the hazard rate model (`dsmodel=~cds(key="hr")`) to capture the drop-off of detection with distance. Alternative distance functions in the `mrds` package are the half-normal (`hn`), gamma function (`gamma`), and uniform (`unif`).
@@ -227,7 +228,7 @@ Based on the relatively slow decline in detection with distance (Figure 1), we c
 distance.model  <- ddf(method="rem", dsmodel=~cds(key="hr"),
                        mrmodel=~glm(formula=~1),
                        data=distance.rem.dat,
-                       meta.data=list(width=100))
+                       meta.data=list(width=1))
 
 print(summary(distance.model))
 ```
@@ -237,27 +238,21 @@ The average probability of detecting a mussel by at least one observer is $\hat{
 plot(distance.model, which=2, showpoints=FALSE, lwd=2)
 ```
 
-The variance in the total counts can be estimated using the design-based estimator, $\mathrm{var}(X) = \left(L \sum_{i}^n l_i (x_i/l_i - X/L)^2 \right)/(n-1)$. Below we calculate the estimated density and it's uncertainty by by using the output from the distance model.
+The variance in the total counts can be estimated using the `dht` function in the `mrds` package. We need to create two tables to link the survey effort and surveyed area to the actual count data. This is done below, then we run the `dht` function to get the density and it's standard error.
 
 ```{r}
-area    <- DistanceTransect$`Transect length` #length of transects
-counts  <- table(DistanceEncounter$`Transect #`) #count in each transect
-n       <- length(area) #total number of transects
 w       <- 2 #width of transects
-Phat    <- 0.5312114 #from distance model
-VarP    <- 0.0659363^2 #from distance model
+area    <- data.frame(Region.Label=1, Area=sum(DistanceTransect$`Transect length`)*w)
+counts  <- table(DistanceEncounter$`Transect #`) #count in each transect
+samples <- data.frame(Region.Label=rep(1, length(counts)), Sample.Label=1:length(counts), Effort=DistanceTransect$`Transect length`)
 
-#get density esimate and its standard error.
-Dhat    <- sum(counts)/(w*sum(area)*Phat)
-VarX    <- sum(area)*sum(area*(counts/area - sum(counts)/sum(area))^2)/(n-1)
+density.est <- dht(distance.model, region.table=area, sample.table=samples)
 
-seNL <- sqrt( n/(n-1)/sum(area)^2*sum(area^2*(counts/area - sum(counts)/sum(area))^2) )
 
-cvNL <- seNL/(sum(counts)/sum(area))
-VarD <- Dhat^2*(cvNL^2 + VarP/Phat^2)
+print(density.est)
 ```
 
-We get an estimate for $\hat{D}=$ `r round(Dhat, 2)` with a standard error of `r round(sqrt(VarD), 2)`.
+Reading off the output table We get an estimate for $\hat{D}=0.25$ with a standard error of $0.06$.
 
 ## Resources
 

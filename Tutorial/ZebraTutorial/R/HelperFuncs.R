@@ -66,6 +66,8 @@ create.removal.Observer <- function(transect.dat, obs.dat) {
     obs.dat <- obs.dat[-which(is.na(obs.dat$size)),]
   }
 
+  obs.dat <- obs.dat %>% mutate(Region.Label=rep(1, dim(obs.dat)[1])) %>%  rename(Sample.Label = `Transect #`)
+
   return(obs.dat)
 
 }
