@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="178.8609mm"
+   height="98.850082mm"
+   viewBox="0 0 178.86091 98.850086"
+   version="1.1"
+   id="svg17464"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="PrecisionTradeoffs.svg"
+   inkscape:export-filename="/home/troutinthemilk/Dropbox/Work/Zeebs-Season2/Figures/PrecisionTradeoffs.png"
+   inkscape:export-xdpi="500"
+   inkscape:export-ydpi="500">
+  <defs
+     id="defs17458" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="325.92902"
+     inkscape:cy="146.44127"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="2560"
+     inkscape:window-height="1403"
+     inkscape:window-x="1600"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata17461">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-9.2756748,-94.327887)">
+    <path
+       style="fill:none;stroke:#ff4920;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 167.58219,177.7485 C 130.07466,175.02579 53.040525,178.85584 35.101545,110.65773"
+       id="path18033-0"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 25.324405,94.971726 V 179.82738 H 161.01786"
+       id="path18009"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.76111126px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="68.980652"
+       y="191.54465"
+       id="text18013"><tspan
+         sodipodi:role="line"
+         id="tspan18011"
+         x="68.980652"
+         y="191.54465"
+         style="font-size:7.76111126px;stroke-width:0.26458332">Survey speed</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.76111126px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="-167.15468"
+       y="14.831236"
+       id="text18013-3"
+       transform="rotate(-90)"><tspan
+         sodipodi:role="line"
+         id="tspan18011-6"
+         x="-167.15468"
+         y="14.831236"
+         style="font-size:7.76111126px;stroke-width:0.26458332">Estimator precision</tspan></text>
+    <path
+       style="fill:none;stroke:#30a0c9;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 34.206845,177.7485 c 37.507527,-2.72271 114.541665,1.10734 132.480645,-67.09077"
+       id="path18033"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="51.300835"
+       y="97.358192"
+       id="text18013-7"><tspan
+         sodipodi:role="line"
+         id="tspan18011-5"
+         x="51.300835"
+         y="97.358192"
+         style="font-weight:bold;font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332">Too slow</tspan><tspan
+         sodipodi:role="line"
+         x="51.887878"
+         y="102.64986"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18209">low precision in <tspan
+   style="font-weight:bold;fill:#ff4920"
+   id="tspan18228">counts</tspan> </tspan><tspan
+         sodipodi:role="line"
+         x="51.887878"
+         y="107.94153"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18055">high precision in <tspan
+   style="font-weight:bold;fill:#30a0c9"
+   id="tspan18230">detection</tspan> </tspan><tspan
+         sodipodi:role="line"
+         x="51.300835"
+         y="113.23319"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18053" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="163.65022"
+       y="98.109604"
+       id="text18013-7-3"><tspan
+         sodipodi:role="line"
+         id="tspan18011-5-5"
+         x="163.65022"
+         y="98.109604"
+         style="font-weight:bold;font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332">Too fast</tspan><tspan
+         sodipodi:role="line"
+         x="164.23726"
+         y="103.40127"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18207">high precision in <tspan
+   style="font-weight:bold;fill:#ff4920"
+   id="tspan18232">counts</tspan> </tspan><tspan
+         sodipodi:role="line"
+         x="164.23726"
+         y="108.69294"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18055-6">low precision in <tspan
+   style="font-weight:bold;fill:#30a0c9"
+   id="tspan18234">detection</tspan> </tspan><tspan
+         sodipodi:role="line"
+         x="163.65022"
+         y="113.9846"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18053-2" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#4d4d4d;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="101.52813"
+       y="148.0314"
+       id="text18013-7-3-9"><tspan
+         sodipodi:role="line"
+         id="tspan18011-5-5-1"
+         x="101.52813"
+         y="148.0314"
+         style="font-weight:bold;font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332">Just right</tspan><tspan
+         sodipodi:role="line"
+         x="102.11517"
+         y="153.32307"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18211">good precision in <tspan
+   style="font-weight:bold;fill:#ff4920"
+   id="tspan18236">counts</tspan> </tspan><tspan
+         sodipodi:role="line"
+         x="102.11517"
+         y="158.61473"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18105">good precision in <tspan
+   style="font-weight:bold;fill:#30a0c9"
+   id="tspan18238">detection</tspan> </tspan><tspan
+         sodipodi:role="line"
+         x="101.52813"
+         y="163.9064"
+         style="font-size:4.23333311px;line-height:0;text-align:center;text-anchor:middle;fill:#4d4d4d;stroke-width:0.26458332"
+         id="tspan18053-2-7" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="98.415543"
+       y="172.12611"
+       id="text18111"><tspan
+         sodipodi:role="line"
+         id="tspan18109"
+         x="98.415543"
+         y="172.12611"
+         style="font-size:11.28888893px;fill:#333333;stroke-width:0.26458332">*</tspan></text>
+  </g>
+</svg>

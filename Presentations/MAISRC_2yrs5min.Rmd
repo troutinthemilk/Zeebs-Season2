@@ -1,0 +1,192 @@
+---
+title: "Cost-effective monitoring of lakes newly infested with zebra mussels: 16 months in 5 minutes"
+author: | 
+  | Jake Ferguson, Michael McCartney, and John Fieberg
+  |
+  | Department of Fisheries, Wildlife, and Conservation Biology
+  | Minnesota Aquatic Invasive Species Research Center
+date: "11/27/2018"
+output: 
+  ioslides_presentation: 
+    incremental: true
+    widescreen: true
+    transition: faster
+    logo: ../Figures/MAISRC_logo.png
+    css: style.css
+  slidy_presentation: default
+  beamer_presentation:
+    includes:
+      in_header: mypreamble.tex
+---
+
+## How do we reliably count zebra mussels at low densities?
+
+\begincols
+  \begincol{.38\textwidth}
+```{r, out.width="100%", fig.align = "center", echo=F}
+knitr::include_graphics("../Figures/IMG_2591.JPG")
+```
+\footnotesize \textcolor{gray}{photo: Naomi Blinick}
+  \endcol
+\begincol{.68\textwidth}
+\begin{itemize}
+\item Assess control efficacy
+\item Determine conditions that promote growth
+\end{itemize}
+  \endcol
+\endcols
+
+## Distance sampling: an approach for low densities
+
+```{r, out.width="60%", fig.align = "center", echo=F}
+knitr::include_graphics("../Figures/DistanceSampling.png")
+```
+
+
+## Distance and detectability
+
+```{r, out.width = "65%", fig.align = "center", echo=F}
+knitr::include_graphics("../Figures/Fig3_Burgan.pdf")
+```
+
+
+## The payoff
+${\color{red} X}$: is the number of zebra mussels detected
+
+$\color{blue} A$: is the amount of area surveyed
+
+$\color{orange} P$: is the detection probability of detecting a zebra mussel ($P = 0.3$)
+
+- Observed density: $\frac{\color{red}X}{\color{blue}A} = 0.08$ (SE =$0.01)$
+
+- Estimated density: $\frac{\color{red}X}{\color{orange}P\,\color{blue}A} = 0.25$ (SE =$0.09)$
+
+## What we  have learned from season 1
+
+\begin{itemize}
+\item Zebra mussels are tougher to count than we expected
+\begin{itemize}
+\item Detection varies between observers
+\end{itemize}
+\item Spent alot of time searching for candidate lakes
+\item Double-observer surveys are required
+\end{itemize}
+
+ 
+```{r, echo=F, warning=F, message=F}
+library(MASS)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(kableExtra)
+library(RColorBrewer)
+library(wesanderson)
+
+load('../Writing/DensEst.Rdata')
+load('../Writing/TimeBudgetEst.Rdata')
+```
+
+
+## Should we survey fast and reckless or slow and deliberate?
+
+```{r, out.width = "80%", fig.align = "center", echo=F}
+knitr::include_graphics("../Figures/DistanceQuadratSampling.png")
+```
+
+
+## Lake surveys: summer 2018
+
+```{r, out.width = "100%", fig.align="center", echo=F}
+knitr::include_graphics("../Figures/Fig1_Lakes.png")
+```
+
+
+## Time to perform transect setup & search
+
+```{r, echo=F, out.width="100%", fig.asp=0.4}
+surveyTypeCols <- wes_palette("Darjeeling1")
+
+p1 <- ggplot(subset(length.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5), text=element_text(size=16), panel.spacing = unit(2, "lines")) 
+
+p2 <- ggplot(subset(length.pred, Type=="Encounter time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="", title="Search time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5), text=element_text(size=16), panel.spacing = unit(2, "lines")) 
+
+p3 <- ggplot(rate.pred, aes(x, predicted/60, group=group, color=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Detection rate", y="", title="Search time") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5), text=element_text(size=16), panel.spacing = unit(2, "lines")) 
+
+grid.arrange(p1, p2, p3, nrow=1, ncol=3, widths=c(8, 8, 12))
+
+```
+
+
+
+## Impact of the time budget on estimates
+```{r, echo=F, out.width="100%", fig.asp=0.4, fig.align="center"}
+
+totalPrec.df <- totalTime.df
+origN.vec    <- c(rep(15, 30), rep(15, 30), rep(4, 15), rep(4, 15))
+origSE.vec   <- c(rep(LF.distance.est$Dhat.se, 15), rep(LF.quadrat.est$Dhat.se, 15), rep(LB.distance.est$Dhat.se, 15), rep(LB.quadrat.est$Dhat.se, 15), rep(LBL.distance.est$Dhat.se, 15), rep(LBL.quadrat.est.subset$Dhat.se, 15))
+origCV.vec   <- c(rep(LF.distance.est$Dhat.se/LF.distance.est$Dhat, 15), rep(LF.quadrat.est$Dhat.se/LF.quadrat.est$Dhat, 15), rep(LB.distance.est$Dhat.se/LB.distance.est$Dhat, 15), rep(LB.quadrat.est$Dhat.se/LB.quadrat.est$Dhat, 15), rep(LBL.distance.est$Dhat.se/LBL.distance.est$Dhat, 15), rep(LBL.quadrat.est.subset$Dhat.se/LBL.quadrat.est.subset$Dhat, 15))
+
+totalPrec.df <- totalPrec.df %>% mutate(SE=origSE.vec*sqrt(origN.vec/N), CV=origCV.vec*sqrt(origCV.vec/N))
+
+ggplot(totalPrec.df, aes(x=Time/60^2, y=CV, colour=Design)) + geom_line(size=1.5) + facet_wrap(~Lake, ncol=3, scale="free_x") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + labs(x="Time (hours)", y=expression(paste("Density precision ", group("(", hat(sigma)/hat(D), ")"))) ) + theme(legend.title=element_blank(), text=element_text(size=20), panel.spacing = unit(2, "lines")) 
+
+```
+
+
+## What we have learned from season 2
+
+\begin{itemize}
+\item At lower densities \textbf{distance sampling} is an attractive approach
+\begin{itemize}
+\item At higher densities \textbf{quadrat surveys} are more efficient
+\end{itemize}
+\item Still working on exploring how survey area and efficiency trade off more generally
+\end{itemize}
+
+
+## Acknowledgements
+
+\begincols
+  \begincol{.48\textwidth}
+
+Naomi Blinick
+
+Leslie  Schroeder
+
+Sarah Baker
+
+Aislyn Keyes
+
+Austin Hilding
+
+Thomas Ostendorf
+  
+Kylie Cattoor
+
+Keegan Lund
+
+  \endcol
+\begincol{.48\textwidth}
+
+John Fieberg
+
+Michael McCartney
+
+Steve McComas
+
+Rich Rezanka 
+
+Tom Jones
+  \endcol
+\endcols
+
+```{r, out.width = "20%", fig.align="center", echo=F}
+knitr::include_graphics("../Figures/TrustFund.jpg") 
+```
+
+```{r, out.width = "35%", fig.align="center", echo=F}
+knitr::include_graphics("../Figures/MAISRC_logo.png")
+```
+
+* Contact me: Jake Ferguson (jakeferg@umn.edu)
+
