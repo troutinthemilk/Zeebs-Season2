@@ -121,6 +121,18 @@ knitr::include_graphics("../Figures/AustenDistance02.png")
 
 </div>
 
+## Other resources
+
+```{r, out.width = '70%', fig.align = "center", echo=F}
+knitr::include_graphics("../Figures/Youtube.png") #show Burgan map and histogram
+```
+<center>
+Video tutorial: https://youtu.be/E3ui8SVeBC0
+
+Analysis tutorial: https://zebramusselsurveys.netlify.com/tutorial
+</center>
+
+
 ## Acknowledgements
 <div class="columns-2">
 
@@ -150,6 +162,5 @@ Keegan Lund
 
 
 </div>
-## Other resources
 
 

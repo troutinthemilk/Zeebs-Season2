@@ -131,7 +131,7 @@ dataf <- data.frame(Lake=rep(c("Lake Florida", "Lake Burgan", "Little Birch Lake
 
 dataf$Lake <- relevel(dataf$Lake, "Lake Florida")
 surveyTypeCols <- wes_palette("Darjeeling1")
-ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Densit estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
+ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Density estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
 
 #print(p)
 
@@ -194,14 +194,19 @@ phat.se.vec <- c(LF.distance.est$phat.se, LF.double.est$phat.se, LB.distance.est
 ss.vec      <- c(sum(LF.distance.est$Detections), sum(LF.double.est$Detections), sum(LB.distance.est$Detections), sum(LB.double.est$Detections), sum(LBL.distance.est$Detections), sum(LBL.double.est$Detections))
 
 par(mar=c(5.1, 6.5, 4.1, 2.1))
-plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=phat.se.vec, liw=phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=col.vec, pch=19, lwd=2, cex=2, sfrac=0, cex.lab=1.3, ylim=c(0,1))
-abline(h=mean(phat.vec[c(1,3,5)]), col=col.vec[1], lty=3)
-abline(h=mean(phat.vec[c(2,4,6)]), col=col.vec[2], lty=3)
-axis(1, at=c(1,2,3), labels=c("Florida", "Burgan", "Little Birch"))
+
+plotCI(x=c(1,1, 2,2, 3,3) + c(-0.1, 0.1), y=phat.vec, uiw=phat.se.vec, liw=phat.se.vec, xaxt = 'n', ylab="Estimated probability of detection \nby either observer", xlab="Lake name", col=surveyTypeCols[1:2], pch=19, lwd=2, cex=2, sfrac=0, cex.lab=1.3, ylim=c(0,1.05))
+#abline(h=mean(phat.vec[c(1,3,5)]), col=col.vec[1], lty=3)
+#abline(h=mean(phat.vec[c(2,4,6)]), col=col.vec[2], lty=3)
+axis(1, at=c(1,2,3), labels=c("Lake Florida", "Lake Burgan", "Little Birch"))
 text(x=c(1,1, 2,2, 3,3) + c(-0.05, 0.05), phat.vec-0.11, labels=ss.vec, col=col.vec)
 
-legend('bottomleft', legend=c("Distance survey", "Double observer"), pch=19, cex=1.3, col=col.vec)
+legend('bottomleft', legend=c( "Double observer", "Distance survey"), pch=19, cex=1.3, col=surveyTypeCols[1:2])
 
+
+#dataf$Lake <- relevel(dataf$Lake, "Lake Florida")
+#surveyTypeCols <- wes_palette("Darjeeling1")
+#ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Densit estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
 ```
 
 ## Time budget analysis
