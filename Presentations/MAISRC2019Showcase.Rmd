@@ -34,8 +34,8 @@ knitr::include_graphics("../Figures/Fergusons.jpg")
 Develop recommendations for underwater survey methods for monitoring zebra mussels in recently infested lakes:
 
 > - Estimate density
-> - Distribution within the lake
-> - Quantify effects of treatments and impacts that depend on density
+> - Spatial distribution  
+> - Quantify effects of treatments and environmental impacts that depend on density
   > + $\Rightarrow$ requires comparisons over time and space
 
 </div>
@@ -51,7 +51,7 @@ knitr::include_graphics("../Figures/IMG_2558.JPG")
 
 At **high** densities management options are limited
 
-However, at **low** densities there are management options depending on:
+However, at **low** densities there may be management options depending on:
 
 - the spatial distribution of the population
 - the rate of increase of the population
@@ -181,7 +181,6 @@ Allows us to *and account for imperfect detection*.
 * Densities are uniform with respect to distance from the transect line (guaranteed with random placement of transects)
 * Detection on the transect line is *perfect*
 * Animals do not move before detection
-* Measurements are exact
 </div>
 
 
