@@ -394,7 +394,7 @@ knitr::include_graphics("../Figures/Katie.jpg")
 \
 
 
-- Analytical approach that shares similarities with models used to determine optimal foraging behaviors (Dr. Jake Ferguson, University of Hawaii)
+- Analytic approach that shares similarities with models used to determine optimal foraging behaviors (Dr. Jake Ferguson, University of Hawaii)
 
 ```{r, out.width = '60%', fig.align='center', echo=F}
 knitr::include_graphics("../Figures/Fergusons.jpg")
@@ -427,7 +427,7 @@ knitr::include_graphics("../Figures/web.jpg")
 - Data Sheets
 - Google Forms for data entry
 - Presentations and News
-- Analysis tutorial: https://zebramusselsurveys.netlify.com/tutorial
+- Code for analyzing data 
 
 </div>
 
