@@ -531,6 +531,20 @@ cv.quad.sample <- function(ts, D, a, tH, tT, alpha, t0, offset=0) {
   return(cv)
 }
 
+mean.quad.sample <- function(ts, D, a, tH, tT, alpha, t0, offset=0) {
+  
+  P.sing <- 1
+  P.dub  <- 1 
+  
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+  
+  e.X   <- D*a*P.dub
+  e.N   <- tT/(t0 + ts + tH*e.X)
+  
+  
+  return(e.N*e.X)
+}
+
 cv.doub.sample <- function(ts, D, a, beta, tH, tT, alpha, m, t0) {
   
   P.sing <- P(beta, ts)
@@ -547,12 +561,25 @@ cv.doub.sample <- function(ts, D, a, beta, tH, tT, alpha, m, t0) {
   
   cv.P <- 4*(1-P.sing)^3*P.sing/(n*e.X*P.dub^2)
   
- cv <- (e.N*var.X + e.X^2*var.N)/(e.N*e.X)^2 + cv.P
+   cv <- (e.N*var.X + e.X^2*var.N)/(e.N*e.X)^2 + cv.P
   
   return(cv)
 }
 
 
+
+mean.doub.sample <- function(ts, D, a, beta, tH, tT, alpha, m, t0) {
+  
+  P.sing <- P(beta, ts)
+  P.dub  <- 2*P.sing - P.sing^2
+  
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+
+  e.X   <- D*a*P.dub
+  e.N   <- tT/(t0 + ts + tH*e.X)
+  
+  return(e.N*e.X)
+}
 ```  
 
 # Connecting to zebra mussel surveys
@@ -945,8 +972,32 @@ image(D.vec, alpha.vec, opt.strat, col=c('cornflowerblue', 'grey'), xlab="Densit
 
 ```
 
-
 At low density and at low levels of overdispersion the optimal strategy is to use double observer surveys, at higher levels the strategy switches to using quadrat surveys.
+
+```{r optSearchtimeMean, echo=F, fig.asp=1, out.width = '50%', fig.cap="\\label{fig:optStrat}Illustration of the optimal search time parameters from Lake  Burgen and a total time budget of 8 hours."}
+library(akima)
+tT <- 16
+num <- 100
+D.vec <- seq(0.01, 10, length.out=num)#10^seq(-2, log10(10), length.out=num+10)
+alpha.vec <- seq(0, 5, length.out=num)
+
+
+dist.opt.ts <- matrix(NA, length(D.vec), length(alpha.vec))
+
+
+for(i in 1:length(D.vec)) {
+  for(j in 1:length(alpha.vec)) {
+    dist.opt.ts[i,j] <- optimize(mean.doub.sample, interval=c(0, tT), tol=1e-10, tT=tT, a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.vec[j], tH=th.dist, t0=t0.dist, maximum=TRUE)$maximum
+  }
+}
+
+levels =100
+filled.contour(D.vec, alpha.vec, dist.opt.ts, main="Optimal search time", nlevels=levels, plot.axes = { contour(D.vec, alpha.vec, dist.opt.ts, nlevels = 7, drawlabels = TRUE, axes = FALSE, frame.plot = FALSE, add = TRUE, col="white"); axis(1); axis(2) }, col = colorRampPalette(brewer.pal(6, "YlGnBu"))(levels+40), xlab="Density",  ylab=expression(paste("Overdispersion (", alpha, ")")), cex.lab=1.2)
+
+
+```
+
+
 
 ```{r optSearchtime, echo=F, fig.asp=1, out.width = '50%', fig.cap="\\label{fig:optStrat}Illustration of the optimal search time parameters from Lake  Burgen and a total time budget of 8 hours."}
 library(akima)
@@ -961,7 +1012,7 @@ dist.opt.ts <- matrix(NA, length(D.vec), length(alpha.vec))
 
 for(i in 1:length(D.vec)) {
   for(j in 1:length(alpha.vec)) {
-    dist.opt.ts[i,j] <- optimize(cv.doub.sample, interval=c(0, tT), tol=1e-10, tT=tT, a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.vec[j], tH=th.dist, t0=t0.dist)$objective
+    dist.opt.ts[i,j] <- optimize(cv.doub.sample, interval=c(0, tT), tol=1e-10, tT=tT, a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.vec[j], tH=th.dist, t0=t0.dist)$minimum
   }
 }
 
