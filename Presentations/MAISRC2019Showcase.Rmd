@@ -91,7 +91,7 @@ Develop recommendations for underwater survey methods for monitoring zebra musse
 </div>
 <div style="float: left; width: 90%;">
 
-  > + $\Rightarrow$ requires comparisons over time and space
+  > + $\Rightarrow$ compare density estimates over time and space
   > + $\Rightarrow$ want accurate estimates
   > + $\Rightarrow$ minimize uncertainty for a given level of sampling effort
     
@@ -143,9 +143,9 @@ We will have a demonstration at the end of this talk describing this process in 
 
 <div style="float: left; width: 60%;">
 
- - Challenges with developing a survey approach 
+ - Challenges associated with developing a survey approach 
 
-> - Year 1: Using distance sampling to estimate densities
+> - Year 1: Distance sampling to estimate densities
 
 > - Year 2: Comparing distance sampling and quadrat sampling
 
@@ -196,8 +196,8 @@ knitr::include_graphics("../Figures/LakeRandom.png")
 
 Our ability to detect mussels may depend on
 
-> -  water clarity, presence of plants, ...
-> -  the diver
+-  water clarity, presence of plants, ...
+-  the diver
 </div>
 
 
@@ -251,7 +251,7 @@ Allows us to *and account for imperfect detection*.
 <div style="float: right; width: 65%;">
 
  
-* Detection on the transect line is *perfect*
+* We detection *all* individuals that are on or near the transect line  
 * We detect fewer individuals as we move away from the transect line
 </div>
 
@@ -267,9 +267,11 @@ Allows us to *and account for imperfect detection*.
 
 \
 --->
-```{r, out.width = '65%', fig.align='center', echo=F}
-knitr::include_graphics("../Figures/dist.jpg") #show sylvia map and histogram
+```{r, out.width = '75%', fig.align='center', echo=F}
+knitr::include_graphics("../Figures/dsamp.png") #show sylvia map and histogram
 ```
+
+https://cran.r-project.org/web/packages/DSsim/vignettes/Investigating_Covariates_and_Truncation.html 
  
 ## Lake Sylvia
 
@@ -432,8 +434,14 @@ JAKE: Can you add a legend to the plot?
 
 ## Results
 
-```{r, out.width = '90%',fig.align="center", echo=F}
-knitr::include_graphics("../Figures/DensityEstimate2.png") #show detection functions
+```{r, out.width = '95%',fig.align="center", echo=F}
+knitr::include_graphics("../Figures/jplog1.jpeg") #show detection functions
+```
+
+## Results
+
+```{r, out.width = '95%',fig.align="center", echo=F}
+knitr::include_graphics("../Figures/jplot2.jpeg") #show detection functions
 ```
 
 ## Lessons from Year 2
