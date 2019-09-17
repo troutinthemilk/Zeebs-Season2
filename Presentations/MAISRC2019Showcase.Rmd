@@ -26,19 +26,54 @@ knitr::include_graphics("../Figures/Fergusons.jpg")
 --->
 
 
-## Objectives
 
 
-<div style="float: left; width: 65%;">
+## The Minnesota invasion
 
-Develop recommendations for underwater survey methods for monitoring zebra mussels in recently infested lakes:
 
-> - Estimate density
-> - Spatial distribution  
-> - Quantify effects of treatments and environmental impacts that depend on density
-  > + $\Rightarrow$ requires comparisons over time and space
-
+<div style="float: left; width: 50%;">
+Data from USGS Nonindigenous Aquatic Species Information Resource
 </div>
+
+<div style="float: right; width: 45%;">
+![](../Figures/MN_animated.gif)
+</div>
+
+<div class="notes">
+First detected in 1989 in Lake Superior. Mechanisms of spread natural can be natural dispersal between connected waterways (rivers). 
+However, human aided dispersal is  also an important factor in their spread. adults can attach to boats, nets, docks, etc. 
+larval zm’s can survive in any bits of water that are not properly drained in boats
+</div>
+
+## Impacts of the mussel invasion
+
+<div class="columns-2">
+![](../Figures/ZebraPipe.jpg)
+\
+<font size="3"> image: Mussel Prevention Program, San Luis Obispo County </font>
+</span>
+
+- Changes in water chemistry, water clarity
+- Decreases in native mussel populations
+- Decreases in plankton densities
+    + Less food for fish
+- Economic impacts on power industry
+    
+</div>
+
+
+<div class="notes">
+t has been documented that zms can alter their environment by increasing ammonium and nitrate
+There have been a number of documented changes in water chemistry, water clarity 
+Decreases in plankton production mean less food for fish
+
+economic impacts
+The photo on the right
+The zms can occur at extremely high densities growing over each other in like cancerous cells. They can reag such high densities can clog intake pipes for industrial applications. Congressional researchers estimated that an infestation of zebra mussel in the Great Lakes cost the power industry alone $3.1 billion in the 1993-1999 period
+</div>
+
+
+## Objectives
 
 <div style="float: right; width: 30%;">
 ```{r, out.width = '70%', fig.align = "center", echo=F, fig.cap="image: Naomi Blinick"}
@@ -46,7 +81,25 @@ knitr::include_graphics("../Figures/IMG_2558.JPG")
 ```
 </div>
 
+<div style="float: left; width: 65%;">
 
+Develop recommendations for underwater survey methods for monitoring zebra mussels in recently infested lakes:
+
+> - Estimate density (number/area)
+> - Spatial distribution  
+> - Quantify effects of treatments and environmental impacts that depend on density
+</div>
+<div style="float: left; width: 90%;">
+
+  > + $\Rightarrow$ requires comparisons over time and space
+  > + $\Rightarrow$ want accurate estimates
+  > + $\Rightarrow$ minimize uncertainty for a given level of sampling effort
+    
+
+</div>
+
+
+<!---
 ##  Why Focus on Newly Infested Lakes?
 
 At **high** densities management options are limited
@@ -84,7 +137,25 @@ image: Naomi Blinick
 There are a number of different ways that biologists count critters in the field. For our purposes we are interested in surveying lakes with low enough densities that simply jumping in the lake and looking that the bottom will not likely yield useful data. Therefore we are designing our study around transects, which allow our scuba-diving field scientists to spend enough time underwater to obtain estimates. 
 We will have a demonstration at the end of this talk describing this process in more detail, but for now you can think of it as a line where the scientist counts the number of organisms on either side. 
 </div>
+--->
 
+## Outline
+
+<div style="float: left; width: 60%;">
+
+ - Challenges with developing a survey approach 
+
+> - Year 1: Using distance sampling to estimate densities
+
+> - Year 2: Comparing distance sampling and quadrat sampling
+
+> - Products and knowledge transfer 
+
+</div>
+<div style="float: right; width: 40%;">
+
+<img src="../Figures/zeb.jpg" width="400">
+</div>
 
 ##  Important Considerations
 
@@ -92,12 +163,13 @@ We will have a demonstration at the end of this talk describing this process in 
 
 - We can't sample entire lakes!
 
-  > + must infer density after sampling only part of a lake
-  > + use random or systematic sampling
-  
+  >+ must infer density after sampling only part of a lake
+  >+ use random or systematic sampling
+
 - We may not detect all mussels in the area we sample
 
-  > + use methods that can correct for imperfect detection
+  >+ use methods that can correct for imperfect detection
+  
 
 </div>
  
@@ -169,7 +241,7 @@ Allows us to *and account for imperfect detection*.
 
 --->
 
-## Important assumptions in conventional distance sampling
+## Assumptions of conventional distance sampling
 
 <div style="float: left; width: 30%;">
 <img src="../Figures/IMG_2591.JPG" width="330">
@@ -178,14 +250,15 @@ Allows us to *and account for imperfect detection*.
 
 <div style="float: right; width: 65%;">
 
-* Densities are uniform with respect to distance from the transect line (guaranteed with random placement of transects)
+ 
 * Detection on the transect line is *perfect*
-* Animals do not move before detection
+* We detect fewer individuals as we move away from the transect line
 </div>
 
 
-## Extra information yields detection estimates
+## Distance Sampling
 
+<!---
 <div class="columns-2">
 <img src="../Figures/EM_animal.jpg" width="300">
 
@@ -193,10 +266,11 @@ Allows us to *and account for imperfect detection*.
 
 
 \
-
-<img src="../Figures/EM_distance.jpg" width="400">
-</div>
-
+--->
+```{r, out.width = '65%', fig.align='center', echo=F}
+knitr::include_graphics("../Figures/dist.jpg") #show sylvia map and histogram
+```
+ 
 ## Lake Sylvia
 
 ```{r, out.width = '90%', echo=F}
@@ -272,7 +346,7 @@ knitr::include_graphics("../Figures/AustenDistance.png")
 ```
 --->
 
-# Year 2: Comparing Multiple Survey Designs
+# Year 2: Comparing Distance and Quadrat Sampling
 
 ## Dive team
 
@@ -364,9 +438,9 @@ knitr::include_graphics("../Figures/DensityEstimate2.png") #show detection funct
 
 ## Lessons from Year 2
 
-* Distance sampling is preferable at low to moderate densities
+* Distance sampling is more cost-effective (less uncertainty for same level of sampling effort) at low to moderate densities
 
-* Quadrat sampling may be preferable at high densities (*when*?)
+* Quadrat sampling may be more cost effective at high densities (*when*?)
 \
 
 ```{r, out.width = '70%', fig.align = "center", echo=F, fig.cap="image: Aislyn Keyes"}
@@ -483,9 +557,7 @@ knitr::include_graphics("../Figures/DiverCountComparison.png")
 </div>
 
 <div class="notes">
-First detected in 1989 in Lake Superior. Mechanisms of spread natural can be natural dispersal between connected waterways (rivers). 
-However, human aided dispersal is  also an important factor in their spread. adults can attach to boats, nets, docks, etc. 
-larval zm’s can survive in any bits of water that are not properly drained in boats
+First detected in 1989 in Lake Superior. Mechanisms of spread: connected waterways (rivers), attached to boats, nets, docks, etc., larval zm’s can survive in any bits of water that are not properly drained in boats
 </div>
 
 ## Impacts of the mussel invasion
@@ -507,13 +579,9 @@ larval zm’s can survive in any bits of water that are not properly drained in 
 
 
 <div class="notes">
-t has been documented that zms can alter their environment by increasing ammonium and nitrate
-There have been a number of documented changes in water chemistry, water clarity 
-Decreases in plankton production mean less food for fish
+increase ammonium and nitrate, changes in water chemistry, water clarity, decreases in plankton production mean less food for fish
 
-economic impacts
-The photo on the right
-The zms can occur at extremely high densities growing over each other in like cancerous cells. They can reag such high densities can clog intake pipes for industrial applications. Congressional researchers estimated that an infestation of zebra mussel in the Great Lakes cost the power industry alone $3.1 billion in the 1993-1999 period
+clog intake pipes for industrial applications. Congressional researchers estimated that an infestation of zebra mussel in the Great Lakes cost the power industry alone $3.1 billion in the 1993-1999 period
 </div>
 
 
