@@ -9,9 +9,9 @@ header-includes:
    - \linenumbers
    - \usepackage{setspace}\doublespacing
 output:
+  html_document: default
   pdf_document: 
     fig_caption: yes
-  html_document: default
 bibliography: Zebra_mussels.bib
 geometry: margin=1in
 ---
@@ -30,6 +30,7 @@ library(RColorBrewer)
 library(wesanderson)
 library(grid)
 library(plotrix)
+library(tidyverse)
 
 load('DensEst.Rdata')
 
@@ -232,9 +233,9 @@ load('TimeBudgetEst.Rdata')
 #rate.pred <- subset(rate.pred, group != "Double")
 #length.pred$group <- droplevels(length.pred$group)
 
-p1 <- ggplot(subset(length.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+p1 <- ggplot(subset(search.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
 
-p2 <- ggplot(subset(length.pred, Type=="Encounter time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="", title="Search time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+p2 <- ggplot(subset(search.pred, Type=="Encounter time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="", title="Search time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
 
 p3 <- ggplot(rate.pred, aes(x, predicted/60, group=group, color=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Detection rate", y="", title="Search time") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
 
@@ -317,6 +318,7 @@ We can use this approximation to solve for the search time that minimizes $cv(D)
 Here we assume the fifth, third, and first order (and one of the second order) terms are small, this gives the biquadratic equation $0 \approx -8 \beta^4 \tau_0  + 5 \beta {\tau_S^*}^4 - 2 (\beta^3 + 3  \beta^2 \tau_0) {\tau_S^*}^2$. The solution is $\tau_S^* = \sqrt{\frac{\beta(\beta+3\tau_0) + \beta \sqrt{\beta^2 + 166\beta\tau_0 +9 \tau_0^2}}{10}} \approx  \sqrt{\frac{\beta(\beta+3\tau_0) + \beta \sqrt{166\beta\tau_0}}{10}} \approx  \sqrt{\frac{\beta(\beta+3\tau_0) + 13 \beta \sqrt{\beta\tau_0}}{10}}$, where we approximated $\beta\sqrt{\beta^2 + 166\beta\tau_0 +9 \tau_H)^2}$ as $13 \beta \sqrt{\beta\tau_0}$. In Figure \ref{fig:linApprox} we test the approximation in the distance and double-observer surveys and it does a good job. We also tried the approximation of $\tau_S^* \approx \sqrt{\frac{3\beta\tau_0}{10}}$ (dashed line) and it does pretty well, though this breaks down as searcher inefficiency gets large.
 
 ```{R, echo=F, eval=T, fig.cap="\\label{fig:linApprox} Comparison of model and the linear approximation. We assume that Dentisty is 0.1,  but the approximation works well up to D=1. At D=10 the approximation significantly underestimates the analytic solution. Dashed line is the apprximation of ....", fig.asp=0.55}
+
 par(mfrow=c(1,2))
 objquad.fun <- function(x) {-8*b^4*t0 + 4*b^2*x^3 + 5*b*x^4 + x^5 - 2*(2*D*a*b^2*th + b^3 + 3*b^2*t0)*x^2 - 4*(2*D*a*b^3*th + b^4 + 3*b^3*t0)*x}
 
@@ -428,6 +430,7 @@ In this case $\mathrm{var}(\hat{p}|X)=\frac{\hat{p}(1-\hat{p})}{Dan\hat{p}} = \f
 ```{r SingleObsApproxTestNB, echo=F, eval=T, fig.asp=0.55, fig.cap="\\label{fig:ApproxSingleNB} Comparison of model and the linear approximation. We assume that Dentisty is 0.1,  but the approximation works well up to D=1. At D=10 the approximation significantly underestimates the analytic solution. Dashed line is the apprximation of ...."}
 
 par(mfrow=c(1,2))
+
 obj.fun <- function(x) { 2*(D*a*alpha + 1)*x^7 - 2*b^5*t0*tt + (2*D*a*alpha*(3*b + t0 + th) + 7*b + 2*t0 + 2*th)*x^6 + 3*(2*(b^2 + b*(t0 + th))*D*a*alpha + 3*b^2 + 2*b*(t0 + th))*x^5 + (2*(b^3 + b^2*(3*t0 + 2*th) + (t0*th + th^2)*b)*D*a*alpha + 5*b^3 + b^2*(6*t0 + 6*th - tt) - (t0^2 - th^2 + t0*tt + th*tt)*b)*x^4 + (2*(b^3*t0 + b^2*t0*th)*D*a*alpha + b^4 + b^3*(2*t0 + 2*th - 3*tt) - (3*t0^2 - th^2 + 5*t0*tt + 3*th*tt)*b^2)*x^3 - 3*(b^4*tt + (t0^2 + 3*t0*tt + th*tt)*b^3)*x^2 - (b^5*tt + (t0^2 + 7*t0*tt + th*tt)*b^4)*x}
 
 
@@ -440,6 +443,7 @@ b   <- 0.5 #0.04
 t0  <- 0.08165083 #0.1371358
 th  <- 0.008586343 #0.01411156
 alpha <- 1
+tt    <- 8
 
 x <- 10^seq(-1.5, 1, length.out=100)
 #plot(x, obj.fun(x), log="xy", type='l', lwd=2, xlab=expression(paste("Search time (", tau[S], "*)")), ylab="Objective function")
@@ -590,17 +594,17 @@ From the empirical study we estimated $\tau_H$, $\tau_0$, and $\tau_S$ for each 
 
 load("DensEst.Rdata")
 
-th.dist <-  (927.325)/30/60^2 #??? need to divide by 30 to correct for detection rate?
-th.dub  <-  (927.325 + 596.723)/30/60^2 
-th.quad <-  (927.325 - 746.518)/30/60^2 
+th.dist <-  (coef(tenc.length)[3])/60^2 
+th.dub  <-  (coef(tenc.length)[3] + coef(tenc.length)[6])/60^2 
+th.quad <-  (coef(tenc.length)[3] + coef(tenc.length)[7])/60^2 
 
-ts.dist <- sum(c(461.735, 6.928, 927.325, -206.225, -45.469, 596.723, -746.518)*c(1, 30, 0, 0, 0, 0, 0))/60^2
-ts.dub  <- sum(c(461.735, 6.928, 927.325, -206.225, -45.469, 596.723, -746.518)*c(1, 30, 0, 1, 0, 0, 0))/60^2
-ts.quad  <- sum(c(461.735, 6.928, 927.325, -206.225, -45.469, 596.723, -746.518)*c(1, 30, 0, 0, 1, 0, 0))/60^2
+ts.dist <- sum(coef(tenc.length)*c(1, 30, 0, 0, 0, 0, 0))/60^2
+ts.dub  <- sum(coef(tenc.length)*c(1, 30, 0, 1, 0, 0, 0))/60^2
+ts.quad  <- sum(coef(tenc.length)*c(1, 30, 0, 0, 1, 0, 0))/60^2
 
-t0.dist <- sum(c(258.573, 1.179, 199.746, 162.609)*c(1, 30, 0, 0))/60^2 #+  15/60
-t0.dub  <- sum(c(258.573, 1.179, 199.746, 162.609)*c(1, 30, 1, 0))/60^2 #+  15/60
-t0.quad <- sum(c(258.573, 1.179, 199.746, 162.609)*c(1, 30, 0, 1))/60^2 #+  15/60
+t0.dist <- sum(coef(tset.length)*c(1, 30, 0, 0))/60^2 #+  15/60
+t0.dub  <- sum(coef(tset.length)*c(1, 30, 1, 0))/60^2 #+  15/60
+t0.quad <- sum(coef(tset.length)*c(1, 30, 0, 1))/60^2 #+  15/60
 
 distance.Phat <- mean(c(LBL.distance.est$phat, LB.distance.est$phat))#, LF.distance.est$phat))
 distance.phat <- 1 - sqrt(1-distance.Phat)
@@ -720,8 +724,8 @@ tT.quad <- sum(subset(time.df, Lake=="Lake Florida" & Type=="Quadrat")$Time)/60^
 for(i in 1:length(D.vec)) {
 
   cv.dist.est[i]   <- cv.doub.sample(ts=ts.dist, a=60, D=D.vec[i], beta=dist.beta, tH=th.dist, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.fit[1], m=NULL, t0=t0.dist)
-  cv.dist.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.fit[1], tH=th.dub, t0=t0.dub)$minimum
-  cv.dist.opt[i]    <- cv.doub.sample(ts=cv.dist.opt.ts[i], a=30, D=D.vec[i], beta=dist.beta, tH=th.dub, tT=tT, alpha=alpha.fit[1], m=NULL, t0=t0.dist)
+  cv.dist.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=60, D=D.vec[i], beta=dist.beta, alpha=alpha.fit[1], tH=th.dub, t0=t0.dub)$minimum
+  cv.dist.opt[i]    <- cv.doub.sample(ts=cv.dist.opt.ts[i], a=60, D=D.vec[i], beta=dist.beta, tH=th.dub, tT=tT, alpha=alpha.fit[1], m=NULL, t0=t0.dist)
   
   cv.dub.est[i]    <- cv.doub.sample(ts=ts.dub, a=30, D=D.vec[i], beta=double.beta, tH=th.dub, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.fit[1], m=NULL, t0=t0.dub)
   cv.dub.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=30, D=D.vec[i], beta=double.beta, alpha=alpha.fit[1], tH=th.dub, t0=t0.dub)$minimum
@@ -752,8 +756,8 @@ tT.quad <- sum(subset(time.df, Lake=="Lake Burgan" & Type=="Quadrat")$Time)/60^2
 
 for(i in 1:length(D.vec)) {
   cv.dist.est[i] <- cv.doub.sample(ts=ts.dist, a=60, D=D.vec[i], beta=dist.beta, tH=th.dist, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.fit[2], m=NULL, t0=t0.dist)
-  cv.dist.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.fit[2], tH=th.dub, t0=t0.dub)$minimum
-  cv.dist.opt[i]    <- cv.doub.sample(ts=cv.dist.opt.ts[i], a=30, D=D.vec[i], beta=dist.beta, tH=th.dub, tT=tT, alpha=alpha.fit[2], m=NULL, t0=t0.dist)
+  cv.dist.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=60, D=D.vec[i], beta=dist.beta, alpha=alpha.fit[2], tH=th.dub, t0=t0.dub)$minimum
+  cv.dist.opt[i]    <- cv.doub.sample(ts=cv.dist.opt.ts[i], a=60, D=D.vec[i], beta=dist.beta, tH=th.dub, tT=tT, alpha=alpha.fit[2], m=NULL, t0=t0.dist)
   
   cv.dub.est[i]  <- cv.doub.sample(ts=ts.dub, a=30, D=D.vec[i], beta=double.beta, tH=th.dub, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.fit[2], m=NULL, t0=t0.dub)
   cv.dub.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=1e-10, tT=mean(tT.dist, tT.dub, tT.quad), a=30, D=D.vec[i], beta=double.beta, alpha=alpha.fit[1], tH=th.dub, t0=t0.dub)$minimum
@@ -784,8 +788,8 @@ tT.quad <- sum(subset(time.df, Lake=="Little Birch Lake" & Type=="Quadrat")$Time
 for(i in 1:length(D.vec)) {
   
   cv.dist.est[i] <- cv.doub.sample(ts=ts.dist, a=60, D=D.vec[i], beta=dist.beta, tH=th.dist, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.fit[3], m=NULL, t0=t0.dist)
-   cv.dist.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=30, D=D.vec[i], beta=dist.beta, alpha=alpha.fit[2], tH=th.dub, t0=t0.dub)$minimum
-  cv.dist.opt[i]    <- cv.doub.sample(ts=cv.dist.opt.ts[i], a=30, D=D.vec[i], beta=dist.beta, tH=th.dub, tT=tT, alpha=alpha.fit[2], m=NULL, t0=t0.dist)
+   cv.dist.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=.Machine$double.eps, tT=mean(tT.dist, tT.dub, tT.quad), a=60, D=D.vec[i], beta=dist.beta, alpha=alpha.fit[2], tH=th.dub, t0=t0.dub)$minimum
+  cv.dist.opt[i]    <- cv.doub.sample(ts=cv.dist.opt.ts[i], a=60, D=D.vec[i], beta=dist.beta, tH=th.dub, tT=tT, alpha=alpha.fit[2], m=NULL, t0=t0.dist)
   
   cv.dub.est[i]  <- cv.doub.sample(ts=ts.dub, a=30, D=D.vec[i], beta=double.beta, tH=th.dub, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.fit[3], m=NULL, t0=t0.dub)
   cv.dub.opt.ts[i] <- optimize(cv.doub.sample, interval=c(0, tT), tol=1e-10, tT=mean(tT.dist, tT.dub, tT.quad), a=30, D=D.vec[i], beta=double.beta, alpha=alpha.fit[1], tH=th.dub, t0=t0.dub)$minimum
@@ -819,9 +823,9 @@ We see that the general pattern (Figure \ref{fig:cvLakes}) is for double observe
 One reason why the quadrat counts could predicted to perform better than it is actually performing is because of measurement error. Luckily, we had our divers survey the exact same quadrats in Little Birch lake and we plot the results below:
 
 ```{r, echo=F, fig.cap="\\label{fig:DiverCounts}Counts of diver one against diver two in the exact same quadrant. The one-to-one line is in grey."}
-
+library(readxl)
 ###examine counts of both observers
-#quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
+quadrat.dat      <- read_xlsx(path="../Data/Season2/Encounters - Quadrats (Responses).xlsx", sheet=1)
 quadrat.dat      <- quadrat.dat %>% subset(`Lake name` == "Little Birch Lake")
 
 quadrat.dat <- subset(quadrat.dat, (`Transect #` == 1 | `Transect #` == 2 | `Transect #` == 3 | `Transect #` == 4 | `Transect #` == 5 | `Transect #` == 6 | `Transect #` == 7 | `Transect #` == 8 | `Transect #` == 9 | `Transect #` == 10 | `Transect #` == 11))
@@ -941,6 +945,7 @@ Above we say that the optimal strategy switches as a function of density and the
 
 ```{r optStrat, echo=F, fig.asp=1, out.width = '50%', fig.cap="\\label{fig:optStrat}Illustration of the optimal strategy (double observer (gray) or quadrat survey with perfect detection (black)). We use the time budget parameters from Lake  Burgen and a total time budget of 8 hours."}
 library(akima)
+
 tT <- 8
 num <- 25
 D.vec <- 10^seq(-2, log10(25), length.out=num)
@@ -956,7 +961,7 @@ tT.quad <- sum(subset(time.df, Lake=="Lake Burgan" & Type=="Quadrat")$Time)/60^2
 
 for(i in 1:length(D.vec)) {
   for(j in 1:length(alpha.vec)) {
-    dub.mat[i,j]    <- cv.doub.sample(ts=ts.dub, a=30, D=D.vec[i], beta=double.beta, tH=th.dub, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.vec[j], m=NULL, t0=t0.dub)
+    dub.mat[i,j]    <- cv.doub.sample(ts=ts.dist, a=30, D=D.vec[i], beta=double.beta, tH=th.dub, tT=mean(tT.dist, tT.dub, tT.quad), alpha=alpha.vec[j], m=NULL, t0=t0.dub)
     quad.mat[i,j]   <- cv.quad.sample(ts=ts.quad, a=0.5^2*30/2*2, D=D.vec[i], tH=th.quad, alpha=alpha.vec[j], tT=mean(tT.dist, tT.dub, tT.quad), t0=t0.quad, offset=0)
     
     opt.strat[i,j] <- as.numeric(dub.mat[i,j] < quad.mat[i,j])

@@ -1,5 +1,6 @@
 load("../Writing/DensEst.Rdata")
 
+library(mgcv)
 library(lme4)
 library(dplyr)
 library(ggeffects)
@@ -12,32 +13,29 @@ source('ZebraFuncs.R')
 #time.df <- rbind(LB.distance.est$df, LB.quadrat.est$df, LBL.distance.est$df, LBL.quadrat.est.subset$df, LF.distance.est$df, LF.quadrat.est$df)
 time.df <- rbind(LB.distance.est$df, LB.double.est$df, LB.quadrat.est$df, LBL.distance.est$df ,LBL.double.est$df, LBL.quadrat.est.subset$df, LF.distance.est$df, LF.double.est$df, LF.quadrat.est$df)
 
-#contrasts(lm$Lake) <- contr.treatment(3)
-#tset.length <- lm(t.set ~ Length + Type + (1|Lake), data=time.df)
-
 tset.length <- lm(t.set ~ Length + Type + Lake, data=time.df,  contrasts=list(Lake="contr.helmert"))
 tset.length <- lm(t.set ~ Length + Type, data=time.df)
 
-#tset.length <- lm(t.set ~ Length + Type, data=time.df)
-#lm(y ~ f, contrasts = list(f = "contr.helmert"))
 detection.rate <- time.df$Detections/time.df$Length
-#tenc.length    <- lmer(t.enc ~ Length + detection.rate*Type + (1|Lake), data=time.df)
 
 contrasts(time.df$Lake) <- "contr.helmert"
-#tenc.length2   <- lm(t.enc ~ Length + detection.rate*Type + Lake, data=time.df)
-#tenc.length    <- lm(t.enc ~ Length + detection.rate*Type + Lake, data=time.df)
-tenc.length    <- lm(t.enc ~ Length + detection.rate*Type + Lake, data=time.df)
-tenc.length    <- lm(t.enc ~ Length + detection.rate*Type, data=time.df)
+tenc.length    <- lm(t.enc ~ Length + Detections*Type, data=time.df)
+
+#tenc.length    <- gam(t.enc ~ s(Length, by=Type) + s(Detections, by=Type), data=time.df)
 
 #tenc.length <- lm(t.set ~ Length + detection.rate + Type + Lake, data=time.df, contrasts=list(Lake="contr.helmert"))
 
-set.pred  <- ggpredict(tset.length, terms = c("Length", "Type"))
-set.pred  <- mutate(set.pred, Type="Setup time")
-enc.pred  <- ggpredict(tenc.length, terms = c("Length", "Type"))
-enc.pred  <- mutate(enc.pred, Type="Encounter time")
-length.pred <- rbind(set.pred, enc.pred)
-rate.pred   <- ggpredict(tenc.length, terms = c("detection.rate", "Type"))
+set.pred    <- ggpredict(tset.length, terms = c("Length", "Type"))
+set.pred    <- mutate(set.pred, Type="Setup time")
 
+search.pred    <- ggpredict(tenc.length, terms = c("Length", "Type", "Detections[0]"))
+search.pred    <- mutate(search.pred, Type="Search time")
+
+#enc.pred    <- mutate(enc.pred, Type="Encounter time")
+#length.pred <- rbind(set.pred, enc.pred)
+
+rate.pred   <- ggpredict(tenc.length, terms = c("Detections[1:35]", "Type"))
+rate.pred   <- mutate(rate.pred, Type="Encounter time")
 
 
 ############Travel time model
@@ -66,7 +64,6 @@ for(i in 1:nlevels(phase2.dat$Lake)) {
   
 }
 
-#travel.lm  <- lmer(TravelTime ~ TravelDist + (1|Lake), data=phase2.dat)
 travel.lm  <- lm(TravelTime ~ TravelDist * Lake, data=phase2.dat, contrasts = list(Lake = "contr.helmert"))
 
 ###predict travel time at each lake based on distnaces between sites
@@ -157,10 +154,10 @@ dr.quad.vec <- c(sum(LF.quadrat.est$Mussels), sum(LB.quadrat.est$Mussels), sum(L
 encDat <- data.frame(Intercept=1, Length=30, detection.rate=c(dr.double.vec[1], dr.quad.vec[1], dr.double.vec[2], dr.quad.vec[2], dr.double.vec[3], dr.quad.vec[3]), Type=rep(c("Double", "Quadrat"), 3))
 encDat$Type <- as.numeric(encDat$Type)-1
 encDat      <- encDat %>% mutate(Interaction=detection.rate*encDat$Type)
-#search.Time <- as.matrix(encDat)%*%(coef(tenc.length)[c(1,2,3,4,7)])
+search.Time <- as.matrix(encDat)%*%(coef(tenc.length)[c(1,2,3,4,7)])
 
-#search.Time <- as.matrix(encDat)%*%coef(tenc.length)[c(1,2,3,4,7)]
-#search.Time <- as.matrix(encDat)[,1:4]%*%coef(tenc.length)[c(1,2,3,4)]
+search.Time <- as.matrix(encDat)%*%coef(tenc.length)[c(1,2,3,4,7)]
+search.Time <- as.matrix(encDat)[,1:4]%*%coef(tenc.length)[c(1,2,3,4)]
 
 
 nbind <- rbind(Distance=nvec, Quadrat=nvec)

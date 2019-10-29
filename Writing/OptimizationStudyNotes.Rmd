@@ -369,7 +369,7 @@ cv.doub.singleObserver <- function(ts, D, a, beta, tH, tT, alpha, m, t0, var.N.f
   e.X   <- D*a*P.sing
   var.X <- e.X + alpha*(e.X)^2
   
-  cv.P <- P.sing^2*(1 - P.sing)/(n*e.X*P.sing^2)
+  cv.P <- P.sing^2*(1 - P.sing)/(n*e.X*P.sing^3)
   
   cv <- (n*var.X)/(n*e.X)^2 + cv.P
 
