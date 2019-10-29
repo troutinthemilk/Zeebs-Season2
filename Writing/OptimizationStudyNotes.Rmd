@@ -1,0 +1,440 @@
+---
+title: "Notes"
+author: "Jake M. Ferguson, Aislyn Keyes, Michael McCartney, Katie St. Clair, Douglas Johnson, John Fieberg"
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{graphicx}
+  - \usepackage{lineno}
+  - \linenumbers
+  - \usepackage{setspace}\doublespacing
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, echo=F, include=FALSE, warning=F}
+library(MASS)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(kableExtra)
+library(RColorBrewer)
+library(wesanderson)
+library(grid)
+library(plotrix)
+
+```
+
+# Introduction
+
+* Why we survey animal populations
+  * determine whether population size is growing or shrinking
+  * Assess impacts of management or conservation actions
+  * Understand the patterns and processes that generate the observed dynamics
+  * Important to standardize surveyed data across space, time, and observer
+* Searcher behavior as a link between optimal foraging theory (OFT) and survey design
+  * OFT was developed as an economic problem that examines a basic tradeoff between the amount of time it takes to capture food at a given density, i.e., the energetic cost of the food, and the amount of calories that each food item contains, i.e., the energetic reward.
+  * Survey design can be framed as a similar economic problem. 
+* Here we explored two types of surveys for zebra mussels. We used transect surveys with distance sampling, which covers a larger area but has imperfect detection, and quadrat surveys, which represent a low efficiency type of survey with high detection probability. We examined how each design performed under a range of densities. Finally, we used the empirical studies to parameterize a general model that allowed us to examine the determine the best survey approach for a given problem based on density.  
+
+# Methods
+
+## Surveys
+
+We conducted two different types of surveys in three Minnesota lakes in 2018. We decided lakes to survey based on initial visits to six different lakes throughout central Minnesota (Christmas Lake, East Lake Sylvia, Lake Burgan, Lake Florida, Little Birch Lake, Sylvia Lake) that have had confirmed recent zebra mussel infestations (as determined by Minnesota Department of Natural Resources). At each lake we visited 15 different sites distributed evenly around the lake. Each site was placed in 3 to 8 m of water and determined using a bathymetry shapefile in ArcMap. We located each point in the field using a GPS unit (Garmin GPSMAP 64s). At each site our team of two divers spent 15 minutes underwater counting zebra mussels. We used these counts to determine the three lakes to conduct full surveys on, selecting lakes that displayed a range of apparent densities. 
+
+Based on our initial 15 minute exploratory dives we conducted full surveys on Lake Florida in Kandiyohi County, Lake Burgan in Douglas County, and Little Birch Lake in Todd County. Lake Florida covers an area of 273 hectares and has a maximum depth of 12 m, Lake Burgan covers an area of 74 hectares and has a maximum depth of 13 m, Little Birch Lake covers 339 hectares and has a maximum depth of 27 m. We surveyed each of the 15 previously selected sites in each lake using two type of surveys; quadrat and distance sampling with removal. 
+
+
+### Quadrat surveys
+
+At each site we used the previously defined transect locations to determine the start of a transect. We ran out parallel 30 m transect lines 1 meter apart perpendicular to the shoreline, though transects were stopped earlier than 30 m if divers ran into the thermocline. Our team of two divers each took one of the transects, placing a $0.5 \times 0.5$ square meter quadrat every 2 meters along the transect. In each quadrat the diver counted all the mussels within the quadrat.  
+
+
+### Distance removal surveys
+
+At each site we used the previously defined transect locations to determine the start of each survey transect. We then ran out a 30 m transect in a direction perpendicular to the shoreline, though transects were stopped earlier than 30 m if divers ran into the thermocline. Divers surveyed 1 m on either side of the transect for a transect belt that is 2 m wide. 
+
+We conducted removal surveys, which require two divers. In the removal survey, the first diver swam over the transect line marking detections for the second diver. The second diver then tried to detect animals missed by the first diver. We implemented the distance removal survey by having the primary diver swim over the transect line. Whenever the diver detected a zebra mussel or cluster of mussels, they marked the location with a survey flag then recorded the number of mussels in the cluster, the distance from the transect start to the detection (hereafter transect distance), and the perpendicular distance from the location of the detection to the transect line (hereafter detection distance). The secondary diver then looked for zebra mussels that were missed by the primary diver. Divers rotated through the primary and secondary observer roles in order to *average out* potentially innate differences between observers [@Cook1979].
+
+
+
+## Empirical density estimates
+
+Applied two survey techniques, quadrat and distance sampling in each of three Minnesota lakes and estimated density for each method/lake combination. 
+
+### Quadrat surveys
+
+* Here, the counts per transect are given by $x_i$ and the area per transect is $a_i$. The total area surveyed for $n$ transects is $A=\sum_{i=1}^n a_i$ and the total counts are $X=\sum_i=1^n x_i$. 
+
+\begin{align}
+\hat{D} &= \frac{X}{A} \label{eq:Dquad}\\
+\mathrm{var}(\hat{D}) &= \hat{D}^2 \frac{\mathrm{var}(X)}{X^2}. \label{eq:Varquad}
+\end{align}
+
+### Distance sampling
+* In distance sampling the transect distance is used to estimate how detectability changes with distance from the transect line
+* Similar to above  the counts for each transect are denoted as $x_i$ with the total counts in the lake with $n$ transects is denoted as $X=\sum_i^n x_i$. The area surveyed for each transect is denoted as $a_i$ and the total length of $A=\sum_i^n a_i$. These equations do not take into account the fact that detections are clustered. We will assume that detection probabilities (denoted as $P$) are the same in each transect.
+
+\begin{align}
+\hat{D} &= \frac{X}{\hat{P} A} \label{eq:Ddistance}\\
+\mathrm{var}(\hat{D}) &= \hat{D}^2 \left(  \frac{\mathrm{var}(X)}{X^2} + \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right). \label{eq:Vardistance}
+\end{align}
+
+* Here we used a half-normal detection function.
+
+
+### Testing survey strategies
+In order to test how strategies perform over a range of densities, we need to develop a framework that will allow us to determine how the estimator variance changes as a function of target density. This framework requires a time-budget that allows us to determine how long it takes to complete a transect under different target densities.
+
+* We break up the total survey time ($\tau_T$) into three components the time to setup the transect ($\tau_0$), the time spent searching ($\tau_S$), and the time spent making and recording detections (e.g., the handling time, $\tau_H$). For $n$ transects the total time is broken up into these components
+$$\tau_T = n\, \tau_0 + n\, \tau_S + n \tau_H E[x_i] $$
+  * For the handing time piece here we assumed that the amount of time spent recording detections is equal on each transect. This is an assumption that we need to explore more.
+  * We empirically determined $\tau_0$, $\tau_S$, and $\tau_H$ using the following. 
+    * We had divers denote how much time they spent on the setup ($\tau_0$), the the total time spent searching and detecting zebra mussels. 
+      * We then modeled $\tau_0$ with the linear effects of transect length and with a categorical variable denoting survey method.
+    * We modeled the total time spent surveying a transect using a linear model with predictors of survey type (Distance or Quadrat), survey length and the number of detections with an interaction with survey type. The intercept of this model for a given survey type is an estimate of that survey type's search time ($\tau_S$) while the slope with respect to detections for a given survey type is that type's handling time ($\tau_H$).
+* We assumed that the amount of time for the searcher to make detections directly affects the probability of detection. One such model that incorporates this is $P(\tau_S) = \frac{\tau_S}{\beta +\tau_S}$. 
+  * Need to justify this functional form still versus $1 - e^{-\tau_S/\beta}$
+  * We estimated the searcher inefficiency $\beta$ by plugging in $\hat{P}$ averaged across lakes into the detection function and solved for $\beta=\tau_S(1/\hat{P} -1)$.
+  
+* We used the fitted models of setup time, search time, and detection probability to predict the amount of time to setup and search 30 m transects of each survey type in 5 hours. 
+* We then predicted the coefficient of variation for each survey across a range of densities under a fixed amount of time to determine whether the best survey strategy changes with density and overdispersion. 
+
+
+### Optimal survey framework
+Here we link the variance equations for the quadrat and distance designs (equations \ref{eq:Varquad} and \ref{eq:Vardistance}) to the constraint of a fixed amount of survey time. 
+
+* We allowed the searcher in distance surveys to tune their behavior by changing their search time, $\tau_S$. All other parameters in the search model were considered to be a fixed part of the design.
+* Based on the link defined above between detection probability and search time, we define the optimal survey as the design with the search time that the minimizes the variance of the density estimate under a fixed amount of survey time. We need to solve $\frac{\partial \mathrm{Var}(\hat{D})}{\partial \tau_S} \bigg|_{\tau^*_S} = 0$, where $n^* = \frac{\tau_T}{\tau_0 + \tau_S^* + \tau_H D a \, P(\tau_S^*)}$.
+  * We also need to recalculate $\mathrm{Var}(\hat{D})$ to account for the fact that now the number of transects, $n$, is a random variable. Will ignore for now due to some additional complications this induces.
+* note could also use floor function to get integer sample sizes... $n$ is currently treated as continuous.
+
+# Results
+
+## Empirical density estimates
+Here we report estimates of density in each lake estimated using each survey type. 
+
+* Due to a reproductive event on Little Birch lake we were only able to complete 4 transects in the allotted time.
+* Distance surveys allowed us to cover the most area of all the methods (Table \ref{tab:survSummTable}). Estimates of density along with the corresponding standard errors are give in (Figure \ref{fig:densEstFig}). Consistent with our initial searches on these lakes, we estimated that Lake Florida had the lowest density, Lake Burgan had an intermediate density, and Little Birch Lake had the highest density. 
+```{r survSummTable, echo=F}
+load('DensEst.Rdata')
+quad.est <- c(length(LF.quadrat.est$Area), sum(LF.quadrat.est$Area), sum(LF.quadrat.est$Mussels), length(LB.quadrat.est$Area), sum(LB.quadrat.est$Area), sum(LB.quadrat.est$Mussels), length(LBL.quadrat.est.subset$Area), sum(LBL.quadrat.est.subset$Area), sum(LBL.quadrat.est.subset$Mussels))
+
+dist.est <- c(length(LF.distance.est$Area), sum(LF.distance.est$Area), sum(LF.distance.est$Detections), length(LB.distance.est$Area), sum(LB.distance.est$Area), sum(LB.distance.est$Detections), length(LBL.distance.est$Area), sum(LBL.distance.est$Area), sum(LBL.distance.est$Detections))
+
+double.est <- c(length(LF.double.est$Area), sum(LF.double.est$Area), sum(LF.double.est$Detections), length(LB.double.est$Area), sum(LB.double.est$Area), sum(LB.double.est$Detections), length(LBL.double.est$Area), sum(LBL.double.est$Area), sum(LBL.double.est$Detections))
+ 
+dataf <- data.frame(rbind(quad.est, dist.est, double.est))
+dataf <- cbind(Design = c("Quadrat", "Distance", "Double"), dataf)
+                                                                                                                                           kable(dataf, digits=2, booktabs=T, row.names=F, col.names=c("Design", "Transects", "Area surveyed", "Detections", "Transects", "Area surveyed", "Detections", "Transects", "Area surveyed", "Detections"), caption="Summary of survey results.", align='lccccccccc') %>% add_header_above(c("", "Lake Florida"=3, "Lake Burgan"=3, "Little Birch Lake"=3), bold=F) 
+```
+
+```{r densEstFig, echo=F, fig.asp=0.4, fig.cap="Density estimates and standard errors."}
+dataf <- data.frame(Lake=rep(c("Lake Florida \n (low density)", "Lake Burgan \n (medium density)", "Little Birch Lake \n (high density)"),2), Design=c(rep("Quadrat", 3), rep("Distance", 3)), Estimate=c(LF.quadrat.est$Dhat, LB.quadrat.est$Dhat, LBL.quadrat.est.subset$Dhat, LF.distance.est$Dhat, LB.distance.est$Dhat, LBL.distance.est$Dhat), SE=c(LF.quadrat.est$Dhat.se, LB.quadrat.est$Dhat.se, LBL.quadrat.est.subset$Dhat.se, LF.distance.est$Dhat.se, LB.distance.est$Dhat.se, LBL.distance.est$Dhat.se))
+
+dataf$Lake <- relevel(dataf$Lake, "Lake Florida \n (low density)")
+surveyTypeCols <- wes_palette("Darjeeling1")
+ggplot(dataf, aes(x=Design, y=Estimate, colour=Design)) + geom_point(size=4) + facet_wrap(~Lake, ncol=3, scales="free") + geom_errorbar(aes(ymin=Estimate-SE, ymax=Estimate+SE, width=0)) + labs(x="", y="Density estimate") + theme_classic() + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + guides(fill=FALSE)
+```
+
+* Cluster sizes for the distance survey: in Lake Florida all detections were of single zebra mussels, in Lake Burgan the average cluster size in the distance survey was `r round(LB.distance.est$eS, 2)` (SD=`r round(sqrt(LB.distance.est$varS), 2)`). In Little Birch Lake there were larger and more variable clusters in both the distance survey, with an  average cluster size of `r round(LBL.distance.est$eS,2)` (SD=`r round(sqrt(LBL.distance.est$varS), 2)`).
+* Distance surveys: amount of area surveyed and number of detections in each lake are given in Table \ref{tab:survSummTable}. Estimates of density along with the corresponding standard errors are give in (Figure \ref{fig:densEstFig}). We determined that Lake Florida has the lowest density, Little Birch Lake had the highest density, and Lake Burgan had an intermediate density. 
+* Our estimates of the distance detection functions indicated that the detection probabilities were similar between lakes with the estimated transect detectability in Lake Florida (reported as the single-observer detection mean (standard error)) `r round(LF.distance.est$phat, 2)` (`r round(LF.distance.est$phat.se, 3)`), Lake Burgan `r round(LB.distance.est$phat, 2)` (`r round(LB.distance.est$phat.se, 2)`), and in Little Birch Lake `r round(LBL.distance.est$phat, 2)` (`r round(LBL.distance.est$phat.se, 2)`). 
+
+### Testing survey strategies
+Here we determined the time budget parameters and used these values to predict which survey design had the minimum estimator variance.
+
+* We found that survey type had significant effect on setup time, with quadrat surveys taking nearly twice as long to setup (presumably due to laying out one more transect line than in the distance survey). The effect of length was positive but not statistically significant at $\alpha=0.05$. Report estimates and standard errors somewhere.
+* We found that search time did not differ significantly by length or by survey type. However, the handling time in quadrat surveys was significantly less than distance surveys, as expected due to the time required to measure detection distance. Report estimates and standard errors somewhere.
+
+```{r timebudgFig, echo=F, warning=F}
+load('TimeBudgetEstNoDouble.Rdata')
+```
+
+```{r, echo=F}
+th.dist <-  (coef(tenc.length)[3])/60^2 
+th.quad <-  (coef(tenc.length)[3] + coef(tenc.length)[5])/60^2 
+
+ts.dist <- sum(coef(tenc.length)*c(1, 30, 0, 0, 0))/60^2
+ts.quad  <- sum(coef(tenc.length)*c(1, 30, 0, 1, 0))/60^2
+
+t0.dist <- sum(coef(tset.length)*c(1, 30, 0))/60^2
+t0.quad <- sum(coef(tset.length)*c(1, 30, 1))/60^2 
+
+phat.mean <- mean(LBL.distance.est$phat, LB.distance.est$phat, LF.distance.est$phat)
+beta <- ts.dist/phat.mean - ts.dist
+```
+
+* We estimated the survey inefficiency as $\beta =$ `r round(beta,2)` corresponding to a search time of about 10 minutes for a detection probability of $P=0.5$.
+
+```{R timeFig, echo=F, fig.cap="The impact of transect distance and detection rate on on the setup and search time. Bands represent 95% confidence intervals of the predicted values (I think, need to check). Add data to figures...", warning=F, message=F, fig.asp=0.4}
+
+surveyTypeCols <- wes_palette("Darjeeling1")
+
+p1 <- ggplot(subset(set.pred, Type=="Setup time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="Time (minutes)", title="Setup time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+p2 <- ggplot(subset(search.pred, Type=="Search time"), aes(x, predicted/60, group=group, colour=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Transect distance", y="", title="Search time") + theme(legend.position="none") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+p3 <- ggplot(rate.pred, aes(x, predicted/60, group=group, color=group)) + geom_line() + geom_ribbon(aes(ymin = conf.low/60, ymax = conf.high/60, fill=group), alpha = .1, colour=NA) + theme_classic() + labs(x="Detections", y="", title="Search time") + scale_fill_manual(values=surveyTypeCols) + scale_colour_manual(values=surveyTypeCols) + theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(p1, p2, p3, nrow=1, ncol=3, widths=c(8, 8, 12))
+```
+
+* With these components we can now compare which strategy does best across a range of densities by plugging in empirical estimates for $\tau_T$, $\tau_0$, $\tau_S$, and $\beta$ into the variance equations defined above.
+* We find that the optimal survey strategy switches from a distance survey to a quadrat survey at around 1 zebra mussel per meter-squared. This solution depends on over dispersion with distance sampling being less effective at higher levels of overdispersion than quadrat surveys. 
+
+```{r, echo=F}
+P <- function(beta, ts) {
+  p <- ts/(beta + ts)
+
+  return(p)
+}
+
+cv.doub.sample <- function(ts, D, a, beta, tH, tT, alpha, m, t0, var.N.flag=FALSE) {
+  #alpha <- 0
+  P.sing <- P(beta, ts)
+  P.dub  <- 2*P.sing - P.sing^2
+  
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+
+  e.X   <- D*a*P.dub
+  var.X <- e.X + alpha*(e.X)^2
+  
+  cv.P <- 4*(1-P.sing)^3*P.sing/(n*e.X*P.dub^2)
+  
+  cv <- (n*var.X)/(n*e.X)^2 + cv.P
+
+  return(cv)
+}
+
+
+cv.quad.sample <- function(ts, D, a, tH, tT, alpha, t0, var.N.flag=FALSE) {
+  
+  P.sing <- 1
+  P.dub  <- 1 
+ 
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+  e.X   <- D*a*P.dub
+  var.X <- e.X + alpha*(e.X)^2
+  
+  cv <- (n*var.X)/(n*e.X)^2
+  
+  return(cv)
+}
+
+```
+
+```{r optStrat, echo=F, fig.asp=1, out.width = '75%', fig.cap="\\label{fig:optStrat}Illustration of the optimal strategy (double observer (red) or quadrat survey with perfect detection (blue)). We use the time budget parameters from Lake  Burgen and a total time budget of 5 hours. Y-axis on log-scale. "}
+#library(akima)
+
+tT  <- 5
+num <- 100
+D.vec <- 10^seq(-2, log10(10), length.out=num)
+alpha.vec <- seq(0, 1, length.out=num)
+
+opt.strat <- dub.mat <- quad.mat <- matrix(NA, length(D.vec), length(alpha.vec))
+
+tT.dist <- sum(subset(time.df, Lake=="Lake Burgan" & Type=="Distance")$Time)/60^2
+tT.quad <- sum(subset(time.df, Lake=="Lake Burgan" & Type=="Quadrat")$Time)/60^2
+
+for(i in 1:length(D.vec)) {
+  for(j in 1:length(alpha.vec)) {
+    dub.mat[i,j]    <- cv.doub.sample(ts=ts.dist, a=60, D=D.vec[i], beta=beta, tH=th.dist, tT=tT, alpha=alpha.vec[j], m=NULL, t0=t0.dist)
+    quad.mat[i,j]   <- cv.quad.sample(ts=ts.quad, a=0.5^2*30/2*2, D=D.vec[i], tH=th.quad, alpha=alpha.vec[j], tT=tT, t0=t0.quad)
+    
+    opt.strat[i,j] <- as.numeric(dub.mat[i,j] < quad.mat[i,j])
+  }
+}
+
+image(D.vec, alpha.vec, opt.strat, col=surveyTypeCols[2:1], xlab="Density", ylab=expression(paste("Overdispersion (", alpha, ")")), log="x", cex.lab=1.3)
+#contour(D.vec, alpha.vec, dub.mat,  xlab="Density", ylab=expression(paste("Overdispersion (", alpha, ")")), cex.lab=1.3)
+
+#plot(D.vec, D.vec^2*quad.mat[,1], type='l', lwd=2, col=surveyTypeCols[2], ylab="Estimator variance", xlab="Density", xlim=c(0, 4), log="y")
+#lines(D.vec, D.vec^2*dub.mat[,1], type='l', lwd=2, col=surveyTypeCols[1], ylab="Estimator variance", xlab="Density")
+
+#legend('topleft', legend=c('Quadrat survey', 'Distance survey'), col=surveyTypeCols[2:1], lwd=2)
+```
+
+* Can get analytical solution for the density at which the optimal strategy switches when there is no overdispersion ($\alpha=0$). The density at which we switch is $D_{switch} = \frac{P(\tau_S)(\tau_{0,Q} + \tau_{s,Q} ) - (2- P(\tau_S))(\tau_{0,D} + \tau_{s,D} )}{a(\tau_{h,D}P(\tau_S)(1-P(\tau_S)) + \tau_{h,Q}P(\tau_S) )}$. Not clear how useful this is and need to double-check the work. 
+  * Note that as the setup time goes to zero, $\tau_{0,Q}=\tau_{0,D}=0$ then the switch density is $D_{switch} = \frac{ P(\tau_S) ( \tau_{s,Q} + \tau_{s,D} ) - 2\tau_{s,D} }{a(\tau_{h,D}P(1-P) + \tau_{h,Q} P(\tau_S) )}$. This is still not very intuitive but we see that for a switch to exist $P(\tau_S) ( \tau_{s,Q} + \tau_{s,D} ) > 2 \tau_{s,D}$ ...
+
+### Optimal survey strategy
+Here we study how having searchers tune their behavior to be optimal affects the outcome of distance survey estimates.
+
+#### Case 1: 
+
+A single-observer distance survey with no uncertainty in detection probability. 
+* In this case $\mathrm{Var}(\hat{P})=0$. 
+* For this case and the rest, the counts are distributed from a Negative binomial such that $\mathrm{E}[X] = n(\tau_S)\left( DaP(\tau_S)\right)$ and $\mathrm{Var}[x_i] = n(\tau_S) \left(DaP(\tau_S) + \alpha \left(DaP(\tau_S)\right)^2\right)$. 
+* The optimal survey strategy can be found analytically when $\alpha=0$:
+$$
+\begin{align*}
+  \frac{\partial}{ \partial\, \tau_S} \hat{D}^2 \frac{\mathrm{Var}(X)}{X^2} \bigg|_{\tau_S^*} &= 0\\
+  \tau_S^* &= \sqrt{\beta\tau_0}
+\end{align*}
+$$
+
+* Searchers should slow down with increases in searcher inefficiency ($\beta$) and with increases in setup time ($\tau_0$). This is a bit counter-intuitive as I would guess that with increases in setup time you might want to go faster in order to make that lost time up.
+* As $\alpha$ increases the optimal searcher behavior is to speed up. 
+
+```{r, echo=F, eval=T, fig.cap="Overdispersion affects the optimal search time and introduces a dependency of density as well. The solution is to go faster as overdispersion increases and as density increases."}
+#code to check that optimal strategy is independent of alpha when varP =0 as predicted by theory
+
+cv.doub.singleObs <- function(ts, D, a, beta, tH, tT, alpha, m, t0, var.N.flag=FALSE) {
+
+  P.sing <- P(beta, ts)
+  P.dub  <- P.sing 
+  
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+
+  e.X   <- D*a*P.dub
+  var.X <- e.X + alpha*(e.X)^2
+  
+  cv <- (var.X)/(n*(e.X)^2)
+
+  return(cv)
+}
+
+D.vec <- seq(0.001, 1, length.out=100)
+alpha.vec <- seq(0, 1, length.out=100)
+ts.opt <- matrix(NA, nrow=length(D.vec), ncol=length(alpha.vec))
+for(i in 1:length(D.vec)) {
+  for(j in 1:length(alpha.vec)) {
+    ts.opt[i,j] <- optimize(cv.doub.singleObs, interval=c(0, tT), D=D.vec[i], a=60, beta=beta, tH=th.dist, tT=tT, alpha=alpha.vec[j], t0=t0.dist, var.N.flag=FALSE)$minimum
+  }
+}
+#contour(D.vec, alpha.vec, ts.opt, type='l', xlab="Density", ylab="Overdispersion")
+levels = 7
+filled.contour(D.vec, alpha.vec, ts.opt, main="Optimal search time", nlevels=levels, plot.axes = { contour(D.vec, alpha.vec, ts.opt, nlevels = 7, drawlabels = TRUE, axes = FALSE, frame.plot = FALSE, add = TRUE, col="gray20"); axis(1); axis(2) }, col=colorRampPalette(brewer.pal(6, "YlGnBu"))(levels), xlab="Density",  ylab=expression(paste("Overdispersion (", alpha, ")")), cex.lab=1.2)
+
+```
+
+#### Case 2: 
+
+A double observer survey with no uncertainty in detection.
+
+* Can't get the analytical form of the solution but simulations indicate that these are independent of the same parameters (overdispersion, Density, handling time, total survey time) as the previous case.
+  * We will approximate $P^2 - 2P$ with $P=\tau_S/(\beta'+\tau_S)$, where $\beta'$ is a new value of the search inefficiency that gives a similar result as the two observer detection function. We find the $\beta'$ that (approximately) minimizes the absolute difference between these two functions. We approximate both detection functions around $\tau_S \approx \beta$. Then to first order  $\beta ' / ( \beta + \beta ') - 3/4 \approx 0$ or $\beta '= \beta/3$. 
+  * Thus, the optimal solution when there is no overdispersion ($\alpha=0$) can be approximated as $\tau_S^* \approx \sqrt{\frac{\beta\tau_0}{3}}$. THis approximation seems to work well for the $\beta$ value in this study (at least).
+  
+```{r, echo=F, eval=F}
+##check whether single observer is simular
+cv.doub.doubleObserver <- function(ts, D, a, beta, tH, tT, alpha, m, t0, var.N.flag=FALSE) {
+  P.sing <- P(beta, ts)
+  P.dub  <- 2*P.sing - P.sing^2
+  
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+
+  e.X   <- D*a*P.dub
+  var.X <- e.X + alpha*(e.X)^2
+  
+  cv <- (n*var.X)/(n*e.X)^2
+
+  return(cv)
+}
+
+ts.opt <- matrix(NA, length(D.vec), length(alpha.vec))
+beta.vec <- seq(0.001, 0.1, length.out=100)
+t0.vec <- seq(0.001, 0.1, length.out=100)
+for(i in 1:length(beta.vec)) {
+  for(j in 1:length(t0.vec)) {
+    ts.opt[i,j] <- optimize(cv.doub.doubleObserver, interval=c(0, tT), tT=tT, a=60, D=1, beta=beta.vec[i], alpha=0, tH=th.dist, t0=t0.vec[j])$minimum
+  }
+}
+
+contour(beta.vec, t0.vec, ts.opt)
+```
+
+#### Case 3
+
+Single observer distance survey with uncertainty in detection.
+
+* Here we are assuming that the search times in this case are the same as for a double observer survey. In reality a single-observer survey should be a bit faster.
+  * We assume a binomial distribution for the detectability uncertainty, $\mathrm{Var}(\hat{P}|X) = \frac{\hat{P}(1-\hat{P})}{\hat{N}} = \frac{\hat{P}^2 (1-\hat{P})}{X}$ **John, what do you think about this assumption? I assumed that the sample size used to estimate the binomial is N-hat then pluggedd in in Nhat =X/P to the binomial. Obviously is conditional on Nhat, but OK approximation??** This form could arise in distance sampling, though we wouldn't necessarily expect the detection variance to be binomial in this case  (worth exploring the beta-binomial?).
+  * The output below predicts an optimal strategy that depends on both density and on overdispersion. The effect of density increases leads to slower optimal surveys with $\alpha=0$, while for $\alpha > 0.05$ increases in density leads to optimal searches being slower. Thus, overdispersion flips the script on how the optimal strategy responds to density. 
+    *For $0 <\alpha < 0.05$ the solution is a unimodal function of density. 
+    * What is the intuition here behind this nonlinearity in the optimal strategy? Always speed up with overdispersion, and generally speed up with density. However for small levels of $\alpha$ you want to go fast at low or high densities, but slow at intermediate densities.
+    * THus, overdispersion flips the script from what we would do with out ove
+    * Analytical solutions are difficult to find.
+
+```{r, echo=F, fig.cap="Optimal search time at a given density and overdispersion-level for a single-observer study with uncertainty in detection. Zoomed in on y-axis to highlight this nonlinearity."}
+cv.doub.singleObserver <- function(ts, D, a, beta, tH, tT, alpha, m, t0, var.N.flag=FALSE) {
+  
+  P.sing <- P(beta, ts)
+ 
+  n <- tT/(t0 + ts + tH*D*a*P.sing)
+
+  e.X   <- D*a*P.sing
+  var.X <- e.X + alpha*(e.X)^2
+  
+  cv.P <- P.sing^2*(1 - P.sing)/(n*e.X*P.sing^2)
+  
+  cv <- (n*var.X)/(n*e.X)^2 + cv.P
+
+  return(cv)
+}
+
+alpha.vec <- seq(0, 1, length.out=100)
+D.vec     <- seq(0.001, 1, length.out=100)
+ts.opt <- ts.opt.sing <- matrix(NA, length(D.vec), length(alpha.vec))
+
+for(i in 1:length(D.vec)) {
+  for(j in 1:length(alpha.vec)) {
+    ts.opt[i,j] <- optimize(cv.doub.singleObserver, interval=c(0, tT), tT=tT, a=60, D=D.vec[i], beta=beta, alpha=alpha.vec[j], tH=th.dist, t0=t0.dist)$minimum
+    ts.opt.sing[i,j] <- optimize(cv.doub.singleObserver, interval=c(0, tT), tT=tT, a=60, D=D.vec[i], beta=beta/sqrt(3), alpha=alpha.vec[j], tH=th.dist, t0=t0.dist/sqrt(3))$minimum
+  }
+}
+
+levels = 11
+filled.contour(D.vec, alpha.vec, ts.opt, main="Optimal search time", nlevels=levels, plot.axes = { contour(D.vec, alpha.vec, ts.opt, nlevels = 7, drawlabels = TRUE, axes = FALSE, frame.plot = FALSE, add = TRUE, col="gray20"); axis(1); axis(2) }, col=colorRampPalette(brewer.pal(6, "YlGnBu"))(levels), xlab="Density", ylab=expression(paste("Overdispersion (", alpha, ")")), cex.lab=1.2, ylim=c(0, 0.1))
+
+
+```
+
+#### Case 4 
+
+Double observer survey with uncertainty in detection.
+  * We can get $\mathrm{var}(\hat{P})$, where $P$ is the probability of detection by either observer 1 or observer 2. Using the approximation from Cook and Jacobson,   $\mathrm{var}(\hat{P}) \approx \frac{(1-P)^2 P}{X} f(x_1,\, x_2)$, where $f(x_1,\, x_2)$ is a function that depends on the counts by observer 1 and observer 2. Here we assume that this function is 1 but in general $f(x_1,\, x_2) \leq 1$.  *Not sure if this is true, needs work*.
+  * Results are qualitatively similar to case of single observer with uncertainty in detection and qualitatively different from solutions without uncertainty in detection. 
+
+
+```{r, echo=F, fig.cap="Optimal search time at a given density and overdispersion-level for a double observer survey with uncertainty in detection."}
+cv.doub.doubleObserver <- function(ts, D, a, beta, tH, tT, alpha, m, t0, var.N.flag=FALSE) {
+  P.sing <- P(beta, ts)
+  P.dub  <- 2*P.sing - P.sing^2
+  
+  n <- tT/(t0 + ts + tH*D*a*P.dub)
+
+  e.X   <- D*a*P.dub
+  var.X <- e.X + alpha*(e.X)^2
+
+  cv.P <- (1-P.dub)^2*P.dub/(n*e.X)/P.dub^2 #4*(1-P.sing)^3*P.sing/(n*e.X*P.dub^2)
+    
+  cv <- (n*var.X)/(n*e.X)^2 + cv.P
+
+  return(cv)
+}
+
+alpha.vec <- seq(0, 1, length.out=100)
+D.vec     <- seq(0.01, 1, length.out=100)
+ts.opt.dub <- ts.opt.dub2 <- matrix(NA, length(D.vec), length(alpha.vec))
+
+for(i in 1:length(D.vec)) {
+  for(j in 1:length(alpha.vec)) {
+    ts.opt.dub[i,j] <- optimize(cv.doub.doubleObserver, interval=c(0, tT), tT=tT, a=60, D=D.vec[i], beta=beta, alpha=alpha.vec[j], tH=th.dist, t0=t0.dist)$minimum
+
+  }
+}
+
+
+levels = 9
+filled.contour(D.vec, alpha.vec, ts.opt.dub, main="Optimal search time", nlevels=levels, plot.axes = { contour(D.vec, alpha.vec, ts.opt.dub, nlevels = levels, drawlabels = TRUE, axes = FALSE, frame.plot = FALSE, add = TRUE, col="gray20"); axis(1); axis(2) }, col=colorRampPalette(brewer.pal(6, "YlGnBu"))(levels+2), xlab="Density", ylab=expression(paste("Overdispersion (", alpha, ")")), cex.lab=1.2, ylim=c(0, 0.1))
+```
+
+
+
+# Some Discussion
+
+# Appendix: incorporating variation in the number of transects
