@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Surveying, fast and slow</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="  Jake Ferguson (jakeferg@hawaii.edu)   University of Hawaii at Manoa" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Surveying, fast and slow
+## Linking optimal foraging theory and survey design
+### <br> Jake Ferguson (<a href="mailto:jakeferg@hawaii.edu" class="email">jakeferg@hawaii.edu</a>) <br> University of Hawaii at Manoa
+
+---
+
+
+
+
+# Zebra mussels, a freshwater invader
+
+.pull-left[
+&lt;br&gt;
+
+&lt;div class="figure" style="text-align: left"&gt;
+&lt;img src="../Figures/IMG_2535.JPG" alt="image: Naomi Blinick" width="100%" /&gt;
+&lt;p class="caption"&gt;image: Naomi Blinick&lt;/p&gt;
+&lt;/div&gt;
+]
+.pull-right[
+&lt;div class="figure" style="text-align: left"&gt;
+&lt;img src="../Figures/ZebraPipe.jpg" alt="image: Mussel Prevention Program, San Luis Obispo County" width="100%" /&gt;
+&lt;p class="caption"&gt;image: Mussel Prevention Program, San Luis Obispo County&lt;/p&gt;
+&lt;/div&gt;
+]
+
+???
+It has been documented that zms can alter their environment by increasing ammonium and nitrate
+There have been a number of documented changes in water chemistry, water clarity 
+Decreases in plankton production mean less food for fish
+economic impacts
+The photo on the right
+The zms can occur at extremely high densities growing over each other in like cancerous cells. They can reag such high densities can clog intake pipes for industrial applications. Congressional researchers estimated that an infestation of zebra mussel in the Great Lakes cost the power industry alone $3.1 billion in the 1993-1999 period
+
+---
+# Spread through Central U.S.
+
+&lt;br&gt;
+
+&lt;img src="../Figures/MN_animated.gif" style="display: block; margin: auto;" /&gt;
+
+
+???
+First detected in 1989 in Lake Superior. Mechanisms of spread natural can be natural dispersal between connected waterways (rivers). 
+However, human aided dispersal is  also an important factor in their spread. adults can attach to boats, nets, docks, etc. 
+larval zm’s can survive in any bits of water that are not properly drained in boats
+
+---
+# Slow-fast tradeoffs in surveys
+
+&lt;br&gt;
+
+&lt;img src="../Figures/PrecisionTradeoffs_II.png" width="90%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Optimal foraging theory
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="../Figures/MacArthurPianka1963.png" alt="From MacArthur &amp;amp; Pianka (1966)" width="60%" /&gt;
+&lt;p class="caption"&gt;From MacArthur &amp; Pianka (1966)&lt;/p&gt;
+&lt;/div&gt;
+
+???
+
+MacArthur and Pianka asked how many species should a predator consume for a set of prey items that are profitibale? Delta S is the mean search time. Delta P is the mean pursuit time (handling time). Considered 
+
+---
+# Survey designs
+
+&lt;img src="../Figures/DistanceQuadratSampling.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+---
+# The time budget approach
+
+`$$T = \underbrace{N\, \tau_0}_{\text{Setup time} } + \underbrace{N\, \tau_S}_{\text{Search time} } + \underbrace{N\, E[X] \, \tau_H}_{\text{Handling time}}$$`
+
+Travel time between transects is also a factor but we will ignore it.
+
+&lt;br&gt;
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="../Figures/CH_time.png" alt="Bill Watterson" width="80%" /&gt;
+&lt;p class="caption"&gt;Bill Watterson&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# The importance of search time
+
+&lt;br&gt;
+
+### **Search time** determines:
+
+&lt;br&gt;
+
+- The probability of detection `\(P = \frac{\tau_S}{\tau_S + \beta}\)`
+
+- The expected number of detections on a transect `\(E[X] = P\, D\, a\)`
+
+- The number of transects surveyed `\(E[N]=\frac{T}{\tau_0 + \tau_S + E[X] \tau_H}\)`.
+
+
+---
+# The time budget data
+
+&lt;img src="../Figures/TimeBudgetEstimates.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+---
+# Which survey strategy is superior?
+
+&lt;img src="../Figures/StrategySwitch.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Survey results
+
+&lt;img src="../Figures/DensityEstimate2.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+---
+# Optimization of a search strategy
+
+&lt;br&gt;
+
+Optimal surveys should minimize the variance of the estimated density.
+
+$$
+`\begin{align}
+\mathrm{Var} (\hat{D})  &amp;= \text{Variation in counts} + \text {Variation in detection}\\
+ &amp;= \hat{D}^2 \left(  \frac{\mathrm{E[N]} \mathrm{Var}(X|P) + \mathrm{Var}(N)\mathrm{E}[X|P]^2}{X^2} +  \frac{\mathrm{var}(\hat{P})}{\hat{P}^2} \right)
+\end{align}`
+$$
+
+&lt;br&gt;
+
+Optimization condition
+`$$\frac{d\, \mathrm{Var} (\hat{D})}{ d\, \tau_S}\Bigr|_{\tau_{S^*}} =0$$`
+
+
+---
+# How to perform an optimal distance survey?
+
+&lt;img src="../Figures/OptimalityDouble2.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+* Speed up with higher densities
+
+* Speed up with increases in spatial heterogeneity
+
+
+---
+# Summary
+
+* Linked surveyor behavior to detection probabilities
+  * Still missing some variance contributions
+ 
+  
+* Lower handling time leads to superior behavior of quadrats at high densities
+
+  
+* Found cost of missing rare individuals is high
+  
+
+* How to precisely control searcher effort?
+
+---
+# Acknowledgements
+
+.pull-left[
+John Fieberg
+
+Michael McCartney
+
+Naomi Blinick
+
+Leslie  Schroeder
+
+Sarah Baker
+
+Aislyn Keyes
+
+Austin Hilding
+
+&lt;br&gt;
+
+&lt;img src="../Figures/MAISRC_logo.png" height="100"&gt;
+
+]
+
+.pull-right[
+Kylie Cattoor
+
+Keegan Lund
+
+Alana Danieu
+
+Nick Fredrickson
+
+Emily Kaegi
+
+Clara Livingston
+
+Katie St. Clair
+
+&lt;br&gt; 
+
+&lt;img src="../Figures/TrustFund.jpg" height="100"&gt;
+
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:10"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
